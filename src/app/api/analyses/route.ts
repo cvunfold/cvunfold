@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     } else report = validateEvidence(createMockReport(seniority, jobDescription.length > 0), new Set(["seg_exp_1", "seg_summary", "seg_project_1"]));
     const token = createAccessToken();
     const retentionDays = Number(process.env.REPORT_RETENTION_DAYS || 30);
-    saveAnalysis(token, { id: randomUUID(), createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
+    await saveAnalysis(token, { id: randomUUID(), createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
       status: "complete", paid: false, plan: jobDescription ? "job_match" : "full_review", report, feedback: [] });
     track("analysis_succeeded"); track("teaser_viewed");
     return NextResponse.json({ accessToken: token, teaser: toTeaser(report) });
