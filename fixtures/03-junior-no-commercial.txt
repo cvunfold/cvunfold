@@ -1,0 +1,2 @@
+SYNTHETIC CV — JUNIOR FRONTEND DEVELOPER
+No commercial experience. Built an accessible event-search project using semantic HTML, React and a public API. Wrote tests and documented technical choices. Result values intentionally absent.

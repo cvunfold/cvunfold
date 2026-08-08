@@ -1,0 +1,2 @@
+SYNTHETIC CV — SENIOR FRONTEND DEVELOPER
+Owned the measured performance work for the authenticated dashboard. Used bundle analysis and route-level loading changes. Verified p75 LCP improved from 3.1s to 2.2s in the documented production dashboard. Reviewed the plan with product and backend teams.

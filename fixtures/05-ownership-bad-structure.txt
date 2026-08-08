@@ -1,0 +1,2 @@
+SYNTHETIC CV — SENIOR FRONTEND DEVELOPER
+Summary and first role contain generic responsibilities. Final project section: proposed and documented migration from duplicated UI patterns to a shared component library; coordinated adoption with design and two product teams. Outcome not quantified.

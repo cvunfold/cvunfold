@@ -1,0 +1,2 @@
+SYNTHETIC CV — FRONTEND DEVELOPER
+Skills: React, Vue, Angular, Svelte, TypeScript, AWS, Azure, GCP, Kubernetes, Docker, GraphQL, REST, Cypress, Playwright. Experience bullet: developed web applications. No link between skills and projects.

@@ -1,0 +1,2 @@
+SYNTHETIC CV — SENIOR FRONTEND DEVELOPER
+Experience: responsible for React application development, code review, meetings, bug fixes, deployments and team support. Technologies: React, TypeScript, CSS. No outcomes or decision context provided.

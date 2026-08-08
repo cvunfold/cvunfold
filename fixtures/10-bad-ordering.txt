@@ -1,0 +1,2 @@
+SYNTHETIC CV — FRONTEND DEVELOPER
+First page: education, generic skills and old responsibilities. Last line: led accessibility remediation for the core flow, documented WCAG issues and established regression checks with design and QA. Strong evidence is poorly exposed.

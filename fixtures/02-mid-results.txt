@@ -1,0 +1,2 @@
+SYNTHETIC CV — FRONTEND DEVELOPER
+Built a checkout validation flow in React and TypeScript. After a measured experiment, form completion improved by 8% (verified internal analytics). Added component tests for the changed path.
