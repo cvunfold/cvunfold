@@ -80,7 +80,7 @@ export default function LandingPage() {
             <li>Niejasny zakres ownershipu</li>
             <li>Za mało widocznych rezultatów</li>
           </ul>
-          <Link className="report-preview-link" href="/pl/analiza">Zobacz cały raport <ArrowIcon /></Link>
+          <Link className="report-preview-link" href="/pl/przykladowy-raport">Zobacz przykładowy raport <ArrowIcon /></Link>
         </div>
       </div>
     </section>
@@ -133,13 +133,16 @@ export default function LandingPage() {
 
     <NumberedSection number="06" className="demo">
       <div>
-        <h2>Przykładowy raport</h2>
-        <p>Od pierwszych 20 sekund po konkretne dowody, priorytety i sugestie, które nie zmieniają faktów.</p>
-        <Link className="text-link" href="/pl/analiza">Zobacz raport na swoim CV <ArrowIcon /></Link>
+        <h2>Zobacz prawdziwy format raportu</h2>
+        <p>Pełny przykład dla fikcyjnej Senior Frontend Developerki: dokument źródłowy, pierwsze 20 sekund, wyniki kategorii, dowody, sugestie i kolejność poprawek.</p>
+        <Link className="text-link" href="/pl/przykladowy-raport">Otwórz przykładowy raport <ArrowIcon /></Link>
       </div>
-      <div className="demo-score">
-        <ScoreRing score={72} />
-        <div>{checks.slice(0, 5).map(([label], index) => <div key={label}><span>{label}</span><b>{[58, 68, 82, 65, 74][index]}</b></div>)}</div>
+      <div className="demo-report-card">
+        <header><div><small>DANE PRZYKŁADOWE</small><h3>Marta Nowak</h3><p>Senior Frontend Developer · 7 lat doświadczenia</p></div><ScoreRing score={81} compact /></header>
+        <div className="demo-verdict"><span>WERDYKT</span><p>Dokument wiarygodnie komunikuje poziom Senior, ale traci część siły przez niejasny indywidualny wkład.</p></div>
+        <div className="demo-finding"><div><span>NAJMOCNIEJSZY DOWÓD</span><p>„p75 LCP spadło z 3,1 s do 2,2 s, a współczynnik porzuceń mobilnych zmniejszył się o 8%.”</p></div><strong>82<small>/100</small></strong></div>
+        <div className="demo-finding"><div><span>NAJWIĘKSZE RYZYKO</span><p>Niejasny zakres ownershipu przy design systemie używanym przez cztery zespoły.</p></div><b>CRITICAL</b></div>
+        <Link className="report-preview-link" href="/pl/przykladowy-raport">Zobacz 4 problemy i plan działania <ArrowIcon /></Link>
       </div>
     </NumberedSection>
 
