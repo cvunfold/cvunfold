@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { reportSchema, type CVReport } from "./schemas/report";
-import { validateEvidence } from "./validate-report";
+import { applyServerRubric, validateEvidence } from "./validate-report";
 import type { Segment } from "@/lib/document-parsing";
 import { getRubric, type Seniority } from "@/lib/rubrics/frontend-v1";
 
@@ -20,11 +20,12 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<CVReport> {
   const apiKey = process.env.OPENAI_API_KEY; const model = process.env.OPENAI_REVIEW_MODEL;
   if (!apiKey || !model) throw new Error("OPENAI_NOT_CONFIGURED");
   const client = new OpenAI({ apiKey, timeout: 90_000, maxRetries: 2 });
+  const rubric = getRubric(input.targetSeniority);
   const payload = {
     locale: input.locale,
     targetRole: "Frontend Developer",
     targetSeniority: input.targetSeniority,
-    rubric: getRubric(input.targetSeniority),
+    rubric,
     evidence: input.segments,
     jobDescription: input.jobDescription || null,
   };
@@ -38,5 +39,6 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<CVReport> {
     text: { format: zodTextFormat(reportSchema, "cv_report") },
   });
   if (!response.output_parsed) throw new Error("OPENAI_INVALID_RESPONSE");
-  return validateEvidence(response.output_parsed, new Set(input.segments.map((segment) => segment.id)));
+  const normalized = applyServerRubric(response.output_parsed, rubric);
+  return validateEvidence(normalized, new Set(input.segments.map((segment) => segment.id)));
 }

@@ -1,10 +1,31 @@
 import type { CVReport, TeaserReport } from "./schemas/report";
 import { reportSchema } from "./schemas/report";
+import type { RubricCategory } from "@/lib/rubrics/frontend-v1";
 
 export function calculateOverall(categories: CVReport["categoryScores"]): number {
   const weight = categories.reduce((sum, category) => sum + category.weight, 0);
   if (Math.abs(weight - 1) > 0.001) throw new Error("INVALID_RUBRIC_WEIGHTS");
   return Math.round(categories.reduce((sum, category) => sum + category.score * category.weight, 0));
+}
+
+export function applyServerRubric(report: CVReport, rubric: RubricCategory[]): CVReport {
+  const modelCategories = new Map(report.categoryScores.map((category) => [category.key, category]));
+  const categoryScores = rubric.map((category) => {
+    const modelCategory = modelCategories.get(category.key);
+    if (!modelCategory) return {
+      ...category,
+      score: 0,
+      rationale: "Model nie zwrócił oceny tej kategorii.",
+      evidenceRefs: [],
+    };
+    return {
+      ...modelCategory,
+      key: category.key,
+      label: category.label,
+      weight: category.weight,
+    };
+  });
+  return { ...report, categoryScores };
 }
 
 export function validateEvidence(report: CVReport, validRefs: Set<string>): CVReport {

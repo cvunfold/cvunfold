@@ -56,7 +56,10 @@ export async function POST(request: Request) {
       NOT_A_CV: "Ten dokument nie wygląda jak CV. Prześlij dokument zawierający doświadczenie, umiejętności i historię zawodową.",
       DOCUMENT_TEXT_TOO_LONG: "Dokument zawiera zbyt dużo tekstu. Skróć CV do najważniejszych informacji.",
       OPENAI_INVALID_RESPONSE: "Analiza nie przeszła walidacji. Spróbuj ponownie.",
+      INVALID_RUBRIC_WEIGHTS: "Nie udało się przeliczyć oceny raportu. Spróbuj ponownie.",
       RATE_LIMIT_CHECK_FAILED: "Nie możemy teraz bezpiecznie uruchomić analizy. Spróbuj ponownie za chwilę." };
+    const safeCode = Object.hasOwn(messages, code) ? code : "ANALYSIS_FAILED";
+    console.error(`[analysis_failed] ${safeCode}`);
     const status = code === "RATE_LIMIT_CHECK_FAILED" ? 503 : 400;
     return NextResponse.json({ error: messages[code] || "Nie udało się przeanalizować dokumentu." }, { status });
   }
