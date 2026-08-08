@@ -7,6 +7,12 @@ export type Analysis = {
   id: string; createdAt: Date; expiresAt: Date; tokenHash: string; status: "complete" | "deleted";
   paid: boolean; plan: "full_review" | "job_match"; report: CVReport; feedback: AnalysisFeedback[];
 };
+export type PendingPayment = {
+  analysisId: string; checkoutSessionId: string; plan: Analysis["plan"]; amountGross: number; currency: string;
+};
+export type StripePayment = PendingPayment & {
+  eventId: string; paymentIntentId: string | null; customerId: string | null;
+};
 
 type Store = { analyses: Map<string, Analysis>; events: Array<{ name: string; at: Date }> };
 type StoredAnalysisRow = {
@@ -78,6 +84,37 @@ export async function markAnalysisPaid(token: string): Promise<boolean> {
   const { data, error } = await client.from("analyses").update({ paid_at: new Date().toISOString() })
     .eq("access_token_hash", hashToken(token)).eq("status", "complete").select("id").maybeSingle();
   if (error) throw new Error("SUPABASE_UPDATE_FAILED");
+  return Boolean(data);
+}
+
+export async function savePendingPayment(payment: PendingPayment): Promise<void> {
+  const client = supabaseClient();
+  if (!client) return;
+  const { error } = await client.from("payments").upsert({
+    analysis_id: payment.analysisId,
+    stripe_checkout_session_id: payment.checkoutSessionId,
+    plan: payment.plan,
+    amount_gross: payment.amountGross,
+    currency: payment.currency.toLowerCase(),
+    status: "pending",
+  }, { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true });
+  if (error) throw new Error("SUPABASE_PAYMENT_SAVE_FAILED");
+}
+
+export async function fulfillStripePayment(payment: StripePayment): Promise<boolean> {
+  const client = supabaseClient();
+  if (!client) return false;
+  const { data, error } = await client.rpc("fulfill_stripe_payment", {
+    p_event_id: payment.eventId,
+    p_analysis_id: payment.analysisId,
+    p_checkout_session_id: payment.checkoutSessionId,
+    p_payment_intent_id: payment.paymentIntentId,
+    p_customer_id: payment.customerId,
+    p_plan: payment.plan,
+    p_amount_gross: payment.amountGross,
+    p_currency: payment.currency.toLowerCase(),
+  });
+  if (error) throw new Error("SUPABASE_PAYMENT_UPDATE_FAILED");
   return Boolean(data);
 }
 

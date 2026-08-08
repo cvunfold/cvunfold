@@ -20,7 +20,7 @@ export function ReportView({ token, paid, data, mockMode }: Props) {
     strengths: teaser?.counts.strengths ?? 0,
     nextSteps: teaser?.counts.nextSteps ?? 0,
   };
-  async function unlock(){setBusy(true);const r=await fetch(`/api/analyses/${token}/checkout`,{method:"POST"});if(r.ok)router.refresh();else{const d=await r.json();alert(d.error);setBusy(false)}}
+  async function unlock(){setBusy(true);const r=await fetch(`/api/analyses/${token}/checkout`,{method:"POST"});const d=await r.json();if(r.ok&&d.url){window.location.assign(d.url);return}if(r.ok){router.refresh();return}alert(d.error);setBusy(false)}
   async function remove(){if(!confirm("Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć."))return;await fetch(`/api/analyses/${token}`,{method:"DELETE"});router.push("/pl?deleted=1")}
   async function feedback(e:React.FormEvent<HTMLFormElement>){e.preventDefault();const form=new FormData(e.currentTarget);await fetch(`/api/analyses/${token}/feedback`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({rating:Number(form.get("rating")),accurate:form.get("accurate"),comment:form.get("comment")})});setSent(true)}
   return <main className="report-page"><header className="report-mobile-header"><Logo/><button className="delete-link" onClick={remove}><LockIcon/> Usuń moje dane</button></header><div className="report-layout">
