@@ -145,9 +145,12 @@ export async function cleanupExpired(now = new Date()): Promise<number> {
     let count = 0; for (const [key, item] of store.analyses) if (item.expiresAt <= now) { store.analyses.delete(key); count += 1; }
     return count;
   }
-  const { count, error } = await client.from("analyses").delete({ count: "exact" }).lte("expires_at", now.toISOString());
-  if (error) throw new Error("SUPABASE_DELETE_FAILED");
-  return count || 0;
+  const [analysesResult, quotaResult] = await Promise.all([
+    client.from("analyses").delete({ count: "exact" }).lte("expires_at", now.toISOString()),
+    client.from("analysis_rate_limits").delete().lte("expires_at", now.toISOString()),
+  ]);
+  if (analysesResult.error || quotaResult.error) throw new Error("SUPABASE_DELETE_FAILED");
+  return analysesResult.count || 0;
 }
 
 export function track(name: string): void { store.events.push({ name, at: new Date() }); }

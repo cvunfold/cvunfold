@@ -3,9 +3,10 @@ import { randomUUID } from "node:crypto";
 import { createMockReport } from "@/lib/ai/mock-report";
 import { validateEvidence, toTeaser } from "@/lib/ai/validate-report";
 import { parseDocument } from "@/lib/document-parsing";
+import { validateCvText } from "@/lib/document-parsing/cv-detection";
 import { saveAnalysis, track } from "@/lib/data/store";
 import { createAccessToken, hmacIdentifier } from "@/lib/security/tokens";
-import { rateLimit } from "@/lib/security/rate-limit";
+import { consumeAnalysisQuota, rateLimit } from "@/lib/security/rate-limit";
 import { validateSignature, validateUpload } from "@/lib/security/upload";
 import type { Seniority } from "@/lib/rubrics/frontend-v1";
 import { reviewWithOpenAI } from "@/lib/ai/openai-review";
@@ -13,7 +14,10 @@ import { reviewWithOpenAI } from "@/lib/ai/openai-review";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const ipKey = hmacIdentifier(request.headers.get("x-forwarded-for")?.split(",")[0] || "local");
+  const clientIp = request.headers.get("x-vercel-forwarded-for")
+    || request.headers.get("x-forwarded-for")?.split(",")[0]
+    || "local";
+  const ipKey = hmacIdentifier(clientIp);
   if (!rateLimit(ipKey)) return NextResponse.json({ error: "Spróbuj ponownie za chwilę." }, { status: 429 });
   track("analysis_started");
   try {
@@ -27,8 +31,14 @@ export async function POST(request: Request) {
     const mockMode = process.env.MOCK_MODE === "true";
     let report;
     if (!mockMode) {
+      const quota = await consumeAnalysisQuota(ipKey);
+      if (!quota.allowed) return NextResponse.json(
+        { error: "Osiągnięto limit bezpłatnych analiz. Spróbuj ponownie później." },
+        { status: 429, headers: { "Retry-After": String(quota.retryAfterSeconds) } },
+      );
       await validateSignature(file);
       const parsed = await parseDocument(file);
+      validateCvText(parsed.text);
       report = await reviewWithOpenAI({ segments: parsed.segments, targetSeniority: seniority, jobDescription: jobDescription || undefined, locale: "pl" });
     } else report = validateEvidence(createMockReport(seniority, jobDescription.length > 0), new Set(["seg_exp_1", "seg_summary", "seg_project_1"]));
     const token = createAccessToken();
@@ -43,7 +53,11 @@ export async function POST(request: Request) {
     const messages: Record<string, string> = { EMPTY_FILE: "Plik jest pusty.", FILE_TOO_LARGE: "Plik przekracza dozwolony rozmiar.",
       UNSUPPORTED_FILE_TYPE: "Prześlij PDF lub DOCX.", INVALID_FILE_SIGNATURE: "Zawartość pliku nie zgadza się z rozszerzeniem.",
       UNREADABLE_DOCUMENT: "Nie udało się odczytać tekstu. Prześlij tekstowy PDF lub DOCX.", OPENAI_NOT_CONFIGURED: "Integracja AI nie jest jeszcze skonfigurowana.",
-      OPENAI_INVALID_RESPONSE: "Analiza nie przeszła walidacji. Spróbuj ponownie." };
-    return NextResponse.json({ error: messages[code] || "Nie udało się przeanalizować dokumentu." }, { status: 400 });
+      NOT_A_CV: "Ten dokument nie wygląda jak CV. Prześlij dokument zawierający doświadczenie, umiejętności i historię zawodową.",
+      DOCUMENT_TEXT_TOO_LONG: "Dokument zawiera zbyt dużo tekstu. Skróć CV do najważniejszych informacji.",
+      OPENAI_INVALID_RESPONSE: "Analiza nie przeszła walidacji. Spróbuj ponownie.",
+      RATE_LIMIT_CHECK_FAILED: "Nie możemy teraz bezpiecznie uruchomić analizy. Spróbuj ponownie za chwilę." };
+    const status = code === "RATE_LIMIT_CHECK_FAILED" ? 503 : 400;
+    return NextResponse.json({ error: messages[code] || "Nie udało się przeanalizować dokumentu." }, { status });
   }
 }

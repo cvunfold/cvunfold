@@ -39,15 +39,15 @@ export const reportSchema = z.object({
     explanation: z.string(), whyItMatters: z.string(), evidenceRefs: z.array(evidenceRef), confidence,
     action: z.string(),
     suggestion: z.object({
-      type: z.enum(["rewrite", "expose", "gap", "question"]), original: z.string().optional(),
-      proposed: z.string().optional(), factualityNote: z.string(),
-    }).optional(),
+      type: z.enum(["rewrite", "expose", "gap", "question"]), original: z.string().nullable(),
+      proposed: z.string().nullable(), factualityNote: z.string(),
+    }).nullable(),
   })),
   ats: z.object({ score: z.number().min(0).max(100), findings: z.array(z.object({
     type: z.enum(["positive", "warning", "error"]), title: z.string(), explanation: z.string(),
   })) }),
   jobMatch: z.object({ score: z.number().min(0).max(100), strongestMatches: z.array(z.string()),
-    missingEvidence: z.array(z.string()), misplacedEvidence: z.array(z.string()), recommendations: z.array(z.string()) }).optional(),
+    missingEvidence: z.array(z.string()), misplacedEvidence: z.array(z.string()), recommendations: z.array(z.string()) }).nullable(),
   nextSteps: z.array(z.object({ priority: z.number().int().positive(), title: z.string(), action: z.string(), expectedImpact: z.enum(["low", "medium", "high"]) })),
   limitations: z.array(z.string()),
 });

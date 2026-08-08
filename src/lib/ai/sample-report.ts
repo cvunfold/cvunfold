@@ -159,6 +159,7 @@ export const sampleReport: CVReport = {
       suggestion: {
         type: "question",
         original: evidence.seg_exp_3,
+        proposed: null,
         factualityNote: "Jaki był najtrudniejszy problem produktowy rozwiązany wspólnie z UX i backendem?",
       },
     },
@@ -174,6 +175,8 @@ export const sampleReport: CVReport = {
       action: "Dodać wyłącznie zweryfikowany rezultat adopcji albo jawnie pozostawić punkt bez liczby.",
       suggestion: {
         type: "gap",
+        original: null,
+        proposed: null,
         factualityNote: "Nie dopisuj procentów ani oszczędności czasu bez danych. Sprawdź PR-y, release notes lub metryki adopcji.",
       },
     },
@@ -189,6 +192,8 @@ export const sampleReport: CVReport = {
       action: "Dodać krótką wzmiankę o performance governance w podsumowaniu, bez duplikowania całego punktu.",
       suggestion: {
         type: "expose",
+        original: null,
+        proposed: null,
         factualityNote: "Zmiana ekspozycji korzysta wyłącznie z informacji już obecnych w CV.",
       },
     },
@@ -201,6 +206,7 @@ export const sampleReport: CVReport = {
       { type: "warning", title: "Częściowe dublowanie stacku", explanation: "Lista umiejętności powtarza technologie widoczne już w doświadczeniu i może zostać skrócona." },
     ],
   },
+  jobMatch: null,
   nextSteps: [
     { priority: 1, title: "Doprecyzuj ownership design systemu", action: "Nazwij własne decyzje, sposób współpracy i zakres odpowiedzialności za adopcję.", expectedImpact: "high" },
     { priority: 2, title: "Usuń ogólny punkt o obowiązkach", action: "Zastąp go jednym konkretnym przykładem rozwiązania problemu produktowego.", expectedImpact: "high" },

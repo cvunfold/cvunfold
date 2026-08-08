@@ -30,6 +30,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<CVReport> {
   };
   const response = await client.responses.parse({
     model,
+    store: false,
     input: [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: `Przygotuj raport wyłącznie na podstawie tego JSON:\n${JSON.stringify(payload)}` },
