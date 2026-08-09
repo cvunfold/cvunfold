@@ -8,7 +8,8 @@ import { saveAnalysis, track } from "@/lib/data/store";
 import { createAccessToken, hmacIdentifier } from "@/lib/security/tokens";
 import { consumeAnalysisQuota, rateLimit } from "@/lib/security/rate-limit";
 import { validateSignature, validateUpload } from "@/lib/security/upload";
-import type { Seniority } from "@/lib/rubrics/frontend-v1";
+import type { Seniority } from "@/lib/rubrics/technical-v1";
+import { parseTargetRoleId } from "@/lib/roles";
 import { reviewWithOpenAI } from "@/lib/ai/openai-review";
 
 export const runtime = "nodejs";
@@ -25,6 +26,8 @@ export async function POST(request: Request) {
     const file = form.get("file");
     if (!(file instanceof File)) throw new Error("MISSING_FILE");
     validateUpload(file);
+    const targetRole = parseTargetRoleId(form.get("role") || "frontend_developer");
+    if (!targetRole) throw new Error("INVALID_TARGET_ROLE");
     const seniority = String(form.get("seniority") || "auto") as Seniority;
     const jobDescription = String(form.get("jobDescription") || "");
     if (jobDescription.length > Number(process.env.MAX_JOB_DESCRIPTION_LENGTH || 20_000)) throw new Error("JOB_DESCRIPTION_TOO_LONG");
@@ -39,8 +42,8 @@ export async function POST(request: Request) {
       await validateSignature(file);
       const parsed = await parseDocument(file);
       validateCvText(parsed.text);
-      report = await reviewWithOpenAI({ segments: parsed.segments, targetSeniority: seniority, jobDescription: jobDescription || undefined, locale: "pl" });
-    } else report = validateEvidence(createMockReport(seniority, jobDescription.length > 0), new Set(["seg_exp_1", "seg_summary", "seg_project_1"]));
+      report = await reviewWithOpenAI({ segments: parsed.segments, targetRole, targetSeniority: seniority, jobDescription: jobDescription || undefined, locale: "pl" });
+    } else report = validateEvidence(createMockReport(seniority, jobDescription.length > 0, targetRole), new Set(["seg_exp_1", "seg_summary", "seg_project_1"]));
     const token = createAccessToken();
     const retentionDays = Number(process.env.REPORT_RETENTION_DAYS || 30);
     await saveAnalysis(token, { id: randomUUID(), createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
@@ -54,6 +57,7 @@ export async function POST(request: Request) {
       UNSUPPORTED_FILE_TYPE: "Prześlij PDF lub DOCX.", INVALID_FILE_SIGNATURE: "Zawartość pliku nie zgadza się z rozszerzeniem.",
       UNREADABLE_DOCUMENT: "Nie udało się odczytać tekstu. Prześlij tekstowy PDF lub DOCX.", OPENAI_NOT_CONFIGURED: "Integracja AI nie jest jeszcze skonfigurowana.",
       NOT_A_CV: "Ten dokument nie wygląda jak CV. Prześlij dokument zawierający doświadczenie, umiejętności i historię zawodową.",
+      INVALID_TARGET_ROLE: "Wybierz obsługiwaną rolę techniczną.",
       DOCUMENT_TEXT_TOO_LONG: "Dokument zawiera zbyt dużo tekstu. Skróć CV do najważniejszych informacji.",
       OPENAI_INVALID_RESPONSE: "Analiza nie przeszła walidacji. Spróbuj ponownie.",
       INVALID_RUBRIC_WEIGHTS: "Nie udało się przeliczyć oceny raportu. Spróbuj ponownie.",

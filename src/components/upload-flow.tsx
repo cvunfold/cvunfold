@@ -4,6 +4,9 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowIcon, CheckIcon, LockIcon } from "./icons";
 import { Logo } from "./logo";
+import { RoleSelect } from "./role-select";
+import { trackAnalyticsEvent } from "@/lib/analytics/client";
+import type { TargetRoleId } from "@/lib/roles";
 
 const fixture = new File(
   [new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34])],
@@ -25,6 +28,7 @@ export function UploadFlow({ mockMode, initialJobMatch }: { mockMode: boolean; i
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [consent, setConsent] = useState(false);
+  const [role, setRole] = useState<TargetRoleId>("frontend_developer");
   const [seniority, setSeniority] = useState("auto");
   const [job, setJob] = useState(initialJobMatch ? "Wklej tutaj treść ogłoszenia…" : "");
 
@@ -33,16 +37,22 @@ export function UploadFlow({ mockMode, initialJobMatch }: { mockMode: boolean; i
     if (!file || !consent) return;
     setLoading(true);
     setError("");
+    const plan = job.trim() ? "job_match" : "full_review";
+    trackAnalyticsEvent("analysis_started", { role, seniority, plan });
     const form = new FormData();
     form.set("file", file);
+    form.set("role", role);
     form.set("seniority", seniority);
     form.set("jobDescription", job);
     try {
       const response = await fetch("/api/analyses", { method: "POST", body: form });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
+      trackAnalyticsEvent("upload_completed", { role, plan });
+      trackAnalyticsEvent("analysis_succeeded", { role, seniority, plan });
       router.push(`/pl/raport/${data.accessToken}`);
     } catch (caught) {
+      trackAnalyticsEvent("analysis_failed", { role, seniority, plan });
       setError(caught instanceof Error ? caught.message : "Nie udało się rozpocząć analizy.");
       setLoading(false);
     }
@@ -60,7 +70,9 @@ export function UploadFlow({ mockMode, initialJobMatch }: { mockMode: boolean; i
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
             event.preventDefault();
-            setFile(event.dataTransfer.files?.[0] ?? null);
+            const nextFile = event.dataTransfer.files?.[0] ?? null;
+            setFile(nextFile);
+            if (nextFile) trackAnalyticsEvent("upload_started", { input_method: "drop" });
           }}
         >
           <span className="upload-icon" aria-hidden="true">↑</span>
@@ -68,9 +80,13 @@ export function UploadFlow({ mockMode, initialJobMatch }: { mockMode: boolean; i
           <u>{file ? "Wybierz inny plik" : "albo wybierz plik"}</u>
           <small>Maksymalnie 8 MB. Plik źródłowy usuniemy po analizie.</small>
         </button>
-        <input ref={input} hidden type="file" accept=".pdf,.docx" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+        <input ref={input} hidden type="file" accept=".pdf,.docx" onChange={(event) => {
+          const nextFile = event.target.files?.[0] ?? null;
+          setFile(nextFile);
+          if (nextFile) trackAnalyticsEvent("upload_started", { input_method: "picker" });
+        }} />
 
-        <label>Rola<select aria-label="Rola"><option>Frontend Developer</option></select></label>
+        <RoleSelect value={role} onChange={setRole} disabled={loading} />
         <fieldset>
           <legend>Poziom</legend>
           <div className="segmented">

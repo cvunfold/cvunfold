@@ -28,6 +28,9 @@
 ## Domain and analytics
 - [ ] Owner approves domain purchase and production DNS separately
 - [ ] SSL, canonical, sitemap, `/pl` redirects and `noindex` private routes verified
-- [ ] PII-free events, UTM capture and conversion definitions verified
+- [ ] Create a CVUnfold-owned GA4 property and Google Ads account; record account/property/stream ownership in `EXTERNAL_RESOURCES.md`
+- [ ] Set `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID`, `NEXT_PUBLIC_GOOGLE_ADS_ID`, `NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_CONVERSION` and `GOOGLE_SITE_VERIFICATION` in Vercel Production
+- [ ] Consent Mode v2 defaults to denied; accept/reject/withdraw flows and PII-free events verified in Tag Assistant
+- [ ] Google Ads purchase conversion fires only after a server-verified paid Checkout Session; no CV/report/access-token data reaches analytics
 
 The first production deployment, production DNS change, live Stripe activation and real payment require explicit owner approval.

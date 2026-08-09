@@ -32,6 +32,7 @@ Mock unlock działa tylko gdy `MOCK_MODE=true` i `NODE_ENV !== production`. Peł
 - wersjonowany Zod schema, konfiguracja rubryk i deterministyczny scoring
 - lokalny in-memory adapter w mock mode; migracja Supabase gotowa do podłączenia
 - server-only access tokens, teaser projection, retention cleanup i diagnostics API
-- adaptery OpenAI, Stripe i analytics są opisane w `docs/`
+- Stripe Checkout z serwerową weryfikacją płatności i idempotentnym fulfillmentem
+- opcjonalny GA4 + Google Ads z Consent Mode v2; tagi ładują się dopiero po zgodzie, a ścieżki prywatnych raportów są anonimizowane
 
 Nie commituj `.env`. Nie loguj treści CV ani raportów.

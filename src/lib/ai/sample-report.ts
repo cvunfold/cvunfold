@@ -1,6 +1,7 @@
 import type { CVReport } from "./schemas/report";
 import { calculateOverall } from "./validate-report";
-import { getRubric, RUBRIC_VERSION } from "@/lib/rubrics/frontend-v1";
+import { getRubric, RUBRIC_VERSION } from "@/lib/rubrics/technical-v1";
+import { PROMPT_VERSION } from "./prompts/review-pl-v3";
 
 const evidence = {
   seg_summary: "Senior Frontend Developer z 7-letnim doświadczeniem w React, TypeScript i Next.js. Specjalizuję się w wydajności aplikacji oraz budowie design systemów.",
@@ -31,7 +32,7 @@ const rationales: Record<string, string> = {
   ats: "Standardowe nagłówki, czytelna chronologia i słowa kluczowe osadzone w doświadczeniu sprzyjają parsowaniu.",
 };
 
-const categoryScores = getRubric("senior").map((category) => ({
+const categoryScores = getRubric("senior", "frontend_developer").map((category) => ({
   ...category,
   score: scores[category.key],
   rationale: rationales[category.key],
@@ -66,9 +67,9 @@ export const sampleProfile = {
 } as const;
 
 export const sampleReport: CVReport = {
-  version: "1.0.0",
+  version: "2.0.0",
   rubricVersion: RUBRIC_VERSION,
-  promptVersion: "review-pl-v1.0.0",
+  promptVersion: PROMPT_VERSION,
   locale: "pl",
   document: {
     detectedLanguage: "pl",
@@ -84,6 +85,59 @@ export const sampleReport: CVReport = {
     oneSentenceVerdict: "Dokument wiarygodnie komunikuje poziom Senior, ale traci część siły przez niejasny indywidualny wkład.",
     strongestSignal: "Mierzalny wpływ na wydajność checkoutu połączony z inicjowaniem zmian architektonicznych.",
     biggestRisk: "Najbardziej wartościowe dowody sąsiadują z ogólnymi obowiązkami, przez co ownership nie zawsze jest jednoznaczny.",
+  },
+  recruiterPerspective: {
+    profileSummary: "Senior Frontend Developerka o mocnej specjalizacji w web performance, z widocznym wpływem architektonicznym i międzyzespołowym.",
+    seniorityAlignment: "aligned",
+    seniorityAlignmentExplanation: "Dokument komunikuje poziom Senior: pokazuje mierzalne rezultaty, inicjowanie zmian i pracę wykraczającą poza własny backlog. Największą niewiadomą pozostaje dokładny zakres osobistych decyzji przy design systemie.",
+    positiveSignals: [
+      {
+        title: "Wpływ połączony z wynikiem produktu",
+        explanation: "Poprawa LCP została powiązana ze spadkiem porzuceń mobilnego checkoutu, więc odbiorca widzi nie tylko optymalizację techniczną, ale też jej znaczenie.",
+        evidenceRefs: ["seg_exp_1"],
+      },
+      {
+        title: "Inicjatywa architektoniczna",
+        explanation: "RFC i prowadzenie uzgodnień z trzema zespołami sugerują samodzielność oraz wpływ na kierunek rozwiązania.",
+        evidenceRefs: ["seg_exp_4"],
+      },
+      {
+        title: "Specjalizacja poparta praktyką",
+        explanation: "Budżety wydajnościowe w CI i dashboard Web Vitals budują wiarygodny, rozpoznawalny profil performance.",
+        evidenceRefs: ["seg_project_1"],
+      },
+    ],
+    reservations: [
+      {
+        kind: "evidence",
+        title: "Niejasny zakres ownershipu design systemu",
+        explanation: "Sformułowanie „zaprojektowałam i wdrożyłam” nie pokazuje, które decyzje należały do kandydatki, a które do czterech zespołów korzystających z rozwiązania.",
+        evidenceRefs: ["seg_exp_2"],
+      },
+      {
+        kind: "evidence",
+        title: "Mocne dowody mieszają się z obowiązkami",
+        explanation: "Ogólny punkt o rozwoju funkcji, code review i współpracy osłabia precyzyjny obraz widoczny w pozostałych osiągnięciach.",
+        evidenceRefs: ["seg_exp_3"],
+      },
+    ],
+    likelyInterviewQuestions: [
+      {
+        question: "Które decyzje dotyczące design systemu należały bezpośrednio do Ciebie?",
+        whyThisQuestion: "Rekruter będzie chciał oddzielić osobisty ownership od pracy wykonanej wspólnie przez kilka zespołów.",
+        evidenceRefs: ["seg_exp_2"],
+      },
+      {
+        question: "Jak wyglądał trade-off przy podziale monolitu na moduły domenowe?",
+        whyThisQuestion: "RFC jest mocnym sygnałem seniority, ale CV nie pokazuje rozważanych alternatyw ani kryteriów decyzji.",
+        evidenceRefs: ["seg_exp_4"],
+      },
+      {
+        question: "Co zmieniła adopcja design systemu poza liczbą komponentów?",
+        whyThisQuestion: "Skala wdrożenia jest widoczna, lecz rezultat organizacyjny lub produktowy pozostaje niewiadomy.",
+        evidenceRefs: ["seg_exp_2"],
+      },
+    ],
   },
   categoryScores,
   recruiterSimulation: {

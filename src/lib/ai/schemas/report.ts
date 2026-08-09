@@ -2,6 +2,11 @@ import { z } from "zod";
 
 const evidenceRef = z.string().regex(/^seg_[a-z0-9_]+$/);
 const confidence = z.enum(["low", "medium", "high"]);
+const perspectiveSignal = z.object({
+  title: z.string(),
+  explanation: z.string(),
+  evidenceRefs: z.array(evidenceRef),
+});
 
 export const reportSchema = z.object({
   version: z.string(),
@@ -22,6 +27,18 @@ export const reportSchema = z.object({
     oneSentenceVerdict: z.string(),
     strongestSignal: z.string(),
     biggestRisk: z.string(),
+  }),
+  recruiterPerspective: z.object({
+    profileSummary: z.string(),
+    seniorityAlignment: z.enum(["aligned", "undersold", "unsupported", "unclear"]),
+    seniorityAlignmentExplanation: z.string(),
+    positiveSignals: z.array(perspectiveSignal).min(2).max(4),
+    reservations: z.array(perspectiveSignal.extend({ kind: z.enum(["evidence", "gap"]) })).min(1).max(4),
+    likelyInterviewQuestions: z.array(z.object({
+      question: z.string(),
+      whyThisQuestion: z.string(),
+      evidenceRefs: z.array(evidenceRef),
+    })).min(2).max(5),
   }),
   categoryScores: z.array(z.object({
     key: z.string(), label: z.string(), score: z.number().min(0).max(100),
@@ -55,6 +72,9 @@ export const reportSchema = z.object({
 export type CVReport = z.infer<typeof reportSchema>;
 
 export type TeaserReport = Pick<CVReport, "version" | "locale" | "document" | "summary" | "recruiterSimulation"> & {
+  recruiterPerspective: Pick<CVReport["recruiterPerspective"], "profileSummary" | "seniorityAlignment" | "seniorityAlignmentExplanation"> & {
+    counts: { positiveSignals: number; reservations: number; likelyInterviewQuestions: number };
+  };
   categoryScores: CVReport["categoryScores"];
   counts: { strengths: number; issues: number; nextSteps: number };
   ats: { score: number; findingCount: number };

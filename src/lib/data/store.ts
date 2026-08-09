@@ -46,12 +46,12 @@ export async function saveAnalysis(token: string, analysis: Omit<Analysis, "toke
   if (!client) { store.analyses.set(tokenHash, { ...analysis, tokenHash }); return; }
   const { error: analysisError } = await client.from("analyses").insert({
     id: analysis.id, created_at: analysis.createdAt.toISOString(), updated_at: analysis.createdAt.toISOString(), status: analysis.status,
-    locale: "pl", target_role: "Frontend Developer", target_seniority: "auto", job_description_present: analysis.plan === "job_match",
-    parse_quality: "good", prompt_version: "review-pl-v1", rubric_version: "frontend-v1", review_model: process.env.OPENAI_REVIEW_MODEL,
+    locale: "pl", target_role: analysis.report.document.targetRole, target_seniority: analysis.report.document.targetSeniority, job_description_present: analysis.plan === "job_match",
+    parse_quality: "good", prompt_version: analysis.report.promptVersion, rubric_version: analysis.report.rubricVersion, review_model: process.env.OPENAI_REVIEW_MODEL,
     access_token_hash: tokenHash, expires_at: analysis.expiresAt.toISOString(), paid_at: analysis.paid ? analysis.createdAt.toISOString() : null,
   });
   if (analysisError) throw new Error("SUPABASE_SAVE_FAILED");
-  const { error: reportError } = await client.from("reports").insert({ analysis_id: analysis.id, report_version: "v1", full_report_json: analysis.report });
+  const { error: reportError } = await client.from("reports").insert({ analysis_id: analysis.id, report_version: analysis.report.version, full_report_json: analysis.report });
   if (reportError) {
     await client.from("analyses").delete().eq("id", analysis.id);
     throw new Error("SUPABASE_SAVE_FAILED");
