@@ -6,6 +6,7 @@ import {
   clearPendingAnalytics,
   flushPendingAnalytics,
   readConsent,
+  safeAnalyticsLocation,
   safeAnalyticsPath,
   trackAnalyticsEvent,
   writeConsent,
@@ -48,7 +49,10 @@ export function GoogleAnalytics({ analyticsId, adsId }: Props) {
 
   useEffect(() => {
     if (!enabled || choice !== "granted") return;
-    trackAnalyticsEvent("page_view", { page_path: safeAnalyticsPath(pathname) });
+    const pagePath = safeAnalyticsPath(pathname);
+    const pageLocation = safeAnalyticsLocation(pathname, window.location.origin);
+    window.gtag?.("set", { page_path: pagePath, page_location: pageLocation });
+    trackAnalyticsEvent("page_view", { page_path: pagePath, page_location: pageLocation });
     if (pathname === "/pl") trackAnalyticsEvent("landing_view");
   }, [choice, enabled, pathname]);
 
@@ -91,8 +95,8 @@ export function GoogleAnalytics({ analyticsId, adsId }: Props) {
     {showBanner ? <aside className="consent-banner" role="dialog" aria-labelledby="consent-title" aria-describedby="consent-copy">
       <div>
         <span>PRYWATNOŚĆ</span>
-        <h2 id="consent-title">Analityka, która nie czyta Twojego CV</h2>
-        <p id="consent-copy">Za Twoją zgodą użyjemy narzędzi Google do mierzenia odwiedzin i skuteczności reklam. Nigdy nie wysyłamy do nich treści CV, ogłoszenia ani raportu.</p>
+        <h2 id="consent-title">Pomóż nam ulepszać CVUnfold</h2>
+        <p id="consent-copy">Za zgodą użyjemy narzędzi Google do statystyk i pomiaru reklam. Nie wysyłamy treści CV, ogłoszeń ani raportów.</p>
       </div>
       <div className="consent-actions">
         <button type="button" className="consent-secondary" onClick={() => choose("denied")}>Tylko niezbędne</button>

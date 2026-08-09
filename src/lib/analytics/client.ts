@@ -24,6 +24,10 @@ export function safeAnalyticsPath(pathname: string): string {
   return pathname.slice(0, 160);
 }
 
+export function safeAnalyticsLocation(pathname: string, origin: string): string {
+  return `${origin.replace(/\/$/, "")}${safeAnalyticsPath(pathname)}`;
+}
+
 export function readConsent(): ConsentChoice | null {
   if (typeof window === "undefined") return null;
   const value = window.localStorage.getItem(CONSENT_STORAGE_KEY);
