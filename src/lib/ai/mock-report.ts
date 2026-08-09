@@ -80,7 +80,7 @@ export function createMockReport(targetSeniority: Seniority = "auto", withJob = 
         explanation: "Najmocniejsze doświadczenie jest opisane jako wykonywane czynności, bez pokazania zmiany, którą wywołały.",
         whyItMatters: "Przy poziomie Senior odbiorca szuka nie tylko technologii, ale też wpływu na produkt, użytkowników lub sposób pracy zespołu.",
         evidenceRefs: ["seg_exp_1"], confidence: "high", action: "Przepisz 2–3 najważniejsze punkty w strukturze działanie → kontekst → zweryfikowany rezultat.",
-        suggestion: { type: "rewrite", original: "Realizacja zadań w projekcie.", proposed: "Odpowiadałem za [zweryfikowany zakres] w obszarze projektu; efekt: [wstaw zweryfikowany rezultat].", factualityNote: "Uzupełnij wyłącznie faktami, które możesz potwierdzić." } },
+        suggestion: { type: "question", original: "Realizacja zadań w projekcie.", proposed: null, factualityNote: "Za jaki zweryfikowany zakres odpowiadałeś i jaki był potwierdzony rezultat tej pracy?" } },
       { id: "i2", severity: "important", category: "ownership", title: "Zakres ownershipu jest niejasny",
         explanation: "CV nie pokazuje, gdzie samodzielnie podejmowałeś decyzje, a gdzie realizowałeś ustalony zakres.",
         whyItMatters: "To jeden z głównych sygnałów różnicujących Mid i Senior w odbiorze dokumentu.", evidenceRefs: [], confidence: "medium",

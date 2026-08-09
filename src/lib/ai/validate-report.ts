@@ -30,12 +30,14 @@ export function applyServerRubric(report: ModelReport, rubric: RubricCategory[])
 
 const numberPattern = /\b\d+(?:[.,]\d+)?%?\b/g;
 const technicalTokenPattern = /\b(?:React|Next(?:\.js)?|TypeScript|JavaScript|Node(?:\.js)?|Python|Java|Kotlin|Swift|AWS|Azure|GCP|Docker|Kubernetes|GraphQL|REST|PostgreSQL|MySQL|Redis|Kafka|Terraform|CI\/CD|Web\sVitals|LCP|API|RFC)\b/gi;
+const fillInPlaceholderPattern = /\[[^\]]+\]|<[^>]+>|\b(?:TBD|TODO)\b/gi;
 const rewriteStopwords = new Set([
   "and", "the", "for", "with", "from", "that", "this", "into", "oraz", "dla", "przy", "nad", "pod", "który", "która", "które", "jest", "było", "była", "with",
 ]);
 
 function unsupportedFacts(proposed: string, sources: string[]): boolean {
   const source = sources.join(" ").toLocaleLowerCase("en");
+  if ((proposed.match(fillInPlaceholderPattern) || []).some((candidate) => !source.includes(candidate.toLocaleLowerCase("en")))) return true;
   const candidates = [
     ...(proposed.match(numberPattern) || []),
     ...(proposed.match(technicalTokenPattern) || []),

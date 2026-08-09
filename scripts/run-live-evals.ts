@@ -28,7 +28,9 @@ type Result = {
 
 const execute = process.argv.includes("--execute");
 const casePath = join(process.cwd(), "fixtures", "live-eval-cases.json");
-const cases = JSON.parse(readFileSync(casePath, "utf8")) as LiveEvalCase[];
+const allCases = JSON.parse(readFileSync(casePath, "utf8")) as LiveEvalCase[];
+const requestedCaseIds = new Set((process.env.OPENAI_EVAL_CASE_IDS || "").split(",").map((value) => value.trim()).filter(Boolean));
+const cases = requestedCaseIds.size ? allCases.filter((item) => requestedCaseIds.has(item.id)) : allCases;
 const locales: LiveEvalLocale[] = ["pl", "en"];
 const maxCostPln = Number(process.env.OPENAI_EVAL_MAX_COST_PLN || 20);
 const plnPerUsd = Number(process.env.OPENAI_EVAL_PLN_PER_USD || 5);
@@ -38,11 +40,12 @@ const maxOutputTokens = Number(process.env.OPENAI_EVAL_MAX_OUTPUT_TOKENS || 6_00
 const inputRate = Number(process.env.OPENAI_INPUT_COST_PER_MILLION);
 const outputRate = Number(process.env.OPENAI_OUTPUT_COST_PER_MILLION);
 
-if (!Number.isFinite(maxCostPln) || maxCostPln <= 0 || maxCostPln > 20) throw new Error("OPENAI_EVAL_MAX_COST_PLN must be between 0 and 20.");
+if (!Number.isFinite(maxCostPln) || maxCostPln <= 0 || maxCostPln > 50) throw new Error("OPENAI_EVAL_MAX_COST_PLN must be between 0 and 50.");
 if (!Number.isFinite(plnPerUsd) || plnPerUsd < 3 || plnPerUsd > 8) throw new Error("OPENAI_EVAL_PLN_PER_USD must be between 3 and 8.");
 if (!Number.isFinite(costSafetyFactor) || costSafetyFactor < 1 || costSafetyFactor > 4) throw new Error("OPENAI_EVAL_COST_SAFETY_FACTOR must be between 1 and 4.");
 if (!Number.isFinite(alreadySpentPln) || alreadySpentPln < 0 || alreadySpentPln > maxCostPln) throw new Error("OPENAI_EVAL_ALREADY_SPENT_PLN must fit inside the hard cap.");
 if (!Number.isInteger(maxOutputTokens) || maxOutputTokens < 2_000 || maxOutputTokens > 8_000) throw new Error("OPENAI_EVAL_MAX_OUTPUT_TOKENS must be between 2000 and 8000.");
+if (requestedCaseIds.size && cases.length !== requestedCaseIds.size) throw new Error("OPENAI_EVAL_CASE_IDS contains an unknown case ID.");
 
 const runnable = cases.flatMap((item) => locales.map((locale) => ({ item, locale }))).filter(({ item }) => !item.rejectBeforeModel);
 const ratesConfigured = Number.isFinite(inputRate) && inputRate >= 0 && Number.isFinite(outputRate) && outputRate >= 0;
@@ -139,6 +142,7 @@ async function main(): Promise<void> {
     maxCostPln,
     costSafetyFactor,
     alreadySpentPln,
+    selectedCaseIds: cases.map((item) => item.id),
     rawWorstCaseCostPln,
     worstCaseCostPln,
     actualCostPln,

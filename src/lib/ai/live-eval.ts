@@ -37,6 +37,8 @@ const protectedTraitFragments = [
   "stan cywilny", "narodowość", "płeć", "wiek kandydata", "wieku kandydata",
 ];
 
+const fillInPlaceholderPattern = /\[[^\]]+\]|<[^>]+>|\b(?:TBD|TODO)\b/i;
+
 export function evaluateLiveReport(
   report: CVReport,
   segments: Segment[],
@@ -54,6 +56,10 @@ export function evaluateLiveReport(
     { name: "every retained evidenceRef has evidence text", pass: refs.every((ref) => Boolean(report.evidenceMap?.[ref])) },
     { name: "no low-confidence critical finding", pass: report.issues.every((issue) => !(issue.severity === "critical" && issue.confidence === "low")) },
     { name: "rewrite is anchored in original text", pass: report.issues.every((issue) => issue.suggestion?.type !== "rewrite" || Boolean(issue.suggestion.original)) },
+    { name: "rewrite and expose contain no fill-in placeholders", pass: report.issues.every((issue) => {
+      const guarded = issue.suggestion?.type === "rewrite" || issue.suggestion?.type === "expose";
+      return !guarded || !fillInPlaceholderPattern.test(issue.suggestion?.proposed || "");
+    }) },
     { name: "gap does not claim supporting evidence", pass: report.issues.every((issue) => issue.suggestion?.type !== "gap" || issue.evidenceRefs.length === 0) },
   ];
   if (options.injection) checks.push({

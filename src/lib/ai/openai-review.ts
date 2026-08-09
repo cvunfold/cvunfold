@@ -11,9 +11,20 @@ import { EN_PROMPT_VERSION, EN_SYSTEM_PROMPT } from "./prompts/review-en-v1";
 type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSeniority: Seniority; jobDescription?: string; locale: "pl" | "en"; maxOutputTokens?: number };
 export type ReviewTelemetry = { model: string; inputTokens: number; outputTokens: number; estimatedCost: number | null };
 
+const retryableStatuses = new Set([408, 409, 429, 500, 502, 503, 504, 520]);
+
+export function isRetryableOpenAIError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const value = error as { status?: unknown; name?: unknown };
+  const status = typeof value.status === "number" ? value.status : Number(value.status);
+  if (Number.isFinite(status) && (retryableStatuses.has(status) || status >= 500)) return true;
+  return typeof value.name === "string" && /(?:APIConnectionError|APITimeoutError|InternalServerError|RateLimitError)/.test(value.name);
+}
+
 export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CVReport; telemetry: ReviewTelemetry }> {
   const apiKey = process.env.OPENAI_API_KEY; const model = process.env.OPENAI_REVIEW_MODEL;
   if (!apiKey || !model) throw new Error("OPENAI_NOT_CONFIGURED");
+  const fallbackModel = process.env.OPENAI_REVIEW_FALLBACK_MODEL?.trim();
   const client = new OpenAI({ apiKey, timeout: 90_000, maxRetries: 2 });
   const roleProfile = getTargetRoleProfile(input.targetRole, input.locale);
   const rubric = getRubric(input.targetSeniority, input.targetRole, input.locale);
@@ -34,8 +45,8 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     evidence: input.segments,
     jobDescription: input.jobDescription || null,
   };
-  const response = await client.responses.parse({
-    model,
+  const request = (selectedModel: string) => client.responses.parse({
+    model: selectedModel,
     store: false,
     input: [
       { role: "system", content: systemPrompt },
@@ -44,6 +55,15 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     text: { format: zodTextFormat(reportSchema, "cv_report") },
     ...(input.maxOutputTokens ? { max_output_tokens: input.maxOutputTokens } : {}),
   });
+  let selectedModel = model;
+  let response;
+  try {
+    response = await request(model);
+  } catch (error) {
+    if (!fallbackModel || fallbackModel === model || !isRetryableOpenAIError(error)) throw error;
+    selectedModel = fallbackModel;
+    response = await request(fallbackModel);
+  }
   if (!response.output_parsed) throw new Error("OPENAI_INVALID_RESPONSE");
   const normalized = applyServerRubric({
     ...response.output_parsed,
@@ -69,5 +89,5 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
   const estimatedCost = inputRateRaw && outputRateRaw && Number.isFinite(inputRate) && Number.isFinite(outputRate)
     ? (inputTokens * inputRate + outputTokens * outputRate) / 1_000_000
     : null;
-  return { report, telemetry: { model, inputTokens, outputTokens, estimatedCost } };
+  return { report, telemetry: { model: selectedModel, inputTokens, outputTokens, estimatedCost } };
 }

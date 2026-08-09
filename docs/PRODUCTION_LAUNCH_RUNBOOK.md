@@ -7,7 +7,7 @@ Każda operacja zewnętrzna wymaga preflightu: **SERVICE, ACCOUNT, ORGANIZATION/
 - [ ] Vercel: potwierdzone konto, team, projekt CVUnfold i Production.
 - [ ] Supabase: potwierdzony projekt CVUnfold; migracje zastosowane; RLS/advisors bez krytycznych uwag.
 - [ ] Stripe: potwierdzone konto CV Unfold, live products 29/39 PLN i 9/12 EUR, Price IDs, live webhook i secret.
-- [ ] OpenAI: potwierdzony projekt CVUnfold, model, limit wydatków, model rates w env, live eval PL/EN zaliczony.
+- [x] OpenAI: potwierdzony projekt CVUnfold, limit 50 zł i live eval PL/EN zaliczony 2026-08-09; przed produkcją ustawić zweryfikowane modele i stawki w env.
 - [ ] Brand/domain/company/support env uzupełnione; support e-mail działa.
 - [ ] GA4 ID, Ads ID/Label, Search Console verification ustawione.
 - [ ] Consent i dokumenty prawne zaakceptowane przez właściciela; polityka zwrotów/support w Stripe zgodne.

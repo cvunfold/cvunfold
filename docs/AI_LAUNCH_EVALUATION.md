@@ -12,6 +12,7 @@ Poprawny JSON nie wystarcza. Raport jest launch-ready dopiero wtedy, gdy każda 
 - `critical` z niską pewnością jest obniżane do `important`.
 - Rewrite, który dodaje nieobecne liczby lub technologie, staje się `QUESTION`.
 - `REWRITE` i `EXPOSE` bez cytowanego oryginału albo z nadmiernie nową treścią względem źródeł stają się `QUESTION`.
+- `REWRITE` i `EXPOSE` zawierające placeholdery do późniejszego uzupełnienia (np. `[wynik]`) stają się `QUESTION`.
 - CV i ogłoszenie są jawnie traktowane jako niezaufane dane, nie instrukcje.
 - GAP oznacza brak widocznego dowodu; nie jest twierdzeniem, że kandydat nie posiada umiejętności.
 - Dane kontaktowe są maskowane, a segmenty zawierające cechy chronione lub rozpoznane polecenia prompt injection są odrzucane przed analizą.
@@ -45,7 +46,7 @@ Harness jest dostępny jako `pnpm eval:live`. Domyślnie wykonuje wyłącznie be
 
 - 13 przypadków jest ocenianych oddzielnie po polsku i angielsku.
 - Przypadek pustego/nieczytelnego dokumentu kończy się przed modelem; łącznie pozostają 24 płatne wywołania.
-- Przed pierwszym wywołaniem liczony jest konserwatywny koszt maksymalny. Twardy limit to `OPENAI_EVAL_MAX_COST_PLN`, najwyżej 20 zł.
+- Przed pierwszym wywołaniem liczony jest konserwatywny koszt maksymalny. Twardy limit to `OPENAI_EVAL_MAX_COST_PLN`, najwyżej 50 zł. Przy fallbacku stawki wejścia/wyjścia muszą odpowiadać droższemu z modeli.
 - Pełne raporty syntetyczne trafiają tylko do prywatnego katalogu tymczasowego z prawami `0700/0600`; bezpieczne podsumowanie nie zawiera CV ani raportu.
 - Każdy raport przechodzi schema validation, evidence integrity, deterministyczny score, kontrolę prompt injection, severity/confidence i bezpieczny rewrite.
 
@@ -55,20 +56,29 @@ Test wykonano wyłącznie w potwierdzonym projekcie OpenAI `CVUnfold`, przy uży
 
 Po teście preflight otrzymał domyślny bufor kosztowy `2.5×` oraz pole `OPENAI_EVAL_ALREADY_SPENT_PLN`. Kolejne uruchomienie musi uwzględnić wcześniejszy spend; dashboard dostawcy pozostaje źródłem prawdy.
 
+Po wykryciu powtarzalnych błędów 520 pipeline otrzymał kontrolowany `OPENAI_REVIEW_FALLBACK_MODEL`. Fallback jest używany wyłącznie po błędzie przejściowym (timeout, połączenie, rate limit, 408/409/429/5xx), nigdy po błędzie schematu, autoryzacji ani niepoprawnym żądaniu.
+
 | Przebieg | Model | Wynik | Najważniejsza obserwacja |
 |---|---|---|---|
 | 1 | `gpt-5.6-terra` | FAIL | błędy 520, błędne zachowanie runnera po błędzie oraz `GAP` z referencjami |
 | 2 | `gpt-5.6-terra` | FAIL | 12/24 raportów PASS, 10 błędów 520; cechy chronione wracały w poradzie o usunięciu danych |
 | 3 | `gpt-5.4-mini` | FAIL | 17/24 raportów PASS, 3 błędy 520; prompt injection był ignorowany, ale cytowany w raporcie |
 | 4 | `gpt-5.4-mini` | FAIL | **23/24 raportów PASS**, 2/2 odrzucone przed modelem, 1 błąd 520 |
+| 5 | `gpt-5.4-mini` → `gpt-5.4` | FAIL | 22/24 raportów PASS i 2/2 odrzucone przed modelem; fallback uratował 3 wywołania, 2 nadal zakończyły się 520 |
+| 6 | retry 3 wskazanych przypadków PL/EN | **PASS** | 6/6 raportów PASS; oba wcześniejsze 520 przeszły, a nowy guard placeholderów został potwierdzony na żywo |
 
-Ręcznie przejrzano werdykty, first impression i wszystkie sugestie ostatniego przebiegu. Nie znaleziono wykonania prompt injection ani wpływu cech chronionych po filtracji. Znaleziono jednak kilka semantycznie niebezpiecznych propozycji `REWRITE/EXPOSE`, które dopowiadały zakres UI, prowadzenie inicjatyw lub powiązanie technologii z projektem. Walidator został po tym zaostrzony i ma testy regresji, ale zmiana nie została ponownie potwierdzona płatnym pełnym przebiegiem.
+Ręcznie przejrzano werdykty, mocne strony i wszystkie sugestie z pełnego przebiegu, używając wyników retry dla ponowionych przypadków. Nie znaleziono wykonania prompt injection, wpływu cech chronionych, fałszywych gwarancji zatrudnienia ani niepopartych liczb lub technologii. W pełnym przebiegu znaleziono jedną propozycję `EXPOSE` z placeholderem `improving [gap]`; po zaostrzeniu walidatora ten sam przypadek został ponowiony i prawidłowo wrócił jako `GAP` bez gotowego rewrite'u.
 
-Aktualny gate: **FAIL / NOT READY FOR PAID ADS**. Powody:
+Aktualny gate AI: **PASS WITH OBSERVATION**.
 
-1. jeden z 24 raportów ostatniego przebiegu nadal zakończył się błędem 520 mimo retry,
-2. najnowsza granica semantyczna `REWRITE/EXPOSE` ma testy lokalne, ale wymaga jeszcze jednego pełnego live eval,
-3. przed ruchem płatnym należy dodać i sprawdzić kontrolowany fallback modelu albo inną strategię obsługi powtarzalnego 520.
+- Łącznie istnieje zaakceptowany wynik dla 24/24 płatnych wariantów oraz 2/2 odrzuceń przed modelem.
+- Wszystkie zaakceptowane raporty przechodzą schemat, evidence integrity, deterministyczny score, prompt-injection/protected-traits guard i granicę factuality.
+- W dwóch parach ten sam materiał PL/EN różnił się o jeden sąsiedni poziom seniority. Werdykty tekstowe nadal opisywały tę samą słabość dokumentu; traktujemy to jako obserwację do monitorowania na pierwszych prawdziwych raportach, nie jako krytyczną halucynację.
+- Przejściowe 520 pozostaje ryzykiem dostawcy. Fallback zadziałał w 3 przypadkach, a dwa pozostałe przeszły po kontrolowanym retry całego przypadku.
+
+Autorytatywny koszt: poprzedni klucz testowy `4,67 USD` + klucz tego przebiegu `1,23 USD` = **5,90 USD**, około **22,42 zł** przy przyjętym kursie 3,80 PLN/USD. Runner raportował konserwatywne **31,12 zł** z buforem `2.5×`. Oba tymczasowe klucze zostały odwołane.
+
+PASS dotyczy wyłącznie bramki jakości AI. Nie jest samodzielną zgodą na Google Ads; płatności, analytics/consent, retencja i smoke test produkcji nadal mają własne bramki.
 
 Po wykonaniu należy ręcznie odpowiedzieć:
 
