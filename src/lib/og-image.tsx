@@ -35,6 +35,6 @@ export function OgImageCanvas({ title, description, label = "ANALIZA CV OCZAMI R
       width: 360, height: 360, position: "absolute", right: -115, bottom: -125, display: "flex",
       alignItems: "center", justifyContent: "center", border: "2px solid rgba(185,218,0,.22)", borderRadius: 999,
       color: "rgba(185,218,0,.15)", fontSize: 170, fontWeight: 800, letterSpacing: -12,
-    }}>CV</div>
+    }}>{brand.monogram}</div>
   </div>;
 }

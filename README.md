@@ -1,4 +1,6 @@
-# CVUnfold
+# Merivela
+
+The repository and current domain still use the `cvunfold` technical identifier. The public brand is configured independently so it can be changed without migrating storage keys, integrations or historical URLs.
 
 Merytoryczna, evidence-first analiza CV dla Frontend Developerów. MVP działa lokalnie bez kont zewnętrznych w `MOCK_MODE=true`.
 

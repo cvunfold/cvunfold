@@ -2,6 +2,7 @@ import type { CVReport } from "./schemas/report";
 import { calculateOverall } from "./validate-report";
 import { getRubric, RUBRIC_VERSION } from "@/lib/rubrics/technical-v1";
 import { PROMPT_VERSION } from "./prompts/review-pl-v3";
+import { brand } from "@/lib/brand";
 
 const evidence = {
   seg_summary: "Senior Frontend Developer z 7-letnim doświadczeniem w React, TypeScript i Next.js. Specjalizuję się w wydajności aplikacji oraz budowie design systemów.",
@@ -44,7 +45,7 @@ export const sampleProfile = {
   location: "Warszawa · praca hybrydowa",
   experience: "7 lat doświadczenia",
   target: "Senior Frontend Developer",
-  note: "Marta Nowak, firmy i wszystkie wyniki biznesowe są fikcyjne. Przykład pokazuje format oraz poziom szczegółowości raportu CVUnfold.",
+  note: `Marta Nowak, firmy i wszystkie wyniki biznesowe są fikcyjne. Przykład pokazuje format oraz poziom szczegółowości raportu ${brand.name}.`,
   skills: ["React", "TypeScript", "Next.js", "Design Systems", "Web Performance", "Playwright"],
   positions: [
     {
