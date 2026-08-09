@@ -6,7 +6,9 @@ import {
   clearPendingAnalytics,
   configureAdsPurchaseDestination,
   flushPendingAnalytics,
+  markAnalyticsReady,
   readConsent,
+  resetAnalyticsReady,
   safeAnalyticsLocation,
   safeAnalyticsPath,
   trackAnalyticsEvent,
@@ -31,18 +33,21 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
   }, [adsConversionLabel, adsId]);
 
   useEffect(() => {
-    if (!enabled || isSensitivePage) return;
+    if (!enabled) return;
     setChoice(readConsent());
-  }, [enabled, isSensitivePage]);
+  }, [enabled]);
 
   useEffect(() => {
-    if (!enabled || isSensitivePage || choice !== "granted") return;
+    if (!enabled || choice !== "granted") return;
+    const pagePath = safeAnalyticsPath(pathname);
+    const pageLocation = safeAnalyticsLocation(pathname, window.location.origin);
     window.gtag?.("consent", "update", {
       analytics_storage: "granted",
       ad_storage: "granted",
       ad_user_data: "granted",
       ad_personalization: "granted",
     });
+    window.gtag?.("set", { page_path: pagePath, page_location: pageLocation });
     if (analyticsId) window.gtag?.("config", analyticsId, { send_page_view: false });
     if (adsId) window.gtag?.("config", adsId);
     const tagId = analyticsId || adsId;
@@ -53,8 +58,8 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
       script.dataset.productGoogleTag = "true";
       document.head.appendChild(script);
     }
-    flushPendingAnalytics();
-  }, [adsId, analyticsId, choice, enabled, isSensitivePage]);
+    markAnalyticsReady();
+  }, [adsId, analyticsId, choice, enabled, pathname]);
 
   useEffect(() => {
     if (!enabled || isSensitivePage || choice !== "granted") return;
@@ -94,6 +99,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
     setSettingsOpen(false);
     if (next === "granted") flushPendingAnalytics();
     else {
+      resetAnalyticsReady();
       clearPendingAnalytics();
       window.gtag?.("consent", "update", {
         analytics_storage: "denied",

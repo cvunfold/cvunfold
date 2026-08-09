@@ -8,7 +8,7 @@ import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
 import { PROMPT_VERSION, SYSTEM_PROMPT } from "./prompts/review-pl-v3";
 import { EN_PROMPT_VERSION, EN_SYSTEM_PROMPT } from "./prompts/review-en-v1";
 
-type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSeniority: Seniority; jobDescription?: string; locale: "pl" | "en" };
+type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSeniority: Seniority; jobDescription?: string; locale: "pl" | "en"; maxOutputTokens?: number };
 export type ReviewTelemetry = { model: string; inputTokens: number; outputTokens: number; estimatedCost: number | null };
 
 export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CVReport; telemetry: ReviewTelemetry }> {
@@ -42,6 +42,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
       { role: "user", content: `${input.locale === "en" ? "Analyse the following data and prepare a report that follows the system goal and schema" : "Przeanalizuj poniższe dane i przygotuj raport zgodny z systemowym celem oraz schematem"}:\n${JSON.stringify(payload)}` },
     ],
     text: { format: zodTextFormat(reportSchema, "cv_report") },
+    ...(input.maxOutputTokens ? { max_output_tokens: input.maxOutputTokens } : {}),
   });
   if (!response.output_parsed) throw new Error("OPENAI_INVALID_RESPONSE");
   const normalized = applyServerRubric({

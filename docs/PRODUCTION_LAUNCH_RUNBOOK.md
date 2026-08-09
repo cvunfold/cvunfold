@@ -18,7 +18,8 @@ Każda operacja zewnętrzna wymaga preflightu: **SERVICE, ACCOUNT, ORGANIZATION/
 
 ## Bezpośrednio przed launch
 
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm eval`, `pnpm build`, `pnpm test:e2e` — PASS.
+- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm eval`, `pnpm eval:live`, `pnpm build`, `pnpm test:e2e` — PASS; `eval:live` bez `--execute` jest tylko preflightem.
+- [ ] Za osobną zgodą kosztową: `pnpm eval:live -- --execute`; preflight ≤ 20 zł, 100% guardraili i ręczny przegląd jakości PL/EN.
 - [ ] Preview: 360, 390, 768, 1024, 1440; klawiatura, focus, cookie banner i brak poziomego scrolla.
 - [ ] Upload tekstowego PDF i DOCX, błąd skanu, za duży plik, zła sygnatura.
 - [ ] Teaser ma dowód, ale pełny raport nie występuje w HTML/API/RSC.
@@ -67,4 +68,3 @@ Zapisz: spend, przychód, CAC, purchase conversion rate, najlepsze keywordy, naj
 6. Za osobną zgodą wykonaj realny zakup, sprawdź saldo/receipt i ewentualnie refund.
 
 Referencje: [Stripe webhooks](https://docs.stripe.com/webhooks), [Stripe Checkout fulfillment](https://docs.stripe.com/checkout/fulfillment), [Vercel secured cron](https://vercel.com/docs/cron-jobs/manage-cron-jobs), [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/get-started/), [Supabase Cron](https://supabase.com/docs/guides/cron).
-

@@ -21,9 +21,19 @@ declare global {
 const pendingEvents: Array<{ event: AnalyticsEvent; properties: AnalyticsProperties }> = [];
 let pendingPurchase: PurchaseConversion | null = null;
 let adsPurchaseDestination: string | null = null;
+let analyticsReady = false;
 
 export function configureAdsPurchaseDestination(value?: string): void {
   adsPurchaseDestination = value && /^AW-\d+\/[\w-]+$/.test(value) ? value : null;
+}
+
+export function markAnalyticsReady(): void {
+  analyticsReady = true;
+  flushPendingAnalytics();
+}
+
+export function resetAnalyticsReady(): void {
+  analyticsReady = false;
 }
 
 export function safeAnalyticsPath(pathname: string): string {
@@ -76,7 +86,7 @@ function sendEvent(event: AnalyticsEvent, properties: AnalyticsProperties): void
 
 export function trackAnalyticsEvent(event: AnalyticsEvent, properties: AnalyticsProperties = {}): void {
   if (typeof window === "undefined") return;
-  if (readConsent() !== "granted") {
+  if (readConsent() !== "granted" || !analyticsReady) {
     if (pendingEvents.length < 20) pendingEvents.push({ event, properties });
     return;
   }
@@ -87,7 +97,7 @@ export function trackPurchaseConversion(purchase: PurchaseConversion): void {
   if (typeof window === "undefined") return;
   const key = brandStorageKey(`purchase:${purchase.transactionId}`);
   if (window.localStorage.getItem(key)) return;
-  if (readConsent() !== "granted") {
+  if (readConsent() !== "granted" || !analyticsReady) {
     pendingPurchase = purchase;
     return;
   }
@@ -116,7 +126,7 @@ function sendPurchase(purchase: PurchaseConversion): void {
 }
 
 export function flushPendingAnalytics(): void {
-  if (typeof window === "undefined" || readConsent() !== "granted") return;
+  if (typeof window === "undefined" || readConsent() !== "granted" || !analyticsReady) return;
   while (pendingEvents.length) {
     const item = pendingEvents.shift();
     if (item) sendEvent(item.event, item.properties);

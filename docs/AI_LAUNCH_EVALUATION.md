@@ -40,7 +40,17 @@ Wynik automatyczny: **13/13**. Jest to wynik deterministycznych guardraili i moc
 
 ## Obowiązkowy live-model gate
 
-Przed reklamami uruchomić te same przypadki na modelu ustawionym w `OPENAI_REVIEW_MODEL`, oddzielnie dla PL i EN, zapisać wyłącznie bezpieczne wyniki oceny, a następnie ręcznie odpowiedzieć:
+Harness jest dostępny jako `pnpm eval:live`. Domyślnie wykonuje wyłącznie bezpłatny preflight. Płatne uruchomienie wymaga jawnego `pnpm eval:live -- --execute`, modelu z `OPENAI_REVIEW_MODEL`, stawek wejścia/wyjścia oraz klucza projektu CV Unfold.
+
+- 13 przypadków jest ocenianych oddzielnie po polsku i angielsku.
+- Przypadek pustego/nieczytelnego dokumentu kończy się przed modelem; łącznie pozostają 24 płatne wywołania.
+- Przed pierwszym wywołaniem liczony jest konserwatywny koszt maksymalny. Twardy limit to `OPENAI_EVAL_MAX_COST_PLN`, najwyżej 20 zł.
+- Pełne raporty syntetyczne trafiają tylko do prywatnego katalogu tymczasowego z prawami `0700/0600`; bezpieczne podsumowanie nie zawiera CV ani raportu.
+- Każdy raport przechodzi schema validation, evidence integrity, deterministyczny score, kontrolę prompt injection, severity/confidence i bezpieczny rewrite.
+
+Stan na 2026-08-09: preflight **PASS**, płatny live eval **NOT RUN** — lokalne środowisko nie ma potwierdzonego klucza/modelu/stawek projektu CV Unfold. Nie wykonano żadnego płatnego wywołania.
+
+Po wykonaniu należy ręcznie odpowiedzieć:
 
 1. Czy diagnoza jest specyficzna dla dokumentu?
 2. Czy każdy fakt wynika z cytowanego dowodu?

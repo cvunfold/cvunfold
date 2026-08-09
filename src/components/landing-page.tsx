@@ -4,6 +4,7 @@ import { Logo } from "@/components/logo";
 import { ScoreRing } from "@/components/score-ring";
 import { JsonLd } from "@/components/json-ld";
 import { PricingObserver } from "@/components/pricing-observer";
+import { MobileStickyCta } from "@/components/mobile-sticky-cta";
 import { brand } from "@/lib/brand";
 import { analysisPath, articlesPath, legalPath, sampleReportPath, type Locale } from "@/lib/i18n";
 import { formatPlanPrice, PLAN_CATALOG } from "@/lib/plans";
@@ -124,6 +125,6 @@ export function LandingPage({ locale }: { locale: Locale }) {
     <section className="launch-articles container"><div className="launch-section-head"><span>KNOWLEDGE</span><h2>{t.articlesTitle}</h2><p>{t.articlesCopy}</p></div><div>{t.articles.map(([category, title, slug]) => <article key={slug}><span>{category}</span><h3>{title}</h3><Link href={`${articlesPath(locale)}/${slug}`}>{t.read}<ArrowIcon/></Link></article>)}</div><Link className="all-articles" href={articlesPath(locale)}>{locale === "pl" ? "Wszystkie artykuły" : "All articles"}<ArrowIcon/></Link></section>
     <section className="final-cta"><div className="container"><div><h2>{t.finalTitle}</h2><p>{t.finalCopy}</p></div><Link className="button" href={analysisPath(locale)} data-analytics-event="hero_cta_clicked" data-analytics-placement="final">{t.primary}<ArrowIcon/></Link></div></section>
     <footer className="footer-shell"><div className="footer launch-footer container"><div><Logo locale={locale}/><p>{t.footerCopy}</p></div><nav>{(["privacy", "terms", "cookies", "delete", "contact"] as const).map((page, index) => <Link key={page} href={legalPath(locale, page)}>{t.footerLinks[index]}</Link>)}</nav><span>© {new Date().getFullYear()} {brand.name}</span></div></footer>
-    <Link className="mobile-sticky-cta" href={analysisPath(locale)} data-analytics-event="hero_cta_clicked" data-analytics-placement="mobile_sticky">{locale === "pl" ? "Sprawdź CV" : "Review my CV"}<span>{formatPlanPrice("full_review", locale)}</span></Link>
+    <MobileStickyCta href={analysisPath(locale)} label={locale === "pl" ? "Sprawdź CV" : "Review my CV"} price={formatPlanPrice("full_review", locale)}/>
   </main>;
 }

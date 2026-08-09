@@ -2,7 +2,7 @@
 
 ## Zasada
 
-Google dostaje wyłącznie parametry z zamkniętej allowlisty. Treść CV, ogłoszenia, raportu, promptu, błędu modelu, nazwa pliku, dane kontaktowe, token i prywatny URL są zabronione. Google tag nie jest ładowany na stronie raportu. W formularzu i teaserze nie instalujemy session replay ani heatmap.
+Google dostaje wyłącznie parametry z zamkniętej allowlisty. Treść CV, ogłoszenia, raportu, promptu, błędu modelu, nazwa pliku, dane kontaktowe, token i prywatny URL są zabronione. Na stronie raportu tag może zostać załadowany dopiero po zgodzie, ale otrzymuje wyłącznie zanonimizowaną lokalizację `/raport` lub `/en/report`, bez automatycznego `page_view`. Pozwala to wysłać potwierdzony `purchase` bez ujawniania prywatnego URL-a. W formularzu i teaserze nie instalujemy session replay ani heatmap.
 
 Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero po świadomej zgodzie. Użytkownik ma równorzędne opcje akceptacji, odrzucenia i późniejszej zmiany ustawień. Implementacja odpowiada [aktualnej instrukcji Google](https://developers.google.com/tag-platform/security/guides/consent).
 
@@ -28,7 +28,7 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 
 ## Purchase — jeden autorytatywny mechanizm
 
-Stripe webhook jest źródłem prawdy. Funkcja bazodanowa atomowo weryfikuje oczekiwany analysis/plan/amount/currency, oznacza payment jako paid, odblokowuje analizę i tworzy `stripe-purchase:<checkout_session_id>`. UI wysyła GA4 `purchase` i opcjonalną bezpośrednią konwersję Ads dopiero po pobraniu tak potwierdzonego raportu. `transaction_id` to Checkout Session ID.
+Stripe webhook jest źródłem prawdy. Funkcja bazodanowa atomowo weryfikuje oczekiwany analysis/plan/amount/currency, oznacza payment jako paid, odblokowuje analizę i tworzy `stripe-purchase:<checkout_session_id>`. UI wysyła GA4 `purchase` i opcjonalną bezpośrednią konwersję Ads dopiero po pobraniu tak potwierdzonego raportu oraz po gotowości consented Google tag. Do tego czasu event pozostaje w kolejce i nie jest oznaczany jako wysłany. `transaction_id` to Checkout Session ID.
 
 Jeżeli skonfigurowano `NEXT_PUBLIC_GOOGLE_ADS_ID` oraz `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL`, kod wysyła bezpośredni `conversion`. W Google Ads nie importować równolegle tego samego GA4 purchase jako drugiej primary conversion. Pozostałe eventy ustawić jako secondary/diagnostic. Referencja: [GA4 recommended purchase event](https://developers.google.com/analytics/devguides/collection/ga4/reference/events#purchase).
 
@@ -45,4 +45,3 @@ Jeżeli skonfigurowano `NEXT_PUBLIC_GOOGLE_ADS_ID` oraz `NEXT_PUBLIC_GOOGLE_ADS_
 3. Network: żadnego tokenu raportu w `page_location`, refererze ani payloadzie.
 4. Stripe sandbox: jeden Checkout, retry webhooka i trzy powroty do raportu dają jeden purchase transaction_id.
 5. Google Ads: direct conversion ma realną wartość/walutę; purchase jest jedyną primary.
-

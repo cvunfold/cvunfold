@@ -14,14 +14,14 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 |---|---|---|
 | Pełny raport mógłby wyciec przed płatnością | Naprawione: projekcja teasera powstaje na serwerze; pełne pola nie trafiają do HTML, RSC ani API dla nieopłaconej analizy | Do potwierdzenia testem Stripe sandbox na preview |
 | Odblokowanie po samym parametrze URL | Naprawione: token z fragmentu jest jednorazowo wymieniany na rotowaną sesję `HttpOnly`; płatność jest sprawdzana serwerowo | Do smoke testu preview |
-| Webhook i zakup bez silnej idempotencji | Naprawione w migracji: podpis Stripe, tabela zdarzeń, transakcyjna funkcja fulfillment i deduplikowany purchase | Migracja musi zostać zastosowana w projekcie Supabase CVUnfold |
-| Niespójne ceny | Naprawione: serwer pobiera Stripe Price i weryfikuje kwotę, walutę, aktywność i tryb one-time; PLN 29/39 i EUR 9/12 mają osobne Price IDs | Właściciel musi utworzyć/zweryfikować live Price IDs |
+| Webhook i zakup bez silnej idempotencji | Naprawione w migracji: podpis Stripe, tabela zdarzeń, transakcyjna funkcja fulfillment i deduplikowany purchase | Migracja zastosowana 2026-08-09 w `cvunfold-prod`; test preview nadal wymagany |
+| Niespójne ceny | Naprawione: serwer pobiera Stripe Price i weryfikuje kwotę, walutę, aktywność i tryb one-time; PLN 29/39 i EUR 9/12 mają osobne Price IDs | Sandbox i live Price IDs są zweryfikowane; pozostał smoke test checkoutu |
 | Brak pełnego EN | Naprawione: landing, upload, błędy, raport, artykuły, SEO i dokumenty informacyjne mają wersję `/en` | Copy prawne wymaga akceptacji właściciela |
 | Brak gwarantowanej retencji/usunięcia | Naprawione w kodzie: plik jest analizowany wyłącznie w pamięci, raport ma termin, delete jest natychmiastowy, cron czyści wygasłe rekordy | `CRON_SECRET` i cron trzeba zweryfikować po deployu |
-| Dane prywatne w analytics/referrerze | Naprawione: zamknięta allowlista eventów, anonimowa lokalizacja raportu, `no-referrer`, brak Google tag na raporcie, brak CV/JD/nazwy pliku | GA4 DebugView i Tag Assistant wymagają identyfikatorów właściciela |
+| Dane prywatne w analytics/referrerze | Naprawione: zamknięta allowlista eventów, anonimowa lokalizacja raportu, `no-referrer`, brak automatycznego page view na raporcie i brak CV/JD/nazwy pliku; po zgodzie tag może wysłać wyłącznie bezpieczny purchase | GA4 DebugView i Tag Assistant wymagają identyfikatorów właściciela |
 | Nadużycie anonimowego AI | Naprawione: krótkoterminowy i trwały limit, limit tekstu/pliku/stron, kontrola archiwum DOCX, token-free CV detection, opcjonalny Turnstile sprawdzany na serwerze | Dla ruchu reklamowego zalecane jest skonfigurowanie produkcyjnego Turnstile |
 | Dokumenty publiczne z fikcyjnymi danymi | Nie wymyślamy danych; strony jawnie blokują sprzedaż, gdy brakuje danych firmy | Dane firmy, support i akceptacja treści są wymagane przed live sales |
-| Semantyczna jakość modelu | Guardraile i 13 syntetycznych przypadków przechodzą lokalnie | Płatny live-model eval i ręczny przegląd raportów nadal blokują reklamy |
+| Semantyczna jakość modelu | Guardraile i 13 syntetycznych przypadków przechodzą lokalnie; dodano 13×PL/EN harness `eval:live` z limitem 20 zł | Płatne wykonanie live-model eval i ręczny przegląd raportów nadal blokują reklamy |
 
 ## P1 — przed Google Ads
 
@@ -50,7 +50,7 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 - Źródłowe CV nie jest zapisywane do storage ani bazy; parser operuje na buforze w pamięci.
 - Supabase ma RLS i brak polityk klienta; dostęp odbywa się przez serwerową service role.
 - Token raportu jest losowy, przechowywany jako hash, rotowany po utworzeniu sesji i nie jest częścią normalnego URL raportu.
-- Raporty i API mają `noindex`; raport dodatkowo nie ładuje Google tag i ma `Referrer-Policy: no-referrer`.
+- Raporty i API mają `noindex`; raport ma `Referrer-Policy: no-referrer`, a consented tag dostaje wyłącznie statyczną lokalizację bez tokenu i bez automatycznego page view.
 - Log błędu zawiera wyłącznie kategorię, nie CV, prompt, raport, plik ani PII.
 - OpenAI Responses używa structured output oraz `store: false`; wynik przechodzi Zod, evidence validation, bezpieczny rewrite guard i deterministyczny scoring.
 
@@ -59,13 +59,13 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 - Production build, landing mobile 390 px, 4× CPU, 150 ms latency / 1.6 Mbps: LCP 760 ms, CLS 0, DCL 759 ms, load 1109 ms, 148 KB transferu, 12 zasobów.
 - To lokalny pomiar laboratoryjny, nie dane terenowe CrUX; INP wymaga rzeczywistych sesji.
 - Screenshot QA: 360, 390, 768, 1024 i 1440 px; landing PL/EN, upload PL/EN i przykładowy raport. Brak overflow, błędów konsoli i failed requests.
-- Build raportuje około 108 KB First Load JS dla publicznego landingu; OpenAI, Stripe i parsery nie są importowane do jego kodu klienta.
+- Build raportuje około 109 KB First Load JS dla publicznego landingu; OpenAI, Stripe i parsery nie są importowane do jego kodu klienta.
 
 ## Otwarte bramki
 
-1. Zastosowanie migracji w jednoznacznie potwierdzonym projekcie Supabase CVUnfold.
-2. Konfiguracja i test Stripe sandbox, następnie osobno live.
-3. Płatny live-model eval PL/EN oraz ręczna ocena jakości.
+1. Test cleanupu i Vercel Cron na preview po ustawieniu `CRON_SECRET`; migracja Supabase jest zastosowana.
+2. Stripe sandbox ma ceny PLN/EUR i komplet eventów webhooka; pozostał end-to-end test preview, następnie osobno live.
+3. Płatny live-model eval PL/EN oraz ręczna ocena jakości; projekt OpenAI ma aktywny billing, ale wykonanie wymaga osobnej zgody kosztowej.
 4. Dane firmy, działający support i akceptacja draftów prawnych.
-5. GA4/Ads/Search Console oraz test consent/purchase na preview.
+5. GA4 istnieje (`G-D8TP3LQSJD`); Google Ads jest w onboardingu, Search Console nie ma jeszcze property, a consent/purchase wymaga testu preview.
 6. Preview deployment i pełny smoke test — wyłącznie po potwierdzeniu zespołu/projektu CVUnfold.
