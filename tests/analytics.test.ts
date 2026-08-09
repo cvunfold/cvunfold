@@ -8,6 +8,7 @@ import {
   trackPurchaseConversion,
   writeConsent,
 } from "@/lib/analytics/client";
+import { googleConsentDefaults } from "@/components/google-analytics";
 
 afterEach(() => {
   window.localStorage.clear();
@@ -55,5 +56,15 @@ describe("purchase measurement boundary", () => {
     flushPendingAnalytics();
     expect(gtag).toHaveBeenCalledWith("event", "purchase", expect.objectContaining({ transaction_id: "cs_test_delayed" }));
     expect(window.localStorage.getItem("cv-review:purchase:cs_test_delayed:v1")).toBe("1");
+  });
+});
+
+describe("Google tag bootstrap", () => {
+  it("initializes gtag.js after applying denied consent defaults", () => {
+    const consentDefault = googleConsentDefaults.indexOf("gtag('consent', 'default'");
+    const tagInitialization = googleConsentDefaults.indexOf("gtag('js', new Date())");
+
+    expect(consentDefault).toBeGreaterThan(-1);
+    expect(tagInitialization).toBeGreaterThan(consentDefault);
   });
 });

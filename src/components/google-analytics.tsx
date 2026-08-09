@@ -154,4 +154,5 @@ gtag('consent', 'default', {
   wait_for_update: 500
 });
 gtag('set', 'ads_data_redaction', true);
+gtag('js', new Date());
 `;
