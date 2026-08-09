@@ -30,6 +30,11 @@ const csp = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The Open Graph image routes load this font at runtime with `readFile`.
+  // Keep it in Vercel's server trace even though the path is resolved dynamically.
+  outputFileTracingIncludes: {
+    "/*": ["./src/assets/og-font.ttf"],
+  },
   experimental: { serverActions: { bodySizeLimit: "9mb" } },
   async headers() {
     const privateRouteHeaders = { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, noimageindex" };
