@@ -32,7 +32,7 @@ const allCases = JSON.parse(readFileSync(casePath, "utf8")) as LiveEvalCase[];
 const requestedCaseIds = new Set((process.env.OPENAI_EVAL_CASE_IDS || "").split(",").map((value) => value.trim()).filter(Boolean));
 const cases = requestedCaseIds.size ? allCases.filter((item) => requestedCaseIds.has(item.id)) : allCases;
 const locales: LiveEvalLocale[] = ["pl", "en"];
-const maxCostPln = Number(process.env.OPENAI_EVAL_MAX_COST_PLN || 20);
+const maxCostPln = Number(process.env.OPENAI_EVAL_MAX_COST_PLN || 50);
 const plnPerUsd = Number(process.env.OPENAI_EVAL_PLN_PER_USD || 5);
 const costSafetyFactor = Number(process.env.OPENAI_EVAL_COST_SAFETY_FACTOR || 2.5);
 const alreadySpentPln = Number(process.env.OPENAI_EVAL_ALREADY_SPENT_PLN || 0);
