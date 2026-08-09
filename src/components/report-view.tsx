@@ -158,7 +158,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
         <strong className="perceived-level">{seniorityLabel(data.document.perceivedSeniority)}</strong>
         <span className="overline">{t.first20}</span>
         <strong className={`sidebar-decision ${data.recruiterSimulation.simulatedDecision}`}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong>
-        <div className="secondary-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore}/></div>
+        <div className="secondary-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} statusLabel={locale === "pl" ? "Dobry kierunek" : "Good direction"}/></div>
         <hr/>
         <p className="verdict">{data.summary.oneSentenceVerdict}</p>
         <ul className="report-includes"><li><span>{t.fullIssues}</span><b>{counts.issues}</b></li><li><span>{t.strengths}</span><b>{counts.strengths}</b></li><li><span>{t.nextSteps}</span><b>{counts.nextSteps}</b></li></ul>
