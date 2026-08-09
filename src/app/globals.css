@@ -248,6 +248,7 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
   --score: 260deg;
   width: 180px;
   aspect-ratio: 1;
+  flex: none;
   position: relative;
   display: grid;
   place-items: center;
@@ -596,6 +597,14 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 .report-layout { display: grid; grid-template-columns: 326px minmax(0, 1fr); }
 .report-sidebar { min-width: 0; height: 100vh; position: sticky; top: 0; overflow: auto; padding: 30px 32px; background: var(--ink); color: #fff; }
 .report-sidebar > .logo { display: block; margin-bottom: 34px; color: #fff; }
+.report-sidebar > .overline,
+.secondary-score > span { display: block; color: rgba(255, 255, 255, .62); font-size: 11px; font-weight: 800; line-height: 1.35; letter-spacing: .09em; text-transform: uppercase; }
+.report-sidebar > .overline { margin-bottom: 7px; }
+.report-sidebar > .perceived-level,
+.report-sidebar > .sidebar-decision { display: block; margin-bottom: 24px; color: #fff; }
+.report-sidebar > .perceived-level { font: 600 28px/1.1 var(--serif); }
+.report-sidebar > .sidebar-decision { font-size: 17px; font-weight: 850; line-height: 1.2; letter-spacing: .04em; }
+.secondary-score { margin-top: 2px; }
 .report-sidebar .score-ring { width: 198px; margin: 14px auto 20px; }
 .report-sidebar .score-ring::before { background: var(--ink); }
 .report-sidebar .score-ring strong { color: #fff; }
@@ -980,8 +989,11 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 .level-score-list i b { display: block; height: 100%; background: var(--accent); }
 .level-score-list strong { text-align: right; }
 .level-demo > footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 14px 23px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
-.level-demo .score-ring.compact { width: 52px; }
-.level-demo .score-ring.compact strong { font-size: 20px; }
+.level-demo .score-ring.compact { width: 64px; height: 64px; flex-basis: 64px; }
+.level-demo .score-ring.compact::before { inset: 5px; }
+.level-demo .score-ring.compact strong { font-size: 22px; }
+.level-demo .score-ring.compact span { font-size: 9px; }
+.level-demo .score-ring.compact small { display: none; }
 
 .launch-section-head { max-width: 720px; }
 .launch-section-head h2, .compact-section h2, .promise-strip h2, .privacy-strip h2, .final-cta h2 { margin: 0; font: 600 clamp(39px,4vw,58px)/1.02 var(--serif); letter-spacing: -.045em; }
