@@ -1,36 +1,15 @@
 import type { MetadataRoute } from "next";
 import { articles } from "@/lib/content/articles";
-import { SITE_LAST_SIGNIFICANT_UPDATE, absoluteUrl, articleImageUrl } from "@/lib/seo";
+import { articlesEn } from "@/lib/content/articles-en";
+import { SITE_LAST_SIGNIFICANT_UPDATE, absoluteUrl } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const latestArticleDate = articles.reduce(
-    (latest, article) => article.publishedAt > latest ? article.publishedAt : latest,
-    "2026-01-01",
-  );
-  const staticRoutes: MetadataRoute.Sitemap = [
-    {
-      url: absoluteUrl("/pl"),
-      lastModified: SITE_LAST_SIGNIFICANT_UPDATE,
-      images: [absoluteUrl("/opengraph-image")],
-    },
-    {
-      url: absoluteUrl("/pl/przykladowy-raport"),
-      lastModified: "2026-08-08",
-      images: [absoluteUrl("/opengraph-image")],
-    },
-    {
-      url: absoluteUrl("/pl/artykuly"),
-      lastModified: latestArticleDate,
-      images: [absoluteUrl("/opengraph-image")],
-    },
-  ];
-
+  const publicPages = ["/", "/en", "/przykladowy-raport", "/en/sample-report", "/artykuly", "/en/articles",
+    "/regulamin", "/polityka-prywatnosci", "/cookies", "/usun-dane", "/kontakt",
+    "/en/terms", "/en/privacy", "/en/cookies", "/en/delete-data", "/en/contact"];
   return [
-    ...staticRoutes,
-    ...articles.map((article) => ({
-      url: absoluteUrl(`/pl/artykuly/${article.slug}`),
-      lastModified: article.publishedAt,
-      images: [articleImageUrl(article)],
-    })),
+    ...publicPages.map((path) => ({ url: absoluteUrl(path), lastModified: SITE_LAST_SIGNIFICANT_UPDATE })),
+    ...articles.map((article) => ({ url: absoluteUrl(`/artykuly/${article.slug}`), lastModified: article.publishedAt })),
+    ...articlesEn.map((article) => ({ url: absoluteUrl(`/en/articles/${article.slug}`), lastModified: article.publishedAt })),
   ];
 }

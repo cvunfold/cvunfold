@@ -71,6 +71,7 @@ export const sampleReport: CVReport = {
   rubricVersion: RUBRIC_VERSION,
   promptVersion: PROMPT_VERSION,
   locale: "pl",
+  evidenceMap: evidence,
   document: {
     detectedLanguage: "pl",
     parseQuality: "good",
@@ -194,10 +195,10 @@ export const sampleReport: CVReport = {
       confidence: "high",
       action: "Dodać zakres odpowiedzialności oraz sposób doprowadzenia do adopcji przez cztery zespoły.",
       suggestion: {
-        type: "rewrite",
+        type: "question",
         original: evidence.seg_exp_2,
-        proposed: "Zaprojektowałam kontrakty API i model wersjonowania design systemu (32 komponenty), a następnie poprowadziłam migrację i adopcję w czterech zespołach produktowych.",
-        factualityNote: "Użyj tej wersji wyłącznie, jeśli zakres API, wersjonowanie i prowadzenie migracji są zgodne z faktami.",
+        proposed: null,
+        factualityNote: "Które decyzje dotyczące design systemu należały bezpośrednio do Ciebie i jak wyglądała adopcja w czterech zespołach?",
       },
     },
     {
@@ -211,10 +212,10 @@ export const sampleReport: CVReport = {
       confidence: "high",
       action: "Usunąć punkt albo zastąpić go jednym przykładem funkcji, decyzji lub problemu rozwiązanym we współpracy z UX i backendem.",
       suggestion: {
-        type: "question",
+        type: "rewrite",
         original: evidence.seg_exp_3,
-        proposed: null,
-        factualityNote: "Jaki był najtrudniejszy problem produktowy rozwiązany wspólnie z UX i backendem?",
+        proposed: "Rozwijałam funkcjonalności w React i TypeScript, prowadziłam code review oraz współpracowałam z UX i backendem.",
+        factualityNote: "Wersja porządkuje wyłącznie fakty obecne w oryginalnym punkcie; nadal warto zastąpić ją konkretnym przykładem.",
       },
     },
     {

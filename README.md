@@ -10,7 +10,7 @@ pnpm install
 pnpm dev
 ```
 
-Otwórz `http://localhost:3000/pl`. W mock mode syntetyczny plik jest już wybrany; zaznacz zgodę, uruchom analizę, zobacz teaser, użyj mock checkout i przejdź do pełnego raportu.
+Otwórz `http://localhost:3000` (polski) albo `http://localhost:3000/en` (angielski). W mock mode syntetyczny plik jest już wybrany; zaznacz zgodę, uruchom analizę, zobacz teaser, użyj mock checkout i przejdź do pełnego raportu.
 
 ## Kontrole jakości
 
@@ -34,5 +34,7 @@ Mock unlock działa tylko gdy `MOCK_MODE=true` i `NODE_ENV !== production`. Peł
 - server-only access tokens, teaser projection, retention cleanup i diagnostics API
 - Stripe Checkout z serwerową weryfikacją płatności i idempotentnym fulfillmentem
 - opcjonalny GA4 + Google Ads z Consent Mode v2; tagi ładują się dopiero po zgodzie, a ścieżki prywatnych raportów są anonimizowane
+- marka, domena i dane firmy są konfigurowane przez `NEXT_PUBLIC_BRAND_*` / `NEXT_PUBLIC_COMPANY_*`; nazwa produktu nie jest częścią logiki płatności ani danych
+- osobne rynki Stripe: PLN (`29/39 zł`) i EUR (`€9/€12`) z oddzielnymi Price IDs
 
 Nie commituj `.env`. Nie loguj treści CV ani raportów.

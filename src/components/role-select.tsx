@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { TARGET_ROLES, getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
+import { getTargetRoleOptions, getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
+import type { Locale } from "@/lib/i18n";
 
 type RoleSelectProps = {
   value: TargetRoleId;
   onChange: (value: TargetRoleId) => void;
   disabled?: boolean;
+  locale: Locale;
 };
 
 function ChevronIcon({ open }: { open: boolean }) {
@@ -21,15 +23,16 @@ function SelectedIcon() {
   </svg>;
 }
 
-export function RoleSelect({ value, onChange, disabled = false }: RoleSelectProps) {
+export function RoleSelect({ value, onChange, disabled = false, locale }: RoleSelectProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listboxId = useId();
   const labelId = useId();
   const [open, setOpen] = useState(false);
-  const selectedIndex = TARGET_ROLES.findIndex((role) => role.id === value);
+  const roles = getTargetRoleOptions(locale);
+  const selectedIndex = roles.findIndex((role) => role.id === value);
   const [activeIndex, setActiveIndex] = useState(selectedIndex);
-  const selected = getTargetRoleProfile(value);
+  const selected = getTargetRoleProfile(value, locale);
 
   useEffect(() => {
     if (!open) return;
@@ -46,7 +49,7 @@ export function RoleSelect({ value, onChange, disabled = false }: RoleSelectProp
   }
 
   function select(index: number) {
-    const role = TARGET_ROLES[index];
+    const role = roles[index];
     if (!role) return;
     onChange(role.id);
     setActiveIndex(index);
@@ -59,12 +62,12 @@ export function RoleSelect({ value, onChange, disabled = false }: RoleSelectProp
       event.preventDefault();
       const direction = event.key === "ArrowDown" ? 1 : -1;
       if (!open) return openAt(selectedIndex);
-      setActiveIndex((current) => (current + direction + TARGET_ROLES.length) % TARGET_ROLES.length);
+      setActiveIndex((current) => (current + direction + roles.length) % roles.length);
       return;
     }
     if (event.key === "Home" || event.key === "End") {
       event.preventDefault();
-      openAt(event.key === "Home" ? 0 : TARGET_ROLES.length - 1);
+      openAt(event.key === "Home" ? 0 : roles.length - 1);
       return;
     }
     if ((event.key === "Enter" || event.key === " ") && open) {
@@ -79,7 +82,7 @@ export function RoleSelect({ value, onChange, disabled = false }: RoleSelectProp
   }
 
   return <div className="role-field" ref={rootRef}>
-    <span className="role-label" id={labelId}>Rola docelowa</span>
+    <span className="role-label" id={labelId}>{locale === "pl" ? "Rola docelowa" : "Target role"}</span>
     <div className={open ? "role-select open" : "role-select"}>
       <button
         ref={triggerRef}
@@ -100,9 +103,9 @@ export function RoleSelect({ value, onChange, disabled = false }: RoleSelectProp
         <ChevronIcon open={open} />
       </button>
       {open ? <div className="role-select-popover">
-        <div className="role-select-intro"><b>Wybierz specjalizację</b><span>Kryteria raportu dopasują się do roli.</span></div>
+        <div className="role-select-intro"><b>{locale === "pl" ? "Wybierz specjalizację" : "Choose a specialisation"}</b><span>{locale === "pl" ? "Kryteria raportu dopasują się do roli." : "The report criteria adapt to the role."}</span></div>
         <ul id={listboxId} className="role-options" role="listbox" aria-labelledby={labelId}>
-          {TARGET_ROLES.map((role, index) => <li key={role.id} role="presentation">
+          {roles.map((role, index) => <li key={role.id} role="presentation">
             <button
               id={`${listboxId}-${index}`}
               type="button"
@@ -120,6 +123,6 @@ export function RoleSelect({ value, onChange, disabled = false }: RoleSelectProp
         </ul>
       </div> : null}
     </div>
-    <small className="role-helper">Raport użyje kryteriów właściwych dla tej specjalizacji.</small>
+    <small className="role-helper">{locale === "pl" ? "Raport użyje kryteriów właściwych dla tej specjalizacji." : "The report will use criteria specific to this specialisation."}</small>
   </div>;
 }

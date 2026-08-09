@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import robots from "@/app/robots";
 import sitemap from "@/app/sitemap";
 import { articles } from "@/lib/content/articles";
+import { articlesEn } from "@/lib/content/articles-en";
+import { brand } from "@/lib/brand";
 import {
   SITE_URL,
   absoluteUrl,
@@ -14,17 +16,20 @@ describe("public search surfaces", () => {
     const entries = sitemap();
     const urls = entries.map(({ url }) => url);
 
-    expect(urls).toContain(absoluteUrl("/pl"));
-    expect(urls).toContain(absoluteUrl("/pl/artykuly"));
-    expect(urls).toContain(absoluteUrl("/pl/przykladowy-raport"));
-    expect(urls).not.toContain(absoluteUrl("/pl/analiza"));
-    expect(urls.some((url) => url.includes("/pl/raport/"))).toBe(false);
-    expect(entries).toHaveLength(articles.length + 3);
+    expect(urls).toContain(absoluteUrl("/"));
+    expect(urls).toContain(absoluteUrl("/en"));
+    expect(urls).toContain(absoluteUrl("/artykuly"));
+    expect(urls).toContain(absoluteUrl("/en/articles"));
+    expect(urls).toContain(absoluteUrl("/przykladowy-raport"));
+    expect(urls).toContain(absoluteUrl("/en/sample-report"));
+    expect(urls).not.toContain(absoluteUrl("/analiza"));
+    expect(urls).not.toContain(absoluteUrl("/en/analysis"));
+    expect(urls.some((url) => url.includes("/raport"))).toBe(false);
+    expect(entries).toHaveLength(16 + articles.length + articlesEn.length);
 
     for (const entry of entries) {
       expect(entry.url.startsWith(SITE_URL)).toBe(true);
       expect(entry.lastModified).toBeTruthy();
-      expect(entry.images).toHaveLength(1);
       expect(entry.changeFrequency).toBeUndefined();
       expect(entry.priority).toBeUndefined();
     }
@@ -37,7 +42,7 @@ describe("public search surfaces", () => {
     expect(config.rules).toMatchObject({
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/pl/analiza", "/pl/raport/"],
+      disallow: ["/api/", "/analiza", "/raport", "/en/analysis", "/en/report", "/pl/analiza", "/pl/raport/"],
     });
   });
 });
@@ -58,11 +63,11 @@ describe("structured article data", () => {
       headline: article.title,
       articleSection: article.category,
       datePublished: `${article.publishedAt}T09:00:00+02:00`,
-      author: { name: "CVUnfold" },
+      author: { name: brand.name },
     });
     expect(blogPost?.wordCount).toBeGreaterThan(500);
     expect(blogPost && "image" in blogPost ? blogPost.image?.[0] : undefined)
-      .toBe(absoluteUrl(`/pl/artykuly/${article.slug}/opengraph-image`));
+      .toBe(absoluteUrl("/opengraph-image"));
   });
 
   it("escapes markup-like text before embedding JSON-LD in HTML", () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { articles, articlesBySlug } from "@/lib/content/articles";
+import { articlesEn } from "@/lib/content/articles-en";
 
 describe("knowledge articles", () => {
   it("publishes the AI career pillar as the leading article", () => {
@@ -12,5 +13,10 @@ describe("knowledge articles", () => {
 
   it("keeps article slugs unique for static routes and the sitemap", () => {
     expect(new Set(articles.map(({ slug }) => slug)).size).toBe(articles.length);
+  });
+
+  it("ships a complete English counterpart for every Polish article", () => {
+    expect(articlesEn).toHaveLength(articles.length);
+    expect(articlesEn.every((article) => article.sections.length >= 4 && article.checklist.length >= 4)).toBe(true);
   });
 });

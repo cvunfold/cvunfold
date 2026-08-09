@@ -1,6 +1,8 @@
 import Stripe from "stripe";
 import type { Analysis } from "@/lib/data/store";
 import { fulfillStripePayment, savePendingPayment } from "@/lib/data/store";
+import { reportPath } from "@/lib/i18n";
+import { getPlanDefinition, isPlan, type Plan } from "@/lib/plans";
 
 let stripeClient: Stripe | undefined;
 
@@ -11,8 +13,9 @@ export function getStripe(): Stripe {
   return stripeClient;
 }
 
-export function priceForPlan(plan: Analysis["plan"]): string {
-  const price = plan === "job_match" ? process.env.STRIPE_PRICE_JOB_MATCH : process.env.STRIPE_PRICE_FULL_REVIEW;
+export function priceForPlan(plan: Plan, locale: Analysis["locale"] = "pl"): string {
+  const definition = getPlanDefinition(plan, locale);
+  const price = process.env[definition.stripePriceEnv];
   if (!price) throw new Error("STRIPE_PRICE_NOT_CONFIGURED");
   return price;
 }
@@ -25,16 +28,21 @@ function appUrl(): string {
   return url.origin;
 }
 
-export async function createCheckout(analysis: Analysis, token: string): Promise<string> {
+export async function createCheckout(analysis: Analysis): Promise<string> {
   const stripe = getStripe();
-  const price = priceForPlan(analysis.plan);
-  const reportUrl = `${appUrl()}/pl/raport/${encodeURIComponent(token)}`;
+  const definition = getPlanDefinition(analysis.plan, analysis.locale);
+  const price = priceForPlan(analysis.plan, analysis.locale);
+  const stripePrice = await stripe.prices.retrieve(price);
+  if (!stripePrice.active || stripePrice.recurring || stripePrice.unit_amount !== definition.amountMinor
+    || stripePrice.currency.toUpperCase() !== definition.currency) throw new Error("STRIPE_PRICE_MISMATCH");
+  const reportUrl = `${appUrl()}${reportPath(analysis.locale)}`;
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
-    line_items: [{ price, quantity: 1 }],
+    line_items: [{ price: stripePrice.id, quantity: 1 }],
     client_reference_id: analysis.id,
-    metadata: { analysis_id: analysis.id, plan: analysis.plan },
-    payment_intent_data: { metadata: { analysis_id: analysis.id, plan: analysis.plan } },
+    locale: analysis.locale === "pl" ? "pl" : "en",
+    metadata: { analysis_id: analysis.id, plan: analysis.plan, locale: analysis.locale, market: analysis.market },
+    payment_intent_data: { metadata: { analysis_id: analysis.id, plan: analysis.plan, locale: analysis.locale, market: analysis.market } },
     success_url: `${reportUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${reportUrl}?checkout=cancelled`,
   }, { idempotencyKey: `analysis:${analysis.id}:${price}` });
@@ -43,6 +51,8 @@ export async function createCheckout(analysis: Analysis, token: string): Promise
     analysisId: analysis.id,
     checkoutSessionId: session.id,
     plan: analysis.plan,
+    locale: analysis.locale,
+    market: analysis.market,
     amountGross: session.amount_total,
     currency: session.currency,
   });
@@ -54,9 +64,15 @@ export async function fulfillCheckoutSession(sessionId: string, eventId: string,
   if (session.payment_status !== "paid") return false;
   const analysisId = session.metadata?.analysis_id;
   const plan = session.metadata?.plan;
-  if (!analysisId || (plan !== "full_review" && plan !== "job_match")) throw new Error("STRIPE_METADATA_INVALID");
+  const locale = session.metadata?.locale;
+  const market = session.metadata?.market;
+  if (!analysisId || !isPlan(plan) || (locale !== "pl" && locale !== "en") || (market !== "pl" && market !== "en")) throw new Error("STRIPE_METADATA_INVALID");
   if (expectedAnalysisId && analysisId !== expectedAnalysisId) throw new Error("STRIPE_ANALYSIS_MISMATCH");
   if (session.amount_total == null || !session.currency) throw new Error("STRIPE_PAYMENT_INVALID");
+  const definition = getPlanDefinition(plan, locale);
+  if (session.amount_total !== definition.amountMinor || session.currency.toUpperCase() !== definition.currency || market !== definition.market) {
+    throw new Error("STRIPE_PAYMENT_MISMATCH");
+  }
   const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
   const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
   return fulfillStripePayment({
@@ -66,6 +82,8 @@ export async function fulfillCheckoutSession(sessionId: string, eventId: string,
     paymentIntentId: paymentIntentId || null,
     customerId: customerId || null,
     plan,
+    locale,
+    market,
     amountGross: session.amount_total,
     currency: session.currency,
   });

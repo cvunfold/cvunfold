@@ -4,25 +4,39 @@ import { createMockReport } from "@/lib/ai/mock-report";
 import { validateEvidence, toTeaser } from "@/lib/ai/validate-report";
 import { parseDocument } from "@/lib/document-parsing";
 import { validateCvText } from "@/lib/document-parsing/cv-detection";
-import { saveAnalysis, track } from "@/lib/data/store";
+import { recordFunnelEvent, saveAnalysis } from "@/lib/data/store";
 import { createAccessToken, hmacIdentifier } from "@/lib/security/tokens";
 import { consumeAnalysisQuota, rateLimit } from "@/lib/security/rate-limit";
 import { validateSignature, validateUpload } from "@/lib/security/upload";
 import type { Seniority } from "@/lib/rubrics/technical-v1";
 import { parseTargetRoleId } from "@/lib/roles";
 import { reviewWithOpenAI } from "@/lib/ai/openai-review";
+import { isLocale, reportPath, type Locale } from "@/lib/i18n";
+import { marketForLocale } from "@/lib/plans";
+import { parseAttribution } from "@/lib/analytics/attribution";
+import type { ReviewTelemetry } from "@/lib/ai/openai-review";
+import { verifyTurnstile } from "@/lib/security/turnstile";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const startedAt = Date.now();
   const clientIp = request.headers.get("x-vercel-forwarded-for")
     || request.headers.get("x-forwarded-for")?.split(",")[0]
     || "local";
   const ipKey = hmacIdentifier(clientIp);
-  if (!rateLimit(ipKey)) return NextResponse.json({ error: "Spróbuj ponownie za chwilę." }, { status: 429 });
-  track("analysis_started");
+  const requestedLanguage = request.headers.get("accept-language")?.toLowerCase().startsWith("en") ? "en" : "pl";
+  let resolvedLocale: Locale = requestedLanguage;
+  if (!rateLimit(ipKey)) return NextResponse.json({
+    error: requestedLanguage === "en" ? "Too many attempts. Please try again shortly." : "Zbyt wiele prób. Spróbuj ponownie za chwilę.",
+    errorCategory: "rate_limit",
+  }, { status: 429, headers: { "Retry-After": "60" } });
   try {
     const form = await request.formData();
+    const requestedLocale = form.get("locale");
+    const locale: Locale = isLocale(requestedLocale) ? requestedLocale : "pl";
+    resolvedLocale = locale;
+    const market = marketForLocale(locale);
     const file = form.get("file");
     if (!(file instanceof File)) throw new Error("MISSING_FILE");
     validateUpload(file);
@@ -30,41 +44,98 @@ export async function POST(request: Request) {
     if (!targetRole) throw new Error("INVALID_TARGET_ROLE");
     const seniority = String(form.get("seniority") || "auto") as Seniority;
     const jobDescription = String(form.get("jobDescription") || "");
+    let rawAttribution: unknown = {};
+    try { rawAttribution = JSON.parse(String(form.get("attribution") || "{}")); } catch { rawAttribution = {}; }
+    const attribution = parseAttribution(rawAttribution);
+    const plan = jobDescription ? "job_match" : "full_review";
+    await recordFunnelEvent({
+      name: "analysis_started",
+      locale,
+      market,
+      properties: { plan, ...attribution },
+    }).catch(() => undefined);
+    await verifyTurnstile(String(form.get("turnstileToken") || ""), clientIp);
     if (jobDescription.length > Number(process.env.MAX_JOB_DESCRIPTION_LENGTH || 20_000)) throw new Error("JOB_DESCRIPTION_TOO_LONG");
     const mockMode = process.env.MOCK_MODE === "true";
     let report;
+    let telemetry: ReviewTelemetry = { model: "mock", inputTokens: 0, outputTokens: 0, estimatedCost: 0 };
     if (!mockMode) {
       const quota = await consumeAnalysisQuota(ipKey);
       if (!quota.allowed) return NextResponse.json(
-        { error: "Osiągnięto limit bezpłatnych analiz. Spróbuj ponownie później." },
+        { error: locale === "en" ? "You have reached the free analysis limit. Please try again later." : "Osiągnięto limit bezpłatnych analiz. Spróbuj ponownie później.", errorCategory: "rate_limit" },
         { status: 429, headers: { "Retry-After": String(quota.retryAfterSeconds) } },
       );
       await validateSignature(file);
       const parsed = await parseDocument(file);
       validateCvText(parsed.text);
-      report = await reviewWithOpenAI({ segments: parsed.segments, targetRole, targetSeniority: seniority, jobDescription: jobDescription || undefined, locale: "pl" });
-    } else report = validateEvidence(createMockReport(seniority, jobDescription.length > 0, targetRole), new Set(["seg_exp_1", "seg_summary", "seg_project_1"]));
+      const review = await reviewWithOpenAI({ segments: parsed.segments, targetRole, targetSeniority: seniority, jobDescription: jobDescription || undefined, locale });
+      report = review.report;
+      telemetry = review.telemetry;
+    } else {
+      const mock = createMockReport(seniority, jobDescription.length > 0, targetRole, locale);
+      const mockEvidence = mock.evidenceMap || {};
+      report = validateEvidence(mock, new Set(Object.keys(mockEvidence)), mockEvidence);
+    }
     const token = createAccessToken();
+    const analysisId = randomUUID();
     const retentionDays = Number(process.env.REPORT_RETENTION_DAYS || 30);
-    await saveAnalysis(token, { id: randomUUID(), createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
-      status: "complete", paid: false, plan: jobDescription ? "job_match" : "full_review", report, feedback: [] });
-    track("analysis_succeeded"); track("teaser_viewed");
-    return NextResponse.json({ accessToken: token, teaser: toTeaser(report) });
+    await saveAnalysis(token, { id: analysisId, createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
+      status: "complete", paid: false, plan, locale, market, attribution,
+      report, feedback: [], durationMs: Date.now() - startedAt, model: telemetry.model, inputTokens: telemetry.inputTokens,
+      outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost });
+    await Promise.all([
+      recordFunnelEvent({ name: "analysis_succeeded", analysisId, locale, market, properties: { plan, ...attribution, analysis_success: true, duration_ms: Date.now() - startedAt, model: telemetry.model, prompt_version: report.promptVersion, rubric_version: report.rubricVersion, input_tokens: telemetry.inputTokens, output_tokens: telemetry.outputTokens, estimated_cost: telemetry.estimatedCost } }),
+    ]).catch(() => undefined);
+    return NextResponse.json({ accessToken: token, reportPath: reportPath(locale), teaser: toTeaser(report) });
   } catch (error) {
-    track("analysis_failed");
-    const code = error instanceof Error ? error.message : "ANALYSIS_FAILED";
+    const rawCode = error instanceof Error ? error.message : "ANALYSIS_FAILED";
+    const code = error instanceof Error && /timeout/i.test(`${error.name} ${error.message}`) ? "ANALYSIS_TIMEOUT" : rawCode;
     const messages: Record<string, string> = { EMPTY_FILE: "Plik jest pusty.", FILE_TOO_LARGE: "Plik przekracza dozwolony rozmiar.",
       UNSUPPORTED_FILE_TYPE: "Prześlij PDF lub DOCX.", INVALID_FILE_SIGNATURE: "Zawartość pliku nie zgadza się z rozszerzeniem.",
+      INVALID_FILE_MIME: "Typ pliku nie zgadza się z rozszerzeniem. Wyeksportuj CV ponownie jako PDF lub DOCX.",
+      DOCX_ARCHIVE_UNSAFE: "Ten plik DOCX ma nietypową lub zbyt dużą strukturę. Wyeksportuj go ponownie albo użyj PDF.",
       UNREADABLE_DOCUMENT: "Nie udało się odczytać tekstu. Prześlij tekstowy PDF lub DOCX.", OPENAI_NOT_CONFIGURED: "Integracja AI nie jest jeszcze skonfigurowana.",
       NOT_A_CV: "Ten dokument nie wygląda jak CV. Prześlij dokument zawierający doświadczenie, umiejętności i historię zawodową.",
       INVALID_TARGET_ROLE: "Wybierz obsługiwaną rolę techniczną.",
       DOCUMENT_TEXT_TOO_LONG: "Dokument zawiera zbyt dużo tekstu. Skróć CV do najważniejszych informacji.",
       OPENAI_INVALID_RESPONSE: "Analiza nie przeszła walidacji. Spróbuj ponownie.",
+      ANALYSIS_TIMEOUT: "Analiza trwała zbyt długo. Spróbuj ponownie za chwilę.",
+      SUPABASE_SAVE_FAILED: "Nie udało się bezpiecznie zapisać raportu. Spróbuj ponownie.",
+      TURNSTILE_REQUIRED: "Potwierdź, że analiza nie jest uruchamiana automatycznie.", TURNSTILE_FAILED: "Nie udało się potwierdzić zabezpieczenia. Odśwież stronę i spróbuj ponownie.",
+      TURNSTILE_UNAVAILABLE: "Zabezpieczenie przed nadużyciami jest chwilowo niedostępne. Spróbuj ponownie później.",
       INVALID_RUBRIC_WEIGHTS: "Nie udało się przeliczyć oceny raportu. Spróbuj ponownie.",
       RATE_LIMIT_CHECK_FAILED: "Nie możemy teraz bezpiecznie uruchomić analizy. Spróbuj ponownie za chwilę." };
     const safeCode = Object.hasOwn(messages, code) ? code : "ANALYSIS_FAILED";
+    const errorCategories: Record<string, string> = {
+      EMPTY_FILE: "empty_file", FILE_TOO_LARGE: "file_too_large", UNSUPPORTED_FILE_TYPE: "unsupported_file_type",
+      INVALID_FILE_SIGNATURE: "invalid_file_signature", INVALID_FILE_MIME: "invalid_file_mime", DOCX_ARCHIVE_UNSAFE: "unsafe_archive",
+      UNREADABLE_DOCUMENT: "unreadable_document", DOCUMENT_TEXT_TOO_LONG: "document_too_long", NOT_A_CV: "not_a_cv",
+      INVALID_TARGET_ROLE: "invalid_target_role", RATE_LIMIT_CHECK_FAILED: "rate_limit", ANALYSIS_TIMEOUT: "timeout",
+      OPENAI_NOT_CONFIGURED: "configuration", OPENAI_INVALID_RESPONSE: "model", INVALID_RUBRIC_WEIGHTS: "model",
+      SUPABASE_SAVE_FAILED: "storage", ANALYSIS_FAILED: "unknown",
+      TURNSTILE_REQUIRED: "rate_limit", TURNSTILE_FAILED: "rate_limit", TURNSTILE_UNAVAILABLE: "rate_limit",
+    };
+    const errorCategory = errorCategories[safeCode] || "unknown";
     console.error(`[analysis_failed] ${safeCode}`);
-    const status = code === "RATE_LIMIT_CHECK_FAILED" ? 503 : 400;
-    return NextResponse.json({ error: messages[code] || "Nie udało się przeanalizować dokumentu." }, { status });
+    const status = code === "RATE_LIMIT_CHECK_FAILED" || code === "OPENAI_NOT_CONFIGURED" ? 503
+      : code === "ANALYSIS_TIMEOUT" ? 504
+      : code === "OPENAI_INVALID_RESPONSE" || code === "SUPABASE_SAVE_FAILED" || safeCode === "ANALYSIS_FAILED" ? 502
+      : 400;
+    const locale = resolvedLocale;
+    const message = locale === "en" ? ({
+      EMPTY_FILE: "The file is empty.", FILE_TOO_LARGE: "The file is larger than the allowed limit.", UNSUPPORTED_FILE_TYPE: "Upload a PDF or DOCX file.",
+      INVALID_FILE_SIGNATURE: "The file contents do not match its extension.", UNREADABLE_DOCUMENT: "We could not read the text. Upload a text-based PDF or DOCX.",
+      INVALID_FILE_MIME: "The file type does not match its extension. Export the CV again as PDF or DOCX.",
+      DOCX_ARCHIVE_UNSAFE: "This DOCX has an unusual or excessively large structure. Export it again or use PDF.",
+      NOT_A_CV: "This document does not appear to be a CV.", INVALID_TARGET_ROLE: "Choose a supported technical role.",
+      RATE_LIMIT_CHECK_FAILED: "We cannot safely start the analysis right now. Try again shortly.",
+      DOCUMENT_TEXT_TOO_LONG: "The document contains too much text. Shorten the CV to its most relevant information.",
+      OPENAI_NOT_CONFIGURED: "The AI review is temporarily unavailable.", OPENAI_INVALID_RESPONSE: "The review did not pass quality validation. Please try again.",
+      ANALYSIS_TIMEOUT: "The review took too long. Please try again shortly.", SUPABASE_SAVE_FAILED: "We could not store the report safely. Please try again.",
+      TURNSTILE_REQUIRED: "Complete the anti-abuse check.", TURNSTILE_FAILED: "We could not verify the anti-abuse check. Refresh and try again.",
+      TURNSTILE_UNAVAILABLE: "The anti-abuse check is temporarily unavailable. Please try again later.",
+    } as Record<string, string>)[code] || "We could not analyse the document. Please try again." : messages[code] || "Nie udało się przeanalizować dokumentu.";
+    await recordFunnelEvent({ name: "analysis_failed", locale, market: marketForLocale(locale), properties: { analysis_success: false, error_category: errorCategory } }).catch(() => undefined);
+    return NextResponse.json({ error: message, errorCategory }, { status });
   }
 }

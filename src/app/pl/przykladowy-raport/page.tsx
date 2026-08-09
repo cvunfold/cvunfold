@@ -36,5 +36,5 @@ const structuredData = {
 };
 
 export default function SampleReportPage() {
-  return <><JsonLd data={structuredData} /><ReportView token="sample" paid data={sampleReport} mockMode={false} demo={sampleProfile} /></>;
+  return <><JsonLd data={structuredData} /><ReportView paid data={sampleReport} mockMode={false} locale="pl" demo={sampleProfile} /></>;
 }

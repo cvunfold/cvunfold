@@ -23,7 +23,7 @@ export async function parseDocument(file: File): Promise<ParsedDocument> {
   if (name.endsWith(".docx")) text = (await mammoth.extractRawText({ buffer })).value;
   else if (name.endsWith(".pdf")) {
     const pdfParse = (await import("pdf-parse")).default;
-    text = (await pdfParse(buffer)).text;
+    text = (await pdfParse(buffer, { max: Number(process.env.MAX_PDF_PAGES || 40) })).text;
   } else throw new Error("UNSUPPORTED_FILE_TYPE");
   text = maskContactPii(text).replace(/\0/g, "").trim();
   if (text.length < 120) throw new Error("UNREADABLE_DOCUMENT");

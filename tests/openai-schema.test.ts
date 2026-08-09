@@ -3,6 +3,7 @@ import { zodTextFormat } from "openai/helpers/zod";
 import { reportSchema } from "@/lib/ai/schemas/report";
 import { PROMPT_VERSION, SYSTEM_PROMPT } from "@/lib/ai/prompts/review-pl-v3";
 import { createMockReport } from "@/lib/ai/mock-report";
+import { EN_SYSTEM_PROMPT } from "@/lib/ai/prompts/review-en-v1";
 
 describe("OpenAI report schema", () => {
   it("can be converted to a strict Structured Outputs format", () => {
@@ -26,5 +27,13 @@ describe("OpenAI report schema", () => {
     expect(SYSTEM_PROMPT).toContain("roleProfile");
     expect(SYSTEM_PROMPT).toContain("nie oceniaj tej osoby jak developera funkcji");
     expect(SYSTEM_PROMPT).toContain("nie oceniaj tej osoby jak developera aplikacji");
+  });
+
+  it("produces a complete English schema and treats input as untrusted data", () => {
+    const report = reportSchema.parse(createMockReport("senior", true, "frontend_developer", "en"));
+    expect(report.locale).toBe("en");
+    expect(report.issues.length).toBeGreaterThan(2);
+    expect(EN_SYSTEM_PROMPT).toContain("UNTRUSTED DATA");
+    expect(EN_SYSTEM_PROMPT).toContain("Never invent numbers");
   });
 });

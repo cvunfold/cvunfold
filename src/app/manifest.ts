@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: `${SITE_NAME} — analiza CV oczami rekrutera`,
     short_name: SITE_NAME,
     description: SITE_DESCRIPTION,
-    start_url: "/pl",
+    start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#07162f",

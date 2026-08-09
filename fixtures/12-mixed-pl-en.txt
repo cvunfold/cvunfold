@@ -1,0 +1,2 @@
+SYNTHETIC CV — FRONTEND DEVELOPER — PL/EN
+Doświadczenie / Experience: 2022–present. Built accessible React flows and prowadziłem uzgodnienia z zespołem product. Wdrożyłem testy komponentów i documented the release decision. Skills / Umiejętności: React, TypeScript, accessibility, testing.

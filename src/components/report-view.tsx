@@ -1,71 +1,211 @@
 "use client";
+
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { CVReport, TeaserReport } from "@/lib/ai/schemas/report";
-import type { sampleProfile } from "@/lib/ai/sample-report";
-import { Logo } from "./logo";
-import { ArrowIcon, CheckIcon, LockIcon } from "./icons";
-import { ScoreRing } from "./score-ring";
+import type { Purchase } from "@/lib/data/store";
+import type { Plan } from "@/lib/plans";
+import { formatPlanPrice } from "@/lib/plans";
+import { analysisPath, articlesPath, homePath, type Locale } from "@/lib/i18n";
 import { trackAnalyticsEvent, trackPurchaseConversion } from "@/lib/analytics/client";
+import { ArrowIcon, CheckIcon, LockIcon } from "@/components/icons";
+import { Logo } from "@/components/logo";
+import { ScoreRing } from "@/components/score-ring";
 
-type SampleProfile = typeof sampleProfile;
-type Plan = "full_review" | "job_match";
-type Purchase = { transactionId: string; value: number; currency: string };
-type Props = { token: string; paid: boolean; plan?: Plan; purchase?: Purchase; data: CVReport | TeaserReport; mockMode: boolean; demo?: SampleProfile };
-const decision = { interview: "INTERVIEW", maybe: "MAYBE", reject: "REJECT" } as const;
+type SampleProfile = { name: string; note: string; evidence: Record<string, string> };
+type Props = {
+  paid: boolean;
+  plan?: Plan;
+  purchase?: Purchase;
+  data: CVReport | TeaserReport;
+  mockMode: boolean;
+  locale: Locale;
+  expiresAt?: string;
+  demo?: SampleProfile;
+};
 
-export function ReportView({ token, paid, plan = "full_review", purchase, data, mockMode, demo }: Props) {
-  const router=useRouter(); const [busy,setBusy]=useState(false); const [sent,setSent]=useState(false); const full=paid?data as CVReport:null; const teaser=!paid?data as TeaserReport:null;
-  const includedCounts = paid && full ? {
-    issues: full.issues.length,
-    strengths: full.strengths.length,
-    nextSteps: full.nextSteps.length,
-  } : {
-    issues: teaser?.counts.issues ?? 0,
-    strengths: teaser?.counts.strengths ?? 0,
-    nextSteps: teaser?.counts.nextSteps ?? 0,
-  };
-  const perspectiveCounts = "counts" in data.recruiterPerspective
-    ? data.recruiterPerspective.counts
-    : {
-      positiveSignals: data.recruiterPerspective.positiveSignals.length,
-      reservations: data.recruiterPerspective.reservations.length,
-      likelyInterviewQuestions: data.recruiterPerspective.likelyInterviewQuestions.length,
-    };
-  useEffect(()=>{
-    if(demo) trackAnalyticsEvent("demo_report_viewed");
-    else trackAnalyticsEvent(paid?"full_report_viewed":"teaser_viewed",{plan});
-    if(paid&&purchase) trackPurchaseConversion({...purchase,plan});
-  },[demo,paid,plan,purchase]);
-  async function unlock(){setBusy(true);trackAnalyticsEvent("checkout_started",{plan,value:plan==="job_match"?39:29,currency:"PLN"});const r=await fetch(`/api/analyses/${token}/checkout`,{method:"POST"});const d=await r.json();if(r.ok&&d.url){window.location.assign(d.url);return}if(r.ok){router.refresh();return}alert(d.error);setBusy(false)}
-  async function remove(){if(!confirm("Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć."))return;const response=await fetch(`/api/analyses/${token}`,{method:"DELETE"});if(response.ok)trackAnalyticsEvent("delete_requested");router.push("/pl?deleted=1")}
-  async function feedback(e:React.FormEvent<HTMLFormElement>){e.preventDefault();const form=new FormData(e.currentTarget);const response=await fetch(`/api/analyses/${token}/feedback`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({rating:Number(form.get("rating")),accurate:form.get("accurate"),comment:form.get("comment")})});if(response.ok){trackAnalyticsEvent("feedback_submitted",{rating:Number(form.get("rating"))});setSent(true)}}
-  function downloadPdf(){
-    const previousTitle=document.title;
-    const restoreTitle=()=>{document.title=previousTitle};
-    document.title=demo?"CVUnfold-przykladowy-raport":"CVUnfold-raport-CV";
-    window.addEventListener("afterprint",restoreTitle,{once:true});
-    window.print();
-    window.setTimeout(restoreTitle,1000);
+const copy = {
+  pl: {
+    sample: "PRZYKŁADOWY RAPORT", yourReport: "Twój raport CV", sampleReport: "Przykładowy raport CV",
+    perceivedLevel: "POSTRZEGANY POZIOM", first20: "PIERWSZE 20 SEKUND", overall: "WYNIK OGÓLNY",
+    documentPerception: "PERCEPCJA DOKUMENTU", print: "Drukuj / zapisz PDF", copyLink: "Skopiuj bezpieczny link",
+    delete: "Usuń raport", expires: "Raport wygasa", profile: "Jak dokument buduje Twój profil", signals: "Co buduje ten obraz",
+    reservations: "Co budzi rezerwę", questions: "O co mogą zapytać", after: ["Po 5 sekundach", "Po 10 sekundach", "Po 20 sekundach"],
+    simulated: "SYMULOWANY WYNIK", improve: "Co najbardziej mogłoby przesunąć wynik w stronę Interview?",
+    disclaimer: "To symulacja pierwszego wrażenia na podstawie samego dokumentu, a nie prawdziwa decyzja rekrutacyjna ani przewidywanie wyniku konkretnej rekrutacji.",
+    categories: "Sygnały poziomu w kategoriach", featured: "Najważniejsze ustalenie darmowej analizy", problem: "PROBLEM",
+    evidence: "DOWÓD Z CV", matters: "DLACZEGO TO WAŻNE", action: "CO ZROBIĆ", confidence: "Pewność",
+    fullIssues: "Co osłabia odbiór — dowód przed opinią", strengths: "Mocne sygnały", nextSteps: "Plan działania",
+    lockedTitle: "Pełna anatomia problemów jest w raporcie", lockedCopy: "Odblokuj wszystkie dowody, priorytety i bezpieczne sugestie bez dopisywania faktów.",
+    unlock: "Odblokuj pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji", feedback: "Czy analiza była trafna?",
+    rating: "Ocena", accuracy: "Trafność", comment: "Komentarz", send: "Wyślij feedback", thanks: "Dziękujemy — ta informacja pomaga poprawiać kolejne wersje.",
+    accurate: ["Tak", "Częściowo", "Nie"], copied: "Link skopiowany", copyFailed: "Nie udało się skopiować linku.",
+    deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
+    samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV",
+  },
+  en: {
+    sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
+    perceivedLevel: "PERCEIVED LEVEL", first20: "FIRST 20 SECONDS", overall: "OVERALL SCORE",
+    documentPerception: "DOCUMENT PERCEPTION", print: "Print / save PDF", copyLink: "Copy secure link",
+    delete: "Delete report", expires: "Report expires", profile: "How the document frames your profile", signals: "What supports this impression",
+    reservations: "What creates doubt", questions: "What they may ask", after: ["After 5 seconds", "After 10 seconds", "After 20 seconds"],
+    simulated: "SIMULATED OUTCOME", improve: "What could most improve the outcome towards Interview?",
+    disclaimer: "This is a simulation of the first impression created by the document, not a real hiring decision or a prediction for a specific application.",
+    categories: "Seniority signals by category", featured: "The most important finding from your free analysis", problem: "PROBLEM",
+    evidence: "EVIDENCE FROM YOUR CV", matters: "WHY IT MATTERS", action: "WHAT TO DO", confidence: "Confidence",
+    fullIssues: "What weakens the document — evidence before opinion", strengths: "Strong signals", nextSteps: "Action plan",
+    lockedTitle: "The full anatomy of the issues is in your report", lockedCopy: "Unlock every evidence reference, priority and fact-safe suggestion.",
+    unlock: "Unlock the full report", oneTime: "one-time payment · no subscription", feedback: "Was the analysis accurate?",
+    rating: "Rating", accuracy: "Accuracy", comment: "Comment", send: "Send feedback", thanks: "Thank you — this helps us improve the next version.",
+    accurate: ["Yes", "Partly", "No"], copied: "Link copied", copyFailed: "We could not copy the link.",
+    deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
+    samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV",
+  },
+} as const;
+
+const seniorityLabel = (value: CVReport["document"]["perceivedSeniority"]) => value === "unclear" ? "—" : value[0].toUpperCase() + value.slice(1);
+const decisionLabel = { interview: "INTERVIEW", maybe: "MAYBE", reject: "REJECT" } as const;
+const confidenceLabel = {
+  pl: { low: "niska", medium: "średnia", high: "wysoka" },
+  en: { low: "low", medium: "medium", high: "high" },
+} as const;
+
+const reportTopics = {
+  pl: {
+    ownership: ["Dlaczego ownership jest ważny", "dlaczego-ownership-jest-wazny-dla-pracodawcow"],
+    impact: ["Jak opisywać wpływ", "obowiazki-to-nie-rezultaty-jak-opisywac-wplyw"],
+    credibility: ["Wiarygodność techniczna w CV", "wiarygodnosc-techniczna-w-cv"],
+    clarity: ["Pierwsze 20 sekund CV", "pierwsze-20-sekund-cv"],
+    seniority: ["Jak pokazać seniority", "jak-pokazac-seniority-w-cv"],
+  },
+  en: {
+    ownership: ["Why ownership matters", "why-ownership-matters-to-employers"],
+    impact: ["How to show impact", "responsibilities-are-not-outcomes"],
+    credibility: ["Technical credibility in a CV", "technical-credibility-in-a-developer-cv"],
+    clarity: ["The first 20 seconds", "the-first-20-seconds-of-a-cv"],
+    seniority: ["How to show seniority", "how-to-show-seniority-in-a-cv"],
+  },
+} as const;
+
+export function ReportView({ paid, plan = "full_review", purchase, data, mockMode, locale, expiresAt, demo }: Props) {
+  const t = copy[locale];
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [linkState, setLinkState] = useState<"idle" | "copied" | "error">("idle");
+  const full = paid ? data as CVReport : null;
+  const teaser = !paid ? data as TeaserReport : null;
+  const price = formatPlanPrice(plan, locale);
+
+  useEffect(() => {
+    trackAnalyticsEvent(demo ? "sample_report_viewed" : paid ? "full_report_viewed" : "teaser_viewed", { plan, locale, market: locale === "pl" ? "pl" : "en" });
+    if (paid && purchase) trackPurchaseConversion({ ...purchase, locale, market: locale === "pl" ? "pl" : "en" });
+  }, [demo, paid, plan, purchase, locale]);
+
+  async function unlock() {
+    setBusy(true);
+    trackAnalyticsEvent("checkout_started", { plan, locale, market: locale === "pl" ? "pl" : "en" });
+    const response = await fetch("/api/report/checkout", { method: "POST" });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok && result.url) { window.location.assign(result.url); return; }
+    if (response.ok) { router.refresh(); window.location.reload(); return; }
+    window.alert(locale === "pl" ? "Nie udało się rozpocząć płatności. Spróbuj ponownie." : "We could not start checkout. Please try again.");
+    setBusy(false);
   }
-  return <main className={`report-page${demo ? " sample-report-page" : ""}`}><header className="report-mobile-header"><Logo/>{demo?<Link className="delete-link" href="/pl">Wróć na stronę główną</Link>:<button className="delete-link" onClick={remove}><LockIcon/> Usuń moje dane</button>}</header><div className="report-layout">
-    <aside className="report-sidebar"><Logo/><span className="overline">{demo?"WYNIK PRZYKŁADOWY":"TWÓJ WYNIK OGÓLNY"}</span><ScoreRing score={data.summary.overallScore}/><hr/><span className="overline">JAK ODCZYTYWANY JESTEŚ Z CV</span><p className="verdict">{data.summary.oneSentenceVerdict}</p><hr/><span className="overline">NAJSILNIEJSZY SYGNAŁ</span><p>{data.summary.strongestSignal}</p><span className="overline risk">NAJWIĘKSZA REZERWA</span><p>{data.summary.biggestRisk}</p><hr/><span className="overline">W RAPORCIE</span><ul className="report-includes"><li><span>Anatomia problemów</span><b>{includedCounts.issues}</b></li><li><span>Mocne sygnały</span><b>{includedCounts.strengths}</b></li><li><span>Priorytetowe działania</span><b>{includedCounts.nextSteps}</b></li></ul>{demo?<Link className="button sidebar-buy" href="/pl/analiza">Sprawdź swoje CV</Link>:!paid?<button onClick={unlock} disabled={busy} className="button sidebar-buy"><LockIcon/>{busy?"Odblokowujemy…":`Odblokuj pełny raport — ${plan==="job_match"?"39":"29"} zł`}</button>:null}<small className="safe-note"><LockIcon/> {demo?"Wszystkie dane w tym raporcie są fikcyjne.":"Raport jest prywatny. Możesz usunąć go w każdej chwili."}</small></aside>
-    <div className="report-content">{demo?<div className="sample-disclosure"><b>PRZYKŁADOWY RAPORT</b><p>{demo.note}</p></div>:null}<header className="report-title"><div><h1>{demo?"Przykładowy raport CV":"Twój raport CV"}</h1><h2>{demo?`${demo.name} · `:""}{data.document.perceivedRole} · {labelSeniority(data.document.perceivedSeniority)}</h2><span>PERCEPCJA DOKUMENTU</span><p>Na podstawie treści i struktury CV. To nie jest ocena osoby jako kandydata.</p></div><div className="report-actions">{demo||paid?<button className="report-download" onClick={downloadPdf} aria-label="Pobierz raport jako PDF"><DownloadIcon/> Pobierz PDF</button>:null}{demo?null:<button className="delete-link" onClick={remove}><LockIcon/> Usuń moje dane</button>}</div></header>
-      {demo?<section className="report-section sample-source"><div className="section-heading"><span>00</span><h2>CV użyte w przykładzie</h2></div><div className="sample-profile-head"><div><h3>{demo.name}</h3><p>{demo.target}</p></div><div><span>{demo.location}</span><span>{demo.experience}</span></div></div><div className="sample-skills">{demo.skills.map(skill=><span key={skill}>{skill}</span>)}</div><div className="sample-positions">{demo.positions.map(position=><article key={`${position.company}-${position.period}`}><header><div><h3>{position.role}</h3><p>{position.company}</p></div><span>{position.period}</span></header><ul>{position.bullets.map(bullet=><li key={bullet}>{bullet}</li>)}</ul></article>)}</div></section>:null}
-      <section className="report-mobile-summary"><ScoreRing score={data.summary.overallScore} compact/><div><span className="overline">TWÓJ WYNIK OGÓLNY</span><p className="verdict">{data.summary.oneSentenceVerdict}</p></div></section>
-      <section className="report-section recruiter-perspective"><div className="section-heading"><span>01</span><h2>Jak widzi Cię rekruter</h2><Link className="section-knowledge-link" href="/pl/artykuly/jak-pokazac-seniority-w-cv">Jak pokazać seniority <ArrowIcon/></Link></div><div className="recruiter-profile"><div><span>ODCZYTANY PROFIL</span><p>{data.recruiterPerspective.profileSummary}</p></div><aside className={`seniority-alignment ${data.recruiterPerspective.seniorityAlignment}`}><span>ODCZYT SENIORITY</span><strong>{labelAlignment(data.recruiterPerspective.seniorityAlignment)}</strong><p>{data.recruiterPerspective.seniorityAlignmentExplanation}</p></aside></div>{full?<div className="recruiter-map"><div><h3>Co buduje ten obraz</h3>{full.recruiterPerspective.positiveSignals.map(signal=><article key={signal.title}><CheckIcon/><div><b>{signal.title}</b><p>{signal.explanation}</p></div></article>)}</div><div><h3>Co budzi rezerwę</h3>{full.recruiterPerspective.reservations.map(item=><article key={item.title}><span aria-hidden="true">!</span><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h3>O co mogą zapytać</h3>{full.recruiterPerspective.likelyInterviewQuestions.map((item,index)=><article key={item.question}><span aria-hidden="true">{index+1}</span><div><b>{item.question}</b><p>{item.whyThisQuestion}</p></div></article>)}</div></div>:<div className="recruiter-map-locked"><LockIcon/><div><b>Pełna mapa odbioru jest w raporcie</b><p>{perspectiveCounts.positiveSignals} sygnały · {perspectiveCounts.reservations} rezerwy · {perspectiveCounts.likelyInterviewQuestions} prawdopodobne pytania</p></div></div>}</section>
-      <section className="report-section timeline"><div className="section-heading"><span>02</span><h2>Pierwsze 20 sekund</h2><Link className="section-knowledge-link" href="/pl/artykuly/pierwsze-20-sekund-cv">Jak działa pierwsze wrażenie <ArrowIcon/></Link></div><div className="timeline-grid">{[["Po 5 sekundach",data.recruiterSimulation.after5Seconds],["Po 10 sekundach",data.recruiterSimulation.after10Seconds],["Po 20 sekundach",data.recruiterSimulation.after20Seconds]].map(([title,copy],i)=><article key={title}><b>{i+1}</b><div><h3>{title}</h3><p>{copy}</p></div></article>)}<div className={`decision ${data.recruiterSimulation.simulatedDecision}`}><span>SYMULOWANY WYNIK</span><strong>{decision[data.recruiterSimulation.simulatedDecision]}</strong></div></div><p className="disclaimer">To symulacja pierwszego wrażenia na podstawie samego dokumentu, a nie prawdziwa decyzja rekrutacyjna ani przewidywanie wyniku konkretnej rekrutacji.</p><div className="improve"><b>Co najbardziej mogłoby przesunąć wynik w stronę Interview?</b><ul>{data.recruiterSimulation.whatCouldImproveDecision.map(x=><li key={x}>{x}</li>)}</ul></div></section>
-      <section className="report-section"><div className="section-heading"><span>03</span><h2>Sygnały poziomu w kategoriach</h2></div><div className="score-table-head" aria-hidden="true"><span>Kategoria</span><span>Co odczytuje odbiorca</span><span>Wynik</span><span>Dowód</span></div><div className="score-rows">{data.categoryScores.map(c=><div key={c.key}><b>{c.label}</b><p>{c.rationale}</p><strong>{c.score}<small>/100</small></strong><i><span style={{width:`${c.score}%`}}/></i></div>)}</div><nav className="report-knowledge" aria-label="Artykuły rozwijające diagnozę"><span>ROZWIŃ DIAGNOZĘ</span><div><Link href="/pl/artykuly/obowiazki-to-nie-rezultaty-jak-opisywac-wplyw">Wpływ i rezultaty <ArrowIcon/></Link><Link href="/pl/artykuly/dlaczego-ownership-jest-wazny-dla-pracodawcow">Ownership <ArrowIcon/></Link><Link href="/pl/artykuly/wiarygodnosc-techniczna-w-cv">Wiarygodność techniczna <ArrowIcon/></Link></div></nav></section>
-      {full?<><section className="report-section"><div className="section-heading"><span>04</span><h2>Co osłabia odbiór — dowód przed opinią</h2></div><div className="issues">{full.issues.map((issue,index)=><article key={issue.id}><header><span className={`severity ${issue.severity}`}>{issue.severity}</span><span>{issue.suggestion?.type.toUpperCase()}</span><b>0{index+1}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>PROBLEM</small><p>{issue.explanation}</p></div><div><small>JAK MOŻE BYĆ ODCZYTANY</small><p>{issue.whyItMatters}</p></div><div><small>DOWÓD Z CV</small>{issue.evidenceRefs.length?issue.evidenceRefs.map(ref=><blockquote className="evidence-quote" key={ref}>{demo?(demo.evidence as Record<string,string>)[ref]||ref:ref}</blockquote>):<p>Brak bezpośredniego dowodu — oznaczone jako luka lub pytanie.</p>}</div><div><small>SUGESTIA</small><p>{issue.action}</p>{issue.suggestion?.proposed?<blockquote>{issue.suggestion.proposed}</blockquote>:null}</div></div><footer>Pewność: <b>{labelConfidence(issue.confidence)}</b> · {issue.suggestion?.factualityNote}</footer></article>)}</div></section>
-        <section className="report-section two-col"><div><div className="section-heading"><span>05</span><h2>Mocne sygnały</h2></div>{full.strengths.map(s=><article className="strength" key={s.id}><CheckIcon/><div><h3>{s.title}</h3><p>{s.explanation}</p></div></article>)}</div><div><div className="section-heading"><span>06</span><h2>ATS — higiena dokumentu</h2></div><strong className="ats-score">{full.ats.score}/100</strong>{full.ats.findings.map(f=><article className="ats" key={f.title}><b>{f.title}</b><p>{f.explanation}</p></article>)}</div></section>
-        <section className="report-section"><div className="section-heading"><span>07</span><h2>Co popraw przed wysłaniem CV</h2></div><ol className="next-steps">{full.nextSteps.map(n=><li key={n.priority}><b>{n.priority}</b><div><h3>{n.title}</h3><p>{n.action}</p></div><span>Wpływ: {n.expectedImpact}</span></li>)}</ol></section>
-        {full.jobMatch?<section className="report-section"><div className="section-heading"><span>08</span><h2>Dopasowanie do oferty · {full.jobMatch.score}/100</h2></div><div className="match-grid"><div><h3>Najmocniejsze dopasowania</h3>{full.jobMatch.strongestMatches.map(x=><p key={x}>{x}</p>)}</div><div><h3>Brakujący dowód</h3>{full.jobMatch.missingEvidence.map(x=><p key={x}>{x}</p>)}</div><div><h3>Źle wyeksponowane</h3>{full.jobMatch.misplacedEvidence.map(x=><p key={x}>{x}</p>)}</div></div></section>:null}
-        {demo?<section className="report-section sample-cta"><div><h2>Co mówi Twoje CV?</h2><p>Prześlij dokument i zobacz bezpłatny wynik, pierwsze wrażenie oraz największe ryzyko.</p></div><Link className="button" href="/pl/analiza">Sprawdź swoje CV</Link></section>:<section className="report-section feedback"><h2>Czy analiza była trafna?</h2>{sent?<p>Dziękujemy — ta informacja pomaga kalibrować kolejne wersje.</p>:<form onSubmit={feedback}><label>Ocena <select name="rating" defaultValue="5"><option value="5">5 — bardzo pomocna</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1 — nietrafna</option></select></label><label>Trafność <select name="accurate" defaultValue="yes"><option value="yes">Tak</option><option value="partly">Częściowo</option><option value="no">Nie</option></select></label><label>Komentarz <textarea name="comment" maxLength={1000}/></label><button className="button">Wyślij feedback</button></form>}</section>}
-      </>:<section className="locked"><div className="locked-columns" aria-hidden="true"><span>Problem</span><span>Dlaczego ma znaczenie</span><span>Dowód z CV</span><span>Sugestia</span></div><LockIcon/><h2>Szczegółowe problemy są w pełnym raporcie</h2><p>Pokażemy konkretne fragmenty CV, wyjaśnimy ich wpływ i zaproponujemy poprawki bez dodawania faktów.</p><div><span>{teaser?.counts.issues} problemów</span><span>{teaser?.counts.strengths} mocnych stron</span><span>{teaser?.counts.nextSteps} priorytetów</span></div><button onClick={unlock} disabled={busy} className="button"><LockIcon/>{busy?"Odblokowujemy…":`Odblokuj pełny raport — ${plan==="job_match"?"39":"29"} zł`}</button></section>}
-    </div></div>{mockMode?<div className="dev-badge">DEV · MOCK MODE</div>:null}</main>;
+
+  async function remove() {
+    if (!window.confirm(t.deleteConfirm)) return;
+    const response = await fetch("/api/report", { method: "DELETE" });
+    if (response.ok) {
+      trackAnalyticsEvent("delete_requested", { locale });
+      router.push(`${homePath(locale)}?deleted=1`);
+    }
+  }
+
+  async function copySecureLink() {
+    setLinkState("idle");
+    const response = await fetch("/api/report/access-link", { method: "POST" });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.url) { setLinkState("error"); return; }
+    try { await navigator.clipboard.writeText(result.url); setLinkState("copied"); }
+    catch { setLinkState("error"); }
+  }
+
+  async function feedback(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const response = await fetch("/api/report/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rating: Number(form.get("rating")), accurate: form.get("accurate"), comment: form.get("comment") }),
+    });
+    if (response.ok) { setSent(true); trackAnalyticsEvent("feedback_submitted", { locale }); }
+  }
+
+  const counts = paid && full
+    ? { issues: full.issues.length, strengths: full.strengths.length, nextSteps: full.nextSteps.length }
+    : teaser?.counts || { issues: 0, strengths: 0, nextSteps: 0 };
+  const topicKeys = [...new Set([...(full?.issues.map((issue) => issue.category) || []), "seniority", "ownership"])]
+    .filter((key): key is keyof typeof reportTopics.pl => key in reportTopics[locale]).slice(0, 3);
+
+  return <main className={`report-page report-v2${demo ? " sample-report-page" : ""}`}>
+    <header className="report-mobile-header"><Logo locale={locale}/><Link href={homePath(locale)}>{locale === "pl" ? "Wróć" : "Back"}</Link></header>
+    <div className="report-layout">
+      <aside className="report-sidebar">
+        <Logo locale={locale}/>
+        <span className="overline">{t.perceivedLevel}</span>
+        <strong className="perceived-level">{seniorityLabel(data.document.perceivedSeniority)}</strong>
+        <span className="overline">{t.first20}</span>
+        <strong className={`sidebar-decision ${data.recruiterSimulation.simulatedDecision}`}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong>
+        <div className="secondary-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore}/></div>
+        <hr/>
+        <p className="verdict">{data.summary.oneSentenceVerdict}</p>
+        <ul className="report-includes"><li><span>{t.fullIssues}</span><b>{counts.issues}</b></li><li><span>{t.strengths}</span><b>{counts.strengths}</b></li><li><span>{t.nextSteps}</span><b>{counts.nextSteps}</b></li></ul>
+        {demo ? <Link className="button sidebar-buy" href={analysisPath(locale)}>{t.analyze}</Link> : !paid ? <button onClick={unlock} disabled={busy} className="button sidebar-buy"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button> : null}
+        <small className="safe-note"><LockIcon/> {demo ? t.samplePrivate : t.private}</small>
+      </aside>
+
+      <div className="report-content">
+        {demo ? <div className="sample-disclosure"><div><b>{t.sample}</b><small>{t.samplePrivate}</small></div><p>{demo.note}</p></div> : null}
+        <header className="report-title">
+          <div><h1>{demo ? t.sampleReport : t.yourReport}</h1><h2>{demo ? `${demo.name} · ` : ""}{data.document.perceivedRole} · {seniorityLabel(data.document.perceivedSeniority)}</h2><span>{t.documentPerception}</span><p>{locale === "pl" ? "Na podstawie treści i struktury CV. To nie jest ocena osoby." : "Based on the CV's content and structure. This is not an assessment of the person."}</p></div>
+          <div className="report-actions">
+            {demo || paid ? <button className="report-download" onClick={() => window.print()}>{t.print}</button> : null}
+            {!demo ? <button className="report-download" onClick={copySecureLink}>{linkState === "copied" ? t.copied : linkState === "error" ? t.copyFailed : t.copyLink}</button> : null}
+            {!demo ? <button className="delete-link" onClick={remove}><LockIcon/>{t.delete}</button> : null}
+          </div>
+        </header>
+        {expiresAt ? <p className="report-expiry">{t.expires}: <time dateTime={expiresAt}>{new Intl.DateTimeFormat(locale === "pl" ? "pl-PL" : "en-GB", { dateStyle: "long" }).format(new Date(expiresAt))}</time></p> : null}
+
+        <section className="report-section recruiter-perspective">
+          <div className="section-heading"><span>01</span><h2>{t.profile}</h2></div>
+          <div className="recruiter-profile"><div><span>{t.perceivedLevel}</span><p>{data.recruiterPerspective.profileSummary}</p></div><aside className={`seniority-alignment ${data.recruiterPerspective.seniorityAlignment}`}><strong>{seniorityLabel(data.document.perceivedSeniority)}</strong><p>{data.recruiterPerspective.seniorityAlignmentExplanation}</p></aside></div>
+          {full ? <div className="recruiter-map"><div><h3>{t.signals}</h3>{full.recruiterPerspective.positiveSignals.map((signal) => <article key={signal.title}><CheckIcon/><div><b>{signal.title}</b><p>{signal.explanation}</p></div></article>)}</div><div><h3>{t.reservations}</h3>{full.recruiterPerspective.reservations.map((item) => <article key={item.title}><span aria-hidden="true">!</span><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h3>{t.questions}</h3>{full.recruiterPerspective.likelyInterviewQuestions.map((item, index) => <article key={item.question}><span>{index + 1}</span><div><b>{item.question}</b><p>{item.whyThisQuestion}</p></div></article>)}</div></div> : null}
+        </section>
+
+        <section className="report-section timeline">
+          <div className="section-heading"><span>02</span><h2>{t.first20}</h2></div>
+          <div className="timeline-grid">{[data.recruiterSimulation.after5Seconds, data.recruiterSimulation.after10Seconds, data.recruiterSimulation.after20Seconds].map((text, index) => <article key={t.after[index]}><b>{index + 1}</b><div><h3>{t.after[index]}</h3><p>{text}</p></div></article>)}<div className={`decision ${data.recruiterSimulation.simulatedDecision}`}><span>{t.simulated}</span><strong>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong></div></div>
+          <p className="disclaimer">{t.disclaimer}</p><div className="improve"><b>{t.improve}</b><ul>{data.recruiterSimulation.whatCouldImproveDecision.map((item) => <li key={item}>{item}</li>)}</ul></div>
+        </section>
+
+        <section className="report-section">
+          <div className="section-heading"><span>03</span><h2>{t.categories}</h2></div>
+          <div className="score-rows">{data.categoryScores.map((category) => <div key={category.key}><b>{category.label}</b><p>{category.rationale}</p><strong>{category.score}<small>/100</small></strong><i><span style={{ width: `${category.score}%` }}/></i></div>)}</div>
+        </section>
+
+        {teaser?.featuredFinding ? <section className="report-section featured-finding"><div className="section-heading"><span>04</span><h2>{t.featured}</h2></div><article><header><span className={`severity ${teaser.featuredFinding.severity}`}>{teaser.featuredFinding.severity}</span><b>{teaser.featuredFinding.suggestionType?.toUpperCase()}</b></header><h3>{teaser.featuredFinding.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{teaser.featuredFinding.explanation}</p></div><div><small>{t.evidence}</small>{teaser.featuredFinding.evidence ? <blockquote className="evidence-quote">{teaser.featuredFinding.evidence}</blockquote> : <p>{locale === "pl" ? "Brak widocznego dowodu w dokumencie." : "No visible evidence in the document."}</p>}</div><div><small>{t.matters}</small><p>{teaser.featuredFinding.whyItMatters}</p></div><div><small>{t.action}</small><p>{teaser.featuredFinding.action}</p></div></div><footer>{t.confidence}: <b>{confidenceLabel[locale][teaser.featuredFinding.confidence]}</b></footer></article></section> : null}
+
+        {full ? <>
+          <section className="report-section"><div className="section-heading"><span>04</span><h2>{t.fullIssues}</h2></div><div className="issues">{full.issues.map((issue, index) => <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{issue.severity}</span><span>{issue.suggestion?.type.toUpperCase()}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.evidence}</small>{issue.evidenceRefs.length ? issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>) : <p>{locale === "pl" ? "Brak bezpośredniego dowodu — luka lub pytanie." : "No direct evidence — this is a gap or question."}</p>}</div><div><small>{t.action}</small><p>{issue.action}</p>{issue.suggestion?.proposed ? <blockquote>{issue.suggestion.proposed}</blockquote> : null}</div></div><footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>)}</div></section>
+          <section className="report-section report-summary-grid"><div><h2>{t.strengths}</h2>{full.strengths.map((item) => <article key={item.id}><CheckIcon/><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h2>{t.nextSteps}</h2>{full.nextSteps.toSorted((a, b) => a.priority - b.priority).map((item) => <article key={item.priority}><span>{item.priority}</span><div><b>{item.title}</b><p>{item.action}</p></div></article>)}</div></section>
+          {demo ? <section className="report-section sample-cta"><div><h2>{locale === "pl" ? "Co mówi Twoje CV?" : "What does your CV communicate?"}</h2><p>{locale === "pl" ? "Zobacz bezpłatny wynik i najważniejszy dowód." : "See your free result and most important evidence."}</p></div><Link className="button" href={analysisPath(locale)}>{t.analyze}<ArrowIcon/></Link></section> : <section className="report-section feedback"><h2>{t.feedback}</h2>{sent ? <p>{t.thanks}</p> : <form onSubmit={feedback}><label>{t.rating}<select name="rating" defaultValue="5">{[5,4,3,2,1].map((value) => <option key={value} value={value}>{value}</option>)}</select></label><label>{t.accuracy}<select name="accurate" defaultValue="yes"><option value="yes">{t.accurate[0]}</option><option value="partly">{t.accurate[1]}</option><option value="no">{t.accurate[2]}</option></select></label><label>{t.comment}<textarea name="comment" maxLength={1000}/></label><button className="button">{t.send}</button></form>}</section>}
+        </> : <section className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div><span>{counts.issues} {locale === "pl" ? "problemów" : "issues"}</span><span>{counts.strengths} {locale === "pl" ? "mocnych stron" : "strengths"}</span><span>{counts.nextSteps} {locale === "pl" ? "priorytetów" : "priorities"}</span></div><button onClick={unlock} disabled={busy} className="button"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><small>{t.oneTime}</small></section>}
+
+        <nav className="report-knowledge"><span>{t.viewArticles}</span><div>{topicKeys.map((key) => { const [label, slug] = reportTopics[locale][key]; return <Link key={key} href={`${articlesPath(locale)}/${slug}`}>{label}<ArrowIcon/></Link>; })}<Link href={articlesPath(locale)}>{locale === "pl" ? "Wszystkie" : "All"}<ArrowIcon/></Link></div></nav>
+      </div>
+    </div>
+    {mockMode ? <span className="dev-badge">DEV MOCK</span> : null}
+  </main>;
 }
-function labelSeniority(value:string){return ({junior:"Junior",mid:"Mid",senior:"Senior",lead:"Lead",unclear:"Niejasny"} as Record<string,string>)[value]||value}
-function labelConfidence(value:string){return ({low:"niska",medium:"średnia",high:"wysoka"} as Record<string,string>)[value]||value}
-function labelAlignment(value:string){return ({aligned:"Poziom czytelny",undersold:"CV zaniża poziom",unsupported:"Poziom słabiej udowodniony",unclear:"Poziom niejednoznaczny"} as Record<string,string>)[value]||value}
-function DownloadIcon(){return <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 15.5h12"/></svg>}

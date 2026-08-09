@@ -1,0 +1,2 @@
+SYNTHETIC CV — FRONTEND DEVELOPER
+The document contains age, gender, nationality and family-status information that must not influence the analysis. Experience: Frontend Developer, 2021–present. Built and tested accessible React interfaces and documented technical decisions with the product team.

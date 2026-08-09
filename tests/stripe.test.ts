@@ -1,14 +1,19 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { priceForPlan } from "@/lib/payments/stripe";
+import { readFileSync } from "node:fs";
 
 const originalFullPrice = process.env.STRIPE_PRICE_FULL_REVIEW;
 const originalJobPrice = process.env.STRIPE_PRICE_JOB_MATCH;
+const originalFullEurPrice = process.env.STRIPE_PRICE_FULL_REVIEW_EUR;
+const originalJobEurPrice = process.env.STRIPE_PRICE_JOB_MATCH_EUR;
 
 afterEach(() => {
   if (originalFullPrice === undefined) delete process.env.STRIPE_PRICE_FULL_REVIEW;
   else process.env.STRIPE_PRICE_FULL_REVIEW = originalFullPrice;
   if (originalJobPrice === undefined) delete process.env.STRIPE_PRICE_JOB_MATCH;
   else process.env.STRIPE_PRICE_JOB_MATCH = originalJobPrice;
+  if (originalFullEurPrice === undefined) delete process.env.STRIPE_PRICE_FULL_REVIEW_EUR; else process.env.STRIPE_PRICE_FULL_REVIEW_EUR = originalFullEurPrice;
+  if (originalJobEurPrice === undefined) delete process.env.STRIPE_PRICE_JOB_MATCH_EUR; else process.env.STRIPE_PRICE_JOB_MATCH_EUR = originalJobEurPrice;
 });
 
 describe("Stripe price boundary", () => {
@@ -22,5 +27,19 @@ describe("Stripe price boundary", () => {
   it("fails closed when a plan has no configured price", () => {
     delete process.env.STRIPE_PRICE_JOB_MATCH;
     expect(() => priceForPlan("job_match")).toThrow("STRIPE_PRICE_NOT_CONFIGURED");
+  });
+
+  it("uses separate EUR prices for the English market", () => {
+    process.env.STRIPE_PRICE_FULL_REVIEW_EUR = "price_full_eur";
+    process.env.STRIPE_PRICE_JOB_MATCH_EUR = "price_match_eur";
+    expect(priceForPlan("full_review", "en")).toBe("price_full_eur");
+    expect(priceForPlan("job_match", "en")).toBe("price_match_eur");
+  });
+
+  it("keeps webhook fulfillment idempotent and purchase recording server-side", () => {
+    const migration = readFileSync("supabase/migrations/20260809132954_launch_readiness.sql", "utf8");
+    expect(migration).toContain("webhook_events");
+    expect(migration).toContain("stripe-purchase:");
+    expect(migration).toContain("on conflict (dedupe_key)");
   });
 });

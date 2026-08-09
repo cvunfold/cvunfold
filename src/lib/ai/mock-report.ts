@@ -2,17 +2,46 @@ import type { CVReport } from "./schemas/report";
 import { getRubric, RUBRIC_VERSION, type Seniority } from "@/lib/rubrics/technical-v1";
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
 import { PROMPT_VERSION } from "./prompts/review-pl-v3";
+import type { Locale } from "@/lib/i18n";
+import { sampleReportEn } from "./sample-report-en";
+import { calculateOverall } from "./validate-report";
 
 const scores: Record<string, number> = { impact: 58, ownership: 68, credibility: 82, architecture: 65, collaboration: 74, clarity: 76, ats: 78 };
 
-export function createMockReport(targetSeniority: Seniority = "auto", withJob = false, targetRole: TargetRoleId = "frontend_developer"): CVReport {
-  const role = getTargetRoleProfile(targetRole);
-  const categoryScores = getRubric(targetSeniority, targetRole).map((category) => ({ ...category, score: scores[category.key], rationale: `CV pokazuje konkretny sygnał istotny dla roli ${role.label}, ale nie zawsze wyjaśnia jego skalę i rezultat.`, evidenceRefs: ["seg_exp_1"] }));
+export function createMockReport(targetSeniority: Seniority = "auto", withJob = false, targetRole: TargetRoleId = "frontend_developer", locale: Locale = "pl"): CVReport {
+  const role = getTargetRoleProfile(targetRole, locale);
+  if (locale === "en") {
+    const englishReport = structuredClone(sampleReportEn);
+    englishReport.document.targetRole = role.label;
+    englishReport.document.perceivedRole = role.label;
+    englishReport.document.targetSeniority = targetSeniority;
+    englishReport.categoryScores = getRubric(targetSeniority, targetRole, locale).map((category) => ({
+      ...category,
+      score: scores[category.key],
+      rationale: `The CV contains a signal relevant to ${role.label}, but it does not always explain its scale or outcome.`,
+      evidenceRefs: ["seg_exp_1"],
+    }));
+    englishReport.summary.overallScore = calculateOverall(englishReport.categoryScores);
+    if (withJob) englishReport.jobMatch = {
+      score: 71,
+      strongestMatches: [role.evaluationFocus[0], role.evaluationFocus[1]],
+      missingEvidence: ["The job description names an important responsibility, but the CV does not show a concrete example."],
+      misplacedEvidence: ["A relevant signal is hidden in the project description."],
+      recommendations: ["Add the required area only if you genuinely have that experience."],
+    };
+    return englishReport;
+  }
+  const categoryScores = getRubric(targetSeniority, targetRole, locale).map((category) => ({ ...category, score: scores[category.key], rationale: `CV pokazuje konkretny sygnał istotny dla roli ${role.label}, ale nie zawsze wyjaśnia jego skalę i rezultat.`, evidenceRefs: ["seg_exp_1"] }));
   const report: CVReport = {
-    version: "2.0.0", rubricVersion: RUBRIC_VERSION, promptVersion: PROMPT_VERSION, locale: "pl",
+    version: "2.1.0", rubricVersion: RUBRIC_VERSION, promptVersion: PROMPT_VERSION, locale,
+    evidenceMap: {
+      seg_exp_1: "Realizacja funkcji produktowych w React i TypeScript we współpracy z backendem i zespołem produktowym.",
+      seg_summary: `Doświadczony ${role.label} ze spójnym profilem technicznym.`,
+      seg_project_1: "Zbudowałem dashboard jakości wykrywający regresje przed wydaniem.",
+    },
     document: { detectedLanguage: "pl", parseQuality: "good", targetRole: role.label, targetSeniority,
       perceivedRole: role.label, perceivedSeniority: "senior", perceivedSeniorityConfidence: "medium" },
-    summary: { overallScore: 70, oneSentenceVerdict: "Masz mocne doświadczenie, ale dokument nie pokazuje jeszcze jego skali.",
+    summary: { overallScore: calculateOverall(categoryScores), oneSentenceVerdict: "Masz mocne doświadczenie, ale dokument nie pokazuje jeszcze jego skali.",
       strongestSignal: `Dokument buduje wiarygodność w obszarze: ${role.evaluationFocus[0]}.`,
       biggestRisk: "Opisujesz przede wszystkim obowiązki, przez co wpływ Twojej pracy pozostaje niewidoczny." },
     recruiterPerspective: {

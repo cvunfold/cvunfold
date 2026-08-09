@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   clearPendingAnalytics,
+  configureAdsPurchaseDestination,
   flushPendingAnalytics,
   readConsent,
   safeAnalyticsLocation,
@@ -12,22 +13,30 @@ import {
   writeConsent,
   type ConsentChoice,
 } from "@/lib/analytics/client";
+import { brand } from "@/lib/brand";
+import type { Locale } from "@/lib/i18n";
 
-type Props = { analyticsId?: string; adsId?: string };
+type Props = { analyticsId?: string; adsId?: string; adsConversionLabel?: string };
 
-export function GoogleAnalytics({ analyticsId, adsId }: Props) {
+export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Props) {
   const pathname = usePathname();
   const [choice, setChoice] = useState<ConsentChoice | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const enabled = Boolean(analyticsId || adsId);
+  const locale: Locale = pathname.startsWith("/en") ? "en" : "pl";
+  const isSensitivePage = pathname === "/raport" || pathname === "/en/report" || pathname.includes("/raport/");
 
   useEffect(() => {
-    if (!enabled) return;
+    configureAdsPurchaseDestination(adsId && adsConversionLabel ? `${adsId}/${adsConversionLabel}` : undefined);
+  }, [adsConversionLabel, adsId]);
+
+  useEffect(() => {
+    if (!enabled || isSensitivePage) return;
     setChoice(readConsent());
-  }, [enabled]);
+  }, [enabled, isSensitivePage]);
 
   useEffect(() => {
-    if (!enabled || choice !== "granted") return;
+    if (!enabled || isSensitivePage || choice !== "granted") return;
     window.gtag?.("consent", "update", {
       analytics_storage: "granted",
       ad_storage: "granted",
@@ -37,40 +46,46 @@ export function GoogleAnalytics({ analyticsId, adsId }: Props) {
     if (analyticsId) window.gtag?.("config", analyticsId, { send_page_view: false });
     if (adsId) window.gtag?.("config", adsId);
     const tagId = analyticsId || adsId;
-    if (tagId && !document.querySelector('script[data-cvunfold-google-tag="true"]')) {
+    if (tagId && !document.querySelector('script[data-product-google-tag="true"]')) {
       const script = document.createElement("script");
       script.async = true;
       script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(tagId)}`;
-      script.dataset.cvunfoldGoogleTag = "true";
+      script.dataset.productGoogleTag = "true";
       document.head.appendChild(script);
     }
     flushPendingAnalytics();
-  }, [adsId, analyticsId, choice, enabled]);
+  }, [adsId, analyticsId, choice, enabled, isSensitivePage]);
 
   useEffect(() => {
-    if (!enabled || choice !== "granted") return;
+    if (!enabled || isSensitivePage || choice !== "granted") return;
     const pagePath = safeAnalyticsPath(pathname);
     const pageLocation = safeAnalyticsLocation(pathname, window.location.origin);
     window.gtag?.("set", { page_path: pagePath, page_location: pageLocation });
-    trackAnalyticsEvent("page_view", { page_path: pagePath, page_location: pageLocation });
-    if (pathname === "/pl") trackAnalyticsEvent("landing_view");
-  }, [choice, enabled, pathname]);
+    trackAnalyticsEvent("page_view", { locale, market: locale });
+    if (pathname === "/" || pathname === "/en") {
+      trackAnalyticsEvent("landing_view", { locale, market: locale });
+    }
+  }, [choice, enabled, isSensitivePage, locale, pathname]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isSensitivePage) return;
     function trackClick(event: MouseEvent) {
       const element = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-analytics-event]");
       if (!element) return;
       const eventName = element.dataset.analyticsEvent;
-      if (eventName === "primary_cta_clicked" || eventName === "demo_report_viewed") {
-        trackAnalyticsEvent(eventName, { placement: element.dataset.analyticsPlacement || "unknown" });
+      if (eventName === "hero_cta_clicked") {
+        trackAnalyticsEvent(eventName, {
+          locale,
+          market: locale,
+          placement: element.dataset.analyticsPlacement || "unknown",
+        });
       }
     }
     document.addEventListener("click", trackClick);
     return () => document.removeEventListener("click", trackClick);
-  }, [enabled]);
+  }, [enabled, isSensitivePage, locale]);
 
-  if (!enabled) return null;
+  if (!enabled || isSensitivePage) return null;
 
   function choose(next: ConsentChoice) {
     const wasGranted = readConsent() === "granted";
@@ -91,18 +106,33 @@ export function GoogleAnalytics({ analyticsId, adsId }: Props) {
   }
 
   const showBanner = choice === null || settingsOpen;
+  const copy = locale === "en" ? {
+    eyebrow: "PRIVACY",
+    title: `Help us improve ${brand.name}`,
+    body: "With your consent, we use Google tools for statistics and ad measurement. We never send CV, job-description or report content.",
+    reject: "Necessary only",
+    accept: "Accept",
+    settings: "Privacy settings",
+  } : {
+    eyebrow: "PRYWATNOŚĆ",
+    title: `Pomóż nam ulepszać ${brand.name}`,
+    body: "Za zgodą użyjemy narzędzi Google do statystyk i pomiaru reklam. Nie wysyłamy treści CV, ogłoszeń ani raportów.",
+    reject: "Tylko niezbędne",
+    accept: "Zgadzam się",
+    settings: "Ustawienia prywatności",
+  };
   return <>
     {showBanner ? <aside className="consent-banner" role="dialog" aria-labelledby="consent-title" aria-describedby="consent-copy">
       <div>
-        <span>PRYWATNOŚĆ</span>
-        <h2 id="consent-title">Pomóż nam ulepszać CVUnfold</h2>
-        <p id="consent-copy">Za zgodą użyjemy narzędzi Google do statystyk i pomiaru reklam. Nie wysyłamy treści CV, ogłoszeń ani raportów.</p>
+        <span>{copy.eyebrow}</span>
+        <h2 id="consent-title">{copy.title}</h2>
+        <p id="consent-copy">{copy.body}</p>
       </div>
       <div className="consent-actions">
-        <button type="button" className="consent-secondary" onClick={() => choose("denied")}>Tylko niezbędne</button>
-        <button type="button" className="button" onClick={() => choose("granted")}>Zgadzam się</button>
+        <button type="button" className="consent-secondary" onClick={() => choose("denied")}>{copy.reject}</button>
+        <button type="button" className="button" onClick={() => choose("granted")}>{copy.accept}</button>
       </div>
-    </aside> : <button type="button" className="privacy-settings" onClick={() => setSettingsOpen(true)}>Ustawienia prywatności</button>}
+    </aside> : <button type="button" className="privacy-settings" onClick={() => setSettingsOpen(true)}>{copy.settings}</button>}
   </>;
 }
 

@@ -1,3 +1,5 @@
+import type { Locale } from "@/lib/i18n";
+
 export const TARGET_ROLES = [
   {
     id: "frontend_developer",
@@ -56,7 +58,54 @@ export const TARGET_ROLES = [
 ] as const;
 
 export type TargetRoleId = (typeof TARGET_ROLES)[number]["id"];
-export type TargetRoleProfile = (typeof TARGET_ROLES)[number];
+export type TargetRoleProfile = {
+  id: TargetRoleId;
+  label: string;
+  shortLabel: string;
+  description: string;
+  credibilityLabel: string;
+  systemsLabel: string;
+  evaluationFocus: readonly string[];
+};
+
+const EN_ROLE_COPY: Record<TargetRoleId, Pick<TargetRoleProfile, "description" | "credibilityLabel" | "systemsLabel" | "evaluationFocus">> = {
+  frontend_developer: {
+    description: "Interfaces, performance, accessibility and UI architecture.",
+    credibilityLabel: "Frontend credibility",
+    systemsLabel: "Frontend architecture and systems thinking",
+    evaluationFocus: ["interface quality and architecture", "performance and accessibility", "design systems and product impact"],
+  },
+  backend_developer: {
+    description: "APIs, data, scalability and system reliability.",
+    credibilityLabel: "Backend credibility",
+    systemsLabel: "Architecture and systems thinking",
+    evaluationFocus: ["API and data model design", "reliability and scalability", "security and operating systems"],
+  },
+  fullstack_developer: {
+    description: "End-to-end delivery backed by visible technical depth.",
+    credibilityLabel: "End-to-end technical credibility",
+    systemsLabel: "End-to-end architecture",
+    evaluationFocus: ["ownership of the complete solution flow", "boundaries between frontend, backend and data", "breadth backed by technical depth"],
+  },
+  mobile_developer: {
+    description: "Platform constraints, release lifecycle, quality and app performance.",
+    credibilityLabel: "Mobile engineering credibility",
+    systemsLabel: "Mobile architecture and platform constraints",
+    evaluationFocus: ["mobile platform constraints and patterns", "performance, stability and application lifecycle", "release, monitoring and user experience"],
+  },
+  qa_test_automation: {
+    description: "Quality strategy, risk, automation and testability.",
+    credibilityLabel: "Quality and automation credibility",
+    systemsLabel: "Quality strategy and risk thinking",
+    evaluationFocus: ["quality strategy and risk prioritisation", "automation and test signal quality", "testability and delivery impact"],
+  },
+  devops_platform: {
+    description: "Reliability, delivery, observability and infrastructure automation.",
+    credibilityLabel: "Operational and platform credibility",
+    systemsLabel: "Reliability and platform thinking",
+    evaluationFocus: ["reliability and observability", "infrastructure and delivery automation", "security, cost and developer experience"],
+  },
+};
 
 const roleIds = new Set<string>(TARGET_ROLES.map((role) => role.id));
 
@@ -65,6 +114,11 @@ export function parseTargetRoleId(value: unknown): TargetRoleId | null {
   return roleIds.has(candidate) ? candidate as TargetRoleId : null;
 }
 
-export function getTargetRoleProfile(roleId: TargetRoleId): TargetRoleProfile {
-  return TARGET_ROLES.find((role) => role.id === roleId) ?? TARGET_ROLES[0];
+export function getTargetRoleProfile(roleId: TargetRoleId, locale: Locale = "pl"): TargetRoleProfile {
+  const role = TARGET_ROLES.find((item) => item.id === roleId) ?? TARGET_ROLES[0];
+  return locale === "en" ? { ...role, ...EN_ROLE_COPY[role.id] } : role;
+}
+
+export function getTargetRoleOptions(locale: Locale): readonly TargetRoleProfile[] {
+  return TARGET_ROLES.map((role) => getTargetRoleProfile(role.id, locale));
 }

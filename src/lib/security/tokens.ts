@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-const fallbackSecret = "mock-only-cvunfold-secret-never-production";
+const fallbackSecret = "mock-only-cv-review-secret-never-production";
 
 export function createAccessToken(): string { return randomBytes(32).toString("base64url"); }
 export function hashToken(token: string): string { return createHash("sha256").update(token).digest("hex"); }

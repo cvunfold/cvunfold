@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { GoogleAnalytics, googleConsentDefaults } from "@/components/google-analytics";
+import { brand } from "@/lib/brand";
 import { SITE_DESCRIPTION, SITE_LOCALE, SITE_NAME, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "Analiza CV oczami rekrutera · CVUnfold", template: `%s · ${SITE_NAME}` },
+  title: { default: `Analiza CV developera · ${brand.name}`, template: `%s · ${SITE_NAME}` },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   authors: [{ name: SITE_NAME, url: SITE_URL }],
@@ -23,19 +24,19 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: SITE_LOCALE,
-    url: "/pl",
+    url: "/",
     siteName: SITE_NAME,
-    title: "Analiza CV oczami rekrutera · CVUnfold",
+    title: `Analiza CV developera · ${brand.name}`,
     description: SITE_DESCRIPTION,
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "CVUnfold — analiza CV oczami rekrutera" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${brand.name} — analiza CV developera` }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Analiza CV oczami rekrutera · CVUnfold",
+    title: `Analiza CV developera · ${brand.name}`,
     description: SITE_DESCRIPTION,
-    images: [{ url: "/opengraph-image", alt: "CVUnfold — analiza CV oczami rekrutera" }],
+    images: [{ url: "/opengraph-image", alt: `${brand.name} — analiza CV developera` }],
   },
-  alternates: { types: { "application/rss+xml": "/pl/artykuly/feed.xml" } },
+  alternates: { types: { "application/rss+xml": "/artykuly/feed.xml" } },
   verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,
 };
 
@@ -49,12 +50,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const analyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
   const adsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+  const adsConversionLabel = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL;
   const analyticsEnabled = process.env.MOCK_MODE !== "true" && Boolean(analyticsId || adsId);
-  return <html lang="pl" data-scroll-behavior="smooth">
+  return <html lang="pl" data-scroll-behavior="smooth" suppressHydrationWarning>
     {analyticsEnabled ? <head><script dangerouslySetInnerHTML={{ __html: googleConsentDefaults }} /></head> : null}
     <body>
       {children}
-      {analyticsEnabled ? <GoogleAnalytics analyticsId={analyticsId} adsId={adsId} /> : null}
+      {analyticsEnabled ? <GoogleAnalytics analyticsId={analyticsId} adsId={adsId} adsConversionLabel={adsConversionLabel} /> : null}
     </body>
   </html>;
 }

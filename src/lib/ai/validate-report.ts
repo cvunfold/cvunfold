@@ -1,14 +1,14 @@
-import type { CVReport, TeaserReport } from "./schemas/report";
+import type { CVReport, EvidenceMap, ModelReport, TeaserReport } from "./schemas/report";
 import { reportSchema } from "./schemas/report";
 import type { RubricCategory } from "@/lib/rubrics/technical-v1";
 
-export function calculateOverall(categories: CVReport["categoryScores"]): number {
+export function calculateOverall(categories: ModelReport["categoryScores"]): number {
   const weight = categories.reduce((sum, category) => sum + category.weight, 0);
   if (Math.abs(weight - 1) > 0.001) throw new Error("INVALID_RUBRIC_WEIGHTS");
   return Math.round(categories.reduce((sum, category) => sum + category.score * category.weight, 0));
 }
 
-export function applyServerRubric(report: CVReport, rubric: RubricCategory[]): CVReport {
+export function applyServerRubric(report: ModelReport, rubric: RubricCategory[]): ModelReport {
   const modelCategories = new Map(report.categoryScores.map((category) => [category.key, category]));
   const categoryScores = rubric.map((category) => {
     const modelCategory = modelCategories.get(category.key);
@@ -28,13 +28,44 @@ export function applyServerRubric(report: CVReport, rubric: RubricCategory[]): C
   return { ...report, categoryScores };
 }
 
-export function validateEvidence(report: CVReport, validRefs: Set<string>): CVReport {
+const numberPattern = /\b\d+(?:[.,]\d+)?%?\b/g;
+const technicalTokenPattern = /\b(?:React|Next(?:\.js)?|TypeScript|JavaScript|Node(?:\.js)?|Python|Java|Kotlin|Swift|AWS|Azure|GCP|Docker|Kubernetes|GraphQL|REST|PostgreSQL|MySQL|Redis|Kafka|Terraform|CI\/CD|Web\sVitals|LCP|API|RFC)\b/gi;
+
+function unsupportedFacts(proposed: string, sources: string[]): boolean {
+  const source = sources.join(" ").toLocaleLowerCase("en");
+  const candidates = [
+    ...(proposed.match(numberPattern) || []),
+    ...(proposed.match(technicalTokenPattern) || []),
+  ];
+  return candidates.some((candidate) => !source.includes(candidate.toLocaleLowerCase("en")));
+}
+
+export function validateEvidence(report: ModelReport, validRefs: Set<string>, evidence: EvidenceMap = {}): CVReport {
   const parsed = reportSchema.parse(report);
   const keep = (refs: string[]) => refs.filter((ref) => validRefs.has(ref));
   const categoryScores = parsed.categoryScores.map((category) => ({ ...category, evidenceRefs: keep(category.evidenceRefs) }));
   const strengths = parsed.strengths.filter((item) => keep(item.evidenceRefs).length > 0).map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) }));
   const issues = parsed.issues.filter((item) => item.suggestion?.type === "gap" || item.suggestion?.type === "question" || keep(item.evidenceRefs).length > 0)
-    .map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) }));
+    .map((item) => {
+      const evidenceRefs = keep(item.evidenceRefs);
+      const sources = [...evidenceRefs.map((ref) => evidence[ref] || ""), item.suggestion?.original || ""];
+      const unsafeRewrite = item.suggestion?.type === "rewrite" && item.suggestion.proposed
+        ? unsupportedFacts(item.suggestion.proposed, sources)
+        : false;
+      return {
+        ...item,
+        severity: item.severity === "critical" && item.confidence === "low" ? "important" as const : item.severity,
+        evidenceRefs,
+        suggestion: unsafeRewrite ? {
+          type: "question" as const,
+          original: item.suggestion?.original || null,
+          proposed: null,
+          factualityNote: parsed.locale === "en"
+            ? "This rewrite needs facts not present in the cited CV fragment. Ask the candidate before writing it."
+            : "Ta wersja wymaga faktów, których nie ma w cytowanym fragmencie CV. Najpierw dopytaj kandydata.",
+        } : item.suggestion,
+      };
+    });
   const recruiterPerspective = {
     ...parsed.recruiterPerspective,
     positiveSignals: parsed.recruiterPerspective.positiveSignals
@@ -46,7 +77,18 @@ export function validateEvidence(report: CVReport, validRefs: Set<string>): CVRe
     likelyInterviewQuestions: parsed.recruiterPerspective.likelyInterviewQuestions
       .map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) })),
   };
-  return { ...parsed, recruiterPerspective, categoryScores, strengths, issues, summary: { ...parsed.summary, overallScore: calculateOverall(categoryScores) } };
+  const usedRefs = new Set([
+    ...categoryScores.flatMap((item) => item.evidenceRefs),
+    ...strengths.flatMap((item) => item.evidenceRefs),
+    ...issues.flatMap((item) => item.evidenceRefs),
+    ...recruiterPerspective.positiveSignals.flatMap((item) => item.evidenceRefs),
+    ...recruiterPerspective.reservations.flatMap((item) => item.evidenceRefs),
+    ...recruiterPerspective.likelyInterviewQuestions.flatMap((item) => item.evidenceRefs),
+  ]);
+  const evidenceMap = Object.fromEntries([...usedRefs]
+    .filter((ref) => validRefs.has(ref) && typeof evidence[ref] === "string")
+    .map((ref) => [ref, evidence[ref].trim().slice(0, 600)]));
+  return { ...parsed, evidenceMap, recruiterPerspective, categoryScores, strengths, issues, summary: { ...parsed.summary, overallScore: calculateOverall(categoryScores) } };
 }
 
 export function withRecruiterPerspective(report: CVReport): CVReport {
@@ -61,7 +103,12 @@ export function withRecruiterPerspective(report: CVReport): CVReport {
       : ranks[perceived] < ranks[target]
         ? "undersold"
         : "unsupported";
-  const alignmentCopy = {
+  const alignmentCopy = report.locale === "en" ? {
+    aligned: "The perceived level is aligned with the selected target.",
+    undersold: "The document communicates a lower level than the target, even though it may not show all of the candidate's experience.",
+    unsupported: "The selected level does not yet have enough visible support in the document.",
+    unclear: "The level remains ambiguous based on the document alone.",
+  } as const : {
     aligned: "Odczytany poziom jest zgodny z poziomem wskazanym w analizie.",
     undersold: "Dokument komunikuje niższy poziom niż wskazany cel, mimo że może nie pokazywać całego doświadczenia.",
     unsupported: "Deklarowany poziom nie ma jeszcze wystarczająco widocznego uzasadnienia w dokumencie.",
@@ -78,7 +125,7 @@ export function withRecruiterPerspective(report: CVReport): CVReport {
         title, explanation, evidenceRefs, kind: evidenceRefs.length ? "evidence" as const : "gap" as const,
       })),
       likelyInterviewQuestions: report.issues.slice(0, 3).map(({ title, whyItMatters, evidenceRefs }) => ({
-        question: `Jak doprecyzujesz: ${title.toLocaleLowerCase("pl-PL")}?`,
+        question: report.locale === "en" ? `How would you clarify: ${title.toLocaleLowerCase("en-GB")}?` : `Jak doprecyzujesz: ${title.toLocaleLowerCase("pl-PL")}?`,
         whyThisQuestion: whyItMatters,
         evidenceRefs,
       })),
@@ -89,6 +136,8 @@ export function withRecruiterPerspective(report: CVReport): CVReport {
 export function toTeaser(report: CVReport): TeaserReport {
   const normalized = withRecruiterPerspective(report);
   const perspective = normalized.recruiterPerspective;
+  const featured = normalized.issues.find((issue) => issue.severity === "critical") || normalized.issues[0];
+  const evidenceRef = featured?.evidenceRefs[0];
   return {
     version: normalized.version, locale: normalized.locale, document: normalized.document, summary: normalized.summary,
     recruiterPerspective: {
@@ -102,8 +151,19 @@ export function toTeaser(report: CVReport): TeaserReport {
       },
     },
     recruiterSimulation: normalized.recruiterSimulation,
-    categoryScores: normalized.categoryScores.map(({ key, label, score, weight }) => ({ key, label, score, weight, rationale: "Szczegółowe uzasadnienie dostępne w pełnym raporcie.", evidenceRefs: [] })),
+    categoryScores: normalized.categoryScores.map(({ key, label, score, weight }) => ({ key, label, score, weight, rationale: normalized.locale === "en" ? "Detailed rationale is available in the full report." : "Szczegółowe uzasadnienie dostępne w pełnym raporcie.", evidenceRefs: [] })),
     counts: { strengths: normalized.strengths.length, issues: normalized.issues.length, nextSteps: normalized.nextSteps.length },
     ats: { score: normalized.ats.score, findingCount: normalized.ats.findings.length },
+    featuredFinding: featured ? {
+      id: featured.id,
+      title: featured.title,
+      explanation: featured.explanation,
+      whyItMatters: featured.whyItMatters,
+      evidence: evidenceRef ? normalized.evidenceMap?.[evidenceRef] || null : null,
+      action: featured.action,
+      suggestionType: featured.suggestion?.type || null,
+      confidence: featured.confidence,
+      severity: featured.severity,
+    } : null,
   };
 }

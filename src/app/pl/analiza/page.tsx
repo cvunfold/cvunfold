@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 export default async function AnalysisPage({ searchParams }: { searchParams: Promise<{ job?: string }> }) {
   const { job } = await searchParams;
-  return <UploadFlow mockMode={process.env.MOCK_MODE === "true"} initialJobMatch={Boolean(job)}/>;
+  return <UploadFlow mockMode={process.env.MOCK_MODE === "true"} initialJobMatch={Boolean(job)} locale="pl"/>;
 }
