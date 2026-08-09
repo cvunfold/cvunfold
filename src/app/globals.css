@@ -941,9 +941,15 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 
 /* Launch conversion layout */
 .launch-landing { --launch-max: 1180px; background: #fff; }
-.launch-landing .container { width: min(var(--launch-max), calc(100% - 48px)); }
-.launch-landing > .site-header { height: 74px; gap: 28px; }
-.launch-landing .site-header nav { gap: 26px; }
+.launch-landing .container,
+.knowledge-page .container,
+.article-page .container { width: min(var(--launch-max, 1180px), calc(100% - 48px)); }
+.launch-landing > .site-header,
+.knowledge-page > .site-header,
+.article-page > .site-header { height: 74px; gap: 28px; }
+.launch-landing .site-header nav,
+.knowledge-page .site-header nav,
+.article-page .site-header nav { gap: 26px; }
 .language-switch { margin-left: 4px; padding: 4px 7px; border: 1px solid rgba(255,255,255,.28); border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: .08em; }
 .launch-hero { min-height: 690px; display: grid; grid-template-columns: minmax(0,.96fr) minmax(500px,1.04fr); gap: 68px; align-items: center; padding-block: 70px 78px; }
 .launch-eyebrow, .launch-section-head > span { display: block; margin-bottom: 16px; color: var(--accent-deep); font-size: 11px; font-weight: 850; letter-spacing: .12em; }
@@ -1096,6 +1102,8 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 
 @media (max-width: 1050px) {
   .launch-hero { grid-template-columns: 1fr; }
+  .knowledge-page .container,
+  .article-page .container { width: min(100% - 40px, 840px); }
   .level-demo { max-width: 720px; margin-top: 0; }
   .sample-showcase-grid { grid-template-columns: 1fr; gap: 42px; }
   .launch-footer { grid-template-columns: 1fr; justify-items: start; }
@@ -1104,8 +1112,12 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 
 @media (max-width: 720px) {
   .launch-landing { padding-bottom: 65px; }
-  .launch-landing .container { width: min(100% - 28px, 560px); }
-  .launch-landing > .site-header { height: 64px; gap: 12px; }
+  .launch-landing .container,
+  .knowledge-page .container,
+  .article-page .container { width: min(100% - 28px, 560px); }
+  .launch-landing > .site-header,
+  .knowledge-page > .site-header,
+  .article-page > .site-header { height: 64px; gap: 12px; }
   .launch-landing .language-switch { margin-left: auto; }
   .launch-landing > .site-header .button { display: none; }
   .launch-hero { min-height: 0; gap: 38px; padding-block: 42px 51px; }
