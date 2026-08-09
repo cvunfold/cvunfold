@@ -92,8 +92,8 @@ export function LandingPage({ locale }: { locale: Locale }) {
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "Organization", "@id": `${absoluteUrl("/")}#organization`, name: brand.name, url: absoluteUrl("/") },
-      { "@type": "WebSite", "@id": `${absoluteUrl("/")}#website`, name: brand.name, url: absoluteUrl("/"), publisher: { "@id": `${absoluteUrl("/")}#organization` }, inLanguage: ["pl", "en"] },
+      { "@type": "Organization", "@id": `${absoluteUrl("/")}#organization`, name: brand.name, alternateName: "CVUnfold", url: absoluteUrl("/") },
+      { "@type": "WebSite", "@id": `${absoluteUrl("/")}#website`, name: brand.name, alternateName: ["CVUnfold", "cvunfold.pl"], url: absoluteUrl("/"), publisher: { "@id": `${absoluteUrl("/")}#organization` }, inLanguage: ["pl", "en"] },
       { "@type": "WebPage", "@id": `${pageUrl}#webpage`, name: locale === "pl" ? "Analiza CV developera" : "Developer CV review", url: pageUrl, isPartOf: { "@id": `${absoluteUrl("/")}#website` }, about: { "@id": serviceId }, inLanguage: locale },
       { "@type": "Service", "@id": serviceId, name: locale === "pl" ? "Analiza CV developera" : "Developer CV review", serviceType: "Evidence-based CV review", provider: { "@id": `${absoluteUrl("/")}#organization` }, areaServed: locale === "pl" ? { "@type": "Country", name: "Poland" } : "Worldwide", availableLanguage: ["Polish", "English"], offers: (["full_review", "job_match"] as const).map((plan) => ({ "@type": "Offer", name: t.priceCards.find((card) => card.plan === plan)?.title, price: String(PLAN_CATALOG[locale][plan].amountMinor / 100), priceCurrency: PLAN_CATALOG[locale][plan].currency, url: absoluteUrl(analysisPath(locale, plan === "job_match")), availability: "https://schema.org/InStock" })) },
     ],

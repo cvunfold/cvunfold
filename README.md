@@ -1,4 +1,4 @@
-# Merivela
+# CV Unfold
 
 The repository and current domain still use the `cvunfold` technical identifier. The public brand is configured independently so it can be changed without migrating storage keys, integrations or historical URLs.
 

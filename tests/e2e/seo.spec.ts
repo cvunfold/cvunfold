@@ -2,10 +2,21 @@ import { expect, test } from "@playwright/test";
 
 test("public pages expose canonical bilingual metadata", async ({ page }) => {
   await page.goto("/");
+  await expect(page).toHaveTitle("Analiza CV developera: seniority i pierwsze wrażenie | CV Unfold");
+  await expect(page.locator("html")).toHaveAttribute("lang", "pl");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /^https:\/\/cvunfold\.pl\/?$/);
   await expect(page.locator('link[hreflang="en"]')).toHaveAttribute("href", "https://cvunfold.pl/en");
+  await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "CV Unfold");
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /\/opengraph-image/);
-  await page.goto("/en");
+  const website = (await page.locator('script[type="application/ld+json"]').allTextContents())
+    .flatMap((value) => JSON.parse(value)["@graph"] ?? [])
+    .find((node: { "@type"?: string }) => node["@type"] === "WebSite");
+  expect(website).toMatchObject({ name: "CV Unfold", alternateName: ["CVUnfold", "cvunfold.pl"] });
+
+  await page.getByRole("link", { name: "EN", exact: true }).click();
+  await expect(page).toHaveURL(/\/en$/);
+  await expect(page).toHaveTitle("Developer CV review: seniority and first impression | CV Unfold");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://cvunfold.pl/en");
   await expect(page.locator("h1")).toContainText("Does your CV show");
   await page.goto("/artykuly/jak-nie-dac-sie-zastapic-przez-ai");
