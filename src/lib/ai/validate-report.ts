@@ -30,6 +30,9 @@ export function applyServerRubric(report: ModelReport, rubric: RubricCategory[])
 
 const numberPattern = /\b\d+(?:[.,]\d+)?%?\b/g;
 const technicalTokenPattern = /\b(?:React|Next(?:\.js)?|TypeScript|JavaScript|Node(?:\.js)?|Python|Java|Kotlin|Swift|AWS|Azure|GCP|Docker|Kubernetes|GraphQL|REST|PostgreSQL|MySQL|Redis|Kafka|Terraform|CI\/CD|Web\sVitals|LCP|API|RFC)\b/gi;
+const rewriteStopwords = new Set([
+  "and", "the", "for", "with", "from", "that", "this", "into", "oraz", "dla", "przy", "nad", "pod", "który", "która", "które", "jest", "było", "była", "with",
+]);
 
 function unsupportedFacts(proposed: string, sources: string[]): boolean {
   const source = sources.join(" ").toLocaleLowerCase("en");
@@ -40,6 +43,14 @@ function unsupportedFacts(proposed: string, sources: string[]): boolean {
   return candidates.some((candidate) => !source.includes(candidate.toLocaleLowerCase("en")));
 }
 
+function excessiveSemanticNovelty(proposed: string, sources: string[]): boolean {
+  const tokens = (value: string) => new Set((value.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu) || [])
+    .filter((token) => token.length >= 4 && !rewriteStopwords.has(token)));
+  const sourceTokens = tokens(sources.join(" "));
+  const proposedTokens = [...tokens(proposed)];
+  return proposedTokens.filter((token) => !sourceTokens.has(token)).length > 2;
+}
+
 export function validateEvidence(report: ModelReport, validRefs: Set<string>, evidence: EvidenceMap = {}): CVReport {
   const parsed = reportSchema.parse(report);
   const keep = (refs: string[]) => refs.filter((ref) => validRefs.has(ref));
@@ -47,10 +58,14 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
   const strengths = parsed.strengths.filter((item) => keep(item.evidenceRefs).length > 0).map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) }));
   const issues = parsed.issues.filter((item) => item.suggestion?.type === "gap" || item.suggestion?.type === "question" || keep(item.evidenceRefs).length > 0)
     .map((item) => {
-      const evidenceRefs = keep(item.evidenceRefs);
+      // A GAP describes missing visible evidence. A model may cite the line that
+      // admits the omission, but retaining that ref makes the gap look like a
+      // supported claim. Keep the boundary deterministic on the server.
+      const evidenceRefs = item.suggestion?.type === "gap" ? [] : keep(item.evidenceRefs);
       const sources = [...evidenceRefs.map((ref) => evidence[ref] || ""), item.suggestion?.original || ""];
-      const unsafeRewrite = item.suggestion?.type === "rewrite" && item.suggestion.proposed
-        ? unsupportedFacts(item.suggestion.proposed, sources)
+      const guardedSuggestion = item.suggestion?.type === "rewrite" || item.suggestion?.type === "expose";
+      const unsafeRewrite = guardedSuggestion
+        ? !item.suggestion?.original?.trim() || Boolean(item.suggestion?.proposed && (unsupportedFacts(item.suggestion.proposed, sources) || excessiveSemanticNovelty(item.suggestion.proposed, sources)))
         : false;
       return {
         ...item,
@@ -72,7 +87,7 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
       .map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) }))
       .filter((item) => item.evidenceRefs.length > 0),
     reservations: parsed.recruiterPerspective.reservations
-      .map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) }))
+      .map((item) => ({ ...item, evidenceRefs: item.kind === "gap" ? [] : keep(item.evidenceRefs) }))
       .filter((item) => item.kind === "gap" || item.evidenceRefs.length > 0),
     likelyInterviewQuestions: parsed.recruiterPerspective.likelyInterviewQuestions
       .map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) })),

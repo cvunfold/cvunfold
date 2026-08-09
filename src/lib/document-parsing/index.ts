@@ -6,13 +6,24 @@ export type ParsedDocument = { text: string; segments: Segment[]; quality: "good
 const email = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const phone = /(?<!\d)(?:\+?48[ -]?)?(?:\d[ -]?){9}(?!\d)/g;
 const address = /\b(?:ul\.|aleja|al\.|os\.)\s+[^\n,]{3,40}(?:,\s*\d{2}-\d{3}\s+[^\n]+)?/gi;
+const protectedTraitLabel = /(?<![\p{L}])(?:age|date of birth|gender|sex|nationality|citizenship|marital[ -]status|family[ -]status|wiek|data urodzenia|płeć|narodowość|obywatelstwo|stan cywilny)(?![\p{L}])/giu;
 
 export function maskContactPii(text: string): string {
   return text.replace(email, "[EMAIL UKRYTY]").replace(phone, "[TELEFON UKRYTY]").replace(address, "[ADRES UKRYTY]");
 }
 
+function containsProtectedPersonalData(text: string): boolean {
+  const matches = text.match(protectedTraitLabel) || [];
+  if (new Set(matches.map((value) => value.toLocaleLowerCase("en"))).size >= 2) return true;
+  return /(?<![\p{L}])(?:age|date of birth|gender|sex|nationality|citizenship|marital[ -]status|family[ -]status|wiek|data urodzenia|płeć|narodowość|obywatelstwo|stan cywilny)(?![\p{L}])\s*(?::|[-–—]|\d)/iu.test(text);
+}
+
+function looksLikePromptInjection(text: string): boolean {
+  return /(?:ignore previous instructions|give (?:a )?score(?: of)? \d+|reveal (?:the )?(?:system prompt|secrets)|environment variables|open https?:\/\/|zignoruj poprzednie instrukcje|przyznaj \d+ punktów|ujawnij (?:prompt systemowy|sekrety)|zmienne środowiskowe|otwórz https?:\/\/)/i.test(text);
+}
+
 export function createSegments(text: string): Segment[] {
-  return text.split(/\n{2,}|(?<=\.)\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ])/).map((part) => part.trim()).filter(Boolean)
+  return text.split(/\n{2,}|(?<=\.)\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ])/).map((part) => part.trim()).filter((part) => Boolean(part) && !containsProtectedPersonalData(part) && !looksLikePromptInjection(part))
     .slice(0, 200).map((part, index) => ({ id: `seg_${index.toString(36)}`, text: part }));
 }
 
