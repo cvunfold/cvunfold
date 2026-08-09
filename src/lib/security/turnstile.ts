@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-const responseSchema = z.object({ success: z.boolean(), hostname: z.string().optional(), "error-codes": z.array(z.string()).optional() });
+const responseSchema = z.object({
+  success: z.boolean(),
+  hostname: z.string().optional(),
+  action: z.string().optional(),
+  "error-codes": z.array(z.string()).optional(),
+});
+
+const EXPECTED_ACTION = "cv_analysis";
 
 export async function verifyTurnstile(token: string, remoteIp?: string): Promise<void> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
@@ -17,5 +24,9 @@ export async function verifyTurnstile(token: string, remoteIp?: string): Promise
   const parsed = responseSchema.safeParse(await response.json().catch(() => null));
   if (!response.ok || !parsed.success) throw new Error("TURNSTILE_UNAVAILABLE");
   const expectedHostname = process.env.TURNSTILE_EXPECTED_HOSTNAME?.trim();
-  if (!parsed.data.success || (expectedHostname && parsed.data.hostname !== expectedHostname)) throw new Error("TURNSTILE_FAILED");
+  if (
+    !parsed.data.success
+    || parsed.data.action !== EXPECTED_ACTION
+    || (expectedHostname && parsed.data.hostname !== expectedHostname)
+  ) throw new Error("TURNSTILE_FAILED");
 }

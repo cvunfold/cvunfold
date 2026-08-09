@@ -19,7 +19,7 @@ Każda operacja zewnętrzna wymaga preflightu: **SERVICE, ACCOUNT, ORGANIZATION/
 ## Bezpośrednio przed launch
 
 - [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm eval`, `pnpm eval:live`, `pnpm build`, `pnpm test:e2e` — PASS; `eval:live` bez `--execute` jest tylko preflightem.
-- [ ] Za osobną zgodą kosztową: `pnpm eval:live -- --execute`; preflight ≤ 20 zł, 100% guardraili i ręczny przegląd jakości PL/EN.
+- [x] `pnpm eval:live -- --execute`: limit 50 zł, 24/24 warianty modelowe i 2/2 odrzucenia przed modelem zaakceptowane; ręczny przegląd PL/EN bez krytycznej halucynacji (2026-08-09).
 - [ ] Preview: 360, 390, 768, 1024, 1440; klawiatura, focus, cookie banner i brak poziomego scrolla.
 - [ ] Upload tekstowego PDF i DOCX, błąd skanu, za duży plik, zła sygnatura.
 - [ ] Teaser ma dowód, ale pełny raport nie występuje w HTML/API/RSC.

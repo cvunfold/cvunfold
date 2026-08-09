@@ -22,6 +22,7 @@ export function TurnstileWidget({ siteKey, locale, onToken }: { siteKey?: string
       if (cancelled || !root.current || !window.turnstile || widgetId) return;
       widgetId = window.turnstile.render(root.current, {
         sitekey: siteKey,
+        action: "cv_analysis",
         language: locale,
         theme: "light",
         size: "flexible",

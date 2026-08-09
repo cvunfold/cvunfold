@@ -21,7 +21,7 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 | Dane prywatne w analytics/referrerze | Naprawione: zamknięta allowlista eventów, anonimowa lokalizacja raportu, `no-referrer`, brak automatycznego page view na raporcie i brak CV/JD/nazwy pliku; po zgodzie tag może wysłać wyłącznie bezpieczny purchase | GA4 DebugView i Tag Assistant wymagają identyfikatorów właściciela |
 | Nadużycie anonimowego AI | Naprawione: krótkoterminowy i trwały limit, limit tekstu/pliku/stron, kontrola archiwum DOCX, token-free CV detection, opcjonalny Turnstile sprawdzany na serwerze | Dla ruchu reklamowego zalecane jest skonfigurowanie produkcyjnego Turnstile |
 | Dokumenty publiczne z fikcyjnymi danymi | Nie wymyślamy danych; strony jawnie blokują sprzedaż, gdy brakuje danych firmy | Dane firmy, support i akceptacja treści są wymagane przed live sales |
-| Semantyczna jakość modelu | Guardraile i 13 syntetycznych przypadków przechodzą lokalnie; dodano 13×PL/EN harness `eval:live` z limitem 20 zł | Płatne wykonanie live-model eval i ręczny przegląd raportów nadal blokują reklamy |
+| Semantyczna jakość modelu | Guardraile i 13 syntetycznych przypadków przechodzą lokalnie; płatny 13×PL/EN `eval:live` zakończył się PASS WITH OBSERVATION przy limicie 50 zł | 24/24 warianty modelowe i 2/2 odrzucenia przed modelem zaakceptowane; koszt autorytatywny około 22,42 zł, bez krytycznych halucynacji |
 
 ## P1 — przed Google Ads
 
@@ -67,7 +67,6 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 
 1. Test cleanupu i Vercel Cron na preview po ustawieniu `CRON_SECRET`; migracja Supabase jest zastosowana.
 2. Stripe sandbox ma ceny PLN/EUR i komplet eventów webhooka; pozostał end-to-end test preview, następnie osobno live.
-3. Płatny live-model eval PL/EN oraz ręczna ocena jakości; projekt OpenAI ma aktywny billing, ale wykonanie wymaga osobnej zgody kosztowej.
-4. Dane firmy, działający support i akceptacja draftów prawnych.
-5. GA4 istnieje (`G-D8TP3LQSJD`); Google Ads jest w onboardingu, Search Console nie ma jeszcze property, a consent/purchase wymaga testu preview.
-6. Pełny dynamiczny smoke preview po uzupełnieniu brakujących zmiennych Preview: Supabase, GA4, EUR Price IDs, `CRON_SECRET` i Turnstile. Statyczny smoke PL/EN jest zaliczony.
+3. Dane firmy, działający support i akceptacja draftów prawnych.
+4. GA4 istnieje (`G-D8TP3LQSJD`); Google Ads jest w onboardingu, Search Console nie ma jeszcze property, a consent/purchase wymaga testu preview.
+5. Pełny dynamiczny smoke preview po uzupełnieniu brakujących zmiennych Preview: Supabase, GA4, EUR Price IDs, `CRON_SECRET` i Turnstile. Statyczny smoke PL/EN jest zaliczony.
