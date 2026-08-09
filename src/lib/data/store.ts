@@ -215,7 +215,7 @@ export async function recordFunnelEvent(input: {
     .filter(([key, value]) => safePropertyKeys.has(key) && ["string", "number", "boolean"].includes(typeof value)));
   const client = supabaseClient();
   if (!client) { store.events.push({ name: input.name, at: new Date() }); return; }
-  const { error } = await client.from("funnel_events").upsert({
+  const { error } = await client.from("funnel_events").insert({
     analysis_id: input.analysisId || null,
     payment_id: input.paymentId || null,
     event_name: input.name,
@@ -223,7 +223,12 @@ export async function recordFunnelEvent(input: {
     market: input.market,
     safe_properties: safeProperties,
     dedupe_key: input.dedupeKey || null,
-  }, { onConflict: "dedupe_key", ignoreDuplicates: true });
+  });
+  // The dedupe index is partial (`where dedupe_key is not null`), so PostgREST
+  // cannot target it with a plain `on_conflict=dedupe_key` upsert. Let the
+  // database enforce uniqueness and treat only an expected duplicate as a
+  // successful no-op. Events without a dedupe key must always be inserted.
+  if (input.dedupeKey && error?.code === "23505") return;
   if (error) throw new Error("SUPABASE_EVENT_SAVE_FAILED");
 }
 
