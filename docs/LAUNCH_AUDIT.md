@@ -12,12 +12,12 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 
 | Problem | Stan kodu | Stan launchu |
 |---|---|---|
-| Pełny raport mógłby wyciec przed płatnością | Naprawione: projekcja teasera powstaje na serwerze; pełne pola nie trafiają do HTML, RSC ani API dla nieopłaconej analizy | Do potwierdzenia testem Stripe sandbox na preview |
-| Odblokowanie po samym parametrze URL | Naprawione: token z fragmentu jest jednorazowo wymieniany na rotowaną sesję `HttpOnly`; płatność jest sprawdzana serwerowo | Do smoke testu preview |
+| Pełny raport mógłby wyciec przed płatnością | Naprawione: projekcja teasera powstaje na serwerze; pełne pola nie trafiają do HTML, RSC ani API dla nieopłaconej analizy | Potwierdzone na preview dla nowych analiz PL i EN; płatny wariant czeka na test Stripe live |
+| Odblokowanie po samym parametrze URL | Naprawione: token z fragmentu jest jednorazowo wymieniany na rotowaną sesję `HttpOnly`; płatność jest sprawdzana serwerowo | Preview zachowuje teaser po refresh i anulowaniu Checkout; pełne odblokowanie czeka na płatność testową |
 | Webhook i zakup bez silnej idempotencji | Naprawione w migracji: podpis Stripe, tabela zdarzeń, transakcyjna funkcja fulfillment i deduplikowany purchase | Migracja zastosowana 2026-08-09 w `cvunfold-prod`; test preview nadal wymagany |
-| Niespójne ceny | Naprawione: serwer pobiera Stripe Price i weryfikuje kwotę, walutę, aktywność i tryb one-time; PLN 29/39 i EUR 9/12 mają osobne Price IDs | Sandbox Price IDs są zweryfikowane; live Price IDs oraz smoke checkoutu nadal wymagają potwierdzenia |
+| Niespójne ceny | Naprawione: serwer pobiera Stripe Price i weryfikuje kwotę, walutę, aktywność i tryb one-time; PLN 29/39 i EUR 9/12 mają osobne Price IDs | Sandbox Checkout potwierdzony dla 29 PLN i 9 EUR; live PLN istnieje, live EUR nadal wymaga utworzenia i potwierdzenia |
 | Brak pełnego EN | Naprawione: landing, upload, błędy, raport, artykuły, SEO i dokumenty informacyjne mają wersję `/en` | Copy prawne wymaga akceptacji właściciela |
-| Brak gwarantowanej retencji/usunięcia | Naprawione w kodzie: plik jest analizowany wyłącznie w pamięci, raport ma termin, delete jest natychmiastowy, cron czyści wygasłe rekordy | `CRON_SECRET` i cron trzeba zweryfikować po deployu |
+| Brak gwarantowanej retencji/usunięcia | Naprawione w kodzie: plik jest analizowany wyłącznie w pamięci, raport ma termin, delete jest natychmiastowy, cron czyści wygasłe rekordy | Preview potwierdziło brak `temporary_file_key` dla wszystkich testowych analiz; autoryzowany cron trzeba sprawdzić po deployu produkcyjnym |
 | Dane prywatne w analytics/referrerze | Naprawione: zamknięta allowlista eventów, anonimowa lokalizacja raportu, `no-referrer`, brak automatycznego page view na raporcie i brak CV/JD/nazwy pliku; po zgodzie tag może wysłać wyłącznie bezpieczny purchase | GA4 DebugView i Tag Assistant wymagają identyfikatorów właściciela |
 | Nadużycie anonimowego AI | Naprawione: krótkoterminowy i trwały limit, limit tekstu/pliku/stron, kontrola archiwum DOCX, token-free CV detection, opcjonalny Turnstile sprawdzany na serwerze | Dla ruchu reklamowego zalecane jest skonfigurowanie produkcyjnego Turnstile |
 | Dokumenty publiczne z fikcyjnymi danymi | Nie wymyślamy danych; strony jawnie blokują sprzedaż, gdy brakuje danych firmy | Dane firmy, support i akceptacja treści są wymagane przed live sales |
@@ -33,7 +33,7 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 | Za długi landing | Skrócony i ułożony jako lejek; artykuły są nisko i są tylko trzy |
 | Słaby teaser | Pokazuje poziom, werdykt, first impression, główny problem, dowód, liczby i zakres odblokowania |
 | Brak pełnego przykładu | Publiczny, syntetyczny raport PL i EN zawiera dowody, problem, znaczenie, typ sugestii i bezpieczny krok |
-| Brak mierzalnego lejka | GA4/Ads adapter, Consent Mode v2, UTM persistence, zdarzenia serwerowe, deduplikowany purchase i bezpieczne diagnostics |
+| Brak mierzalnego lejka | GA4/Ads adapter, Consent Mode v2, UTM persistence, zdarzenia serwerowe, deduplikowany purchase i bezpieczne diagnostics. Błąd zapisu eventów bez dedupe key został naprawiony w `c3b0192`; preview zapisało bezpieczny `teaser_viewed` bez PII |
 | Niepełne SEO | Kanoniczne PL `/`, EN `/en`, alternates, sitemap, robots, OG, RSS, noindex prywatnych stron i redirecty legacy |
 | Słabe error states | Zlokalizowane komunikaty dla formatu, sygnatury, skanu/ekstrakcji, limitu, modelu, storage, timeoutu i Turnstile |
 
@@ -60,13 +60,13 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 - To lokalny pomiar laboratoryjny, nie dane terenowe CrUX; INP wymaga rzeczywistych sesji.
 - Screenshot QA: 360, 390, 768, 1024 i 1440 px; landing PL/EN, upload PL/EN i przykładowy raport. Brak overflow, błędów konsoli i failed requests.
 - Build raportuje około 109 KB First Load JS dla publicznego landingu; OpenAI, Stripe i parsery nie są importowane do jego kodu klienta.
-- Preview z commita `68562d5` osiągnęło stan `READY`. Smoke PL/EN objął landing, upload, raport przykładowy, artykuły i dokumenty prywatności; odpowiedzi były poprawne i bez błędów renderu.
+- Preview z commita `c3b0192` osiągnęło stan `READY`. Dynamiczny smoke objął landing PL/EN, prawdziwe analizy syntetycznych PDF/DOCX, teaser, refresh, sandbox Checkout 29 PLN i 9 EUR, poprawny cancel URL oraz zapis bezpiecznego eventu serwerowego.
 - Pierwszy smoke ujawnił brak fontu w śladzie funkcji Open Graph. Dodano jawny `outputFileTracingIncludes`, ponowny build i preview przeszły, `/opengraph-image` zwraca poprawną odpowiedź, a logi poprawionego deploymentu nie zawierają błędów runtime.
 
 ## Otwarte bramki
 
-1. Test cleanupu i Vercel Cron na preview po ustawieniu `CRON_SECRET`; migracja Supabase jest zastosowana.
-2. Stripe sandbox ma ceny PLN/EUR i komplet eventów webhooka; pozostał end-to-end test preview, następnie osobno live.
-3. Dane firmy, działający support i akceptacja draftów prawnych.
-4. GA4 istnieje (`G-D8TP3LQSJD`); Google Ads jest w onboardingu, Search Console nie ma jeszcze property, a consent/purchase wymaga testu preview.
-5. Pełny dynamiczny smoke preview po uzupełnieniu brakujących zmiennych Preview: Supabase, GA4, EUR Price IDs, `CRON_SECRET` i Turnstile. Statyczny smoke PL/EN jest zaliczony.
+1. Autoryzowany test Vercel Cron po deployu produkcyjnym; migracja Supabase i ochrona `CRON_SECRET` są zastosowane.
+2. Stripe sandbox checkout/cancel działa. Nadal potrzebne są live EUR Price IDs oraz jeden zakup 29 PLN po deployu, aby sprawdzić webhook, odblokowanie i dokładnie jeden `purchase`.
+3. Dane firmy są publicznie uzupełnione, `support@cvunfold.com` przekierowuje przez OVH; pozostały test dostarczenia wiadomości i akceptacja draftów prawnych przez właściciela.
+4. GA4 istnieje (`G-D8TP3LQSJD`); Google Ads jest w onboardingu, Search Console nie ma jeszcze property, a consent/purchase wymaga finalnego DebugView/Tag Assistant.
+5. Angielski Stripe Checkout używa obecnie wspólnego produktu z polską nazwą. Przed pełnym EN live należy utworzyć zweryfikowane live EUR ceny, najlepiej na osobnych angielskich produktach.

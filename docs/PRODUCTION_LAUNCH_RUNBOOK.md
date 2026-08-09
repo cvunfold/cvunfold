@@ -8,7 +8,7 @@ Każda operacja zewnętrzna wymaga preflightu: **SERVICE, ACCOUNT, ORGANIZATION/
 - [ ] Supabase: potwierdzony projekt CVUnfold; migracje zastosowane; RLS/advisors bez krytycznych uwag.
 - [ ] Stripe: potwierdzone konto CV Unfold, live products 29/39 PLN i 9/12 EUR, Price IDs, live webhook i secret.
 - [x] OpenAI: potwierdzony projekt CVUnfold, limit 50 zł i live eval PL/EN zaliczony 2026-08-09; przed produkcją ustawić zweryfikowane modele i stawki w env.
-- [ ] Brand/domain/company/support env uzupełnione; support e-mail działa.
+- [ ] Brand/domain/company/support env uzupełnione; przekierowanie `support@cvunfold.com` jest aktywne, ale trzeba potwierdzić dostarczenie wiadomości testowej.
 - [ ] GA4 ID, Ads ID/Label, Search Console verification ustawione.
 - [ ] Consent i dokumenty prawne zaakceptowane przez właściciela; polityka zwrotów/support w Stripe zgodne.
 - [ ] `ACCESS_TOKEN_SECRET`, `RATE_LIMIT_HMAC_SECRET`, `CRON_SECRET`, `ADMIN_SECRET` są unikalne i losowe.
@@ -18,12 +18,12 @@ Każda operacja zewnętrzna wymaga preflightu: **SERVICE, ACCOUNT, ORGANIZATION/
 
 ## Bezpośrednio przed launch
 
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm eval`, `pnpm eval:live`, `pnpm build`, `pnpm test:e2e` — PASS; `eval:live` bez `--execute` jest tylko preflightem.
+- [x] `pnpm lint`, `pnpm typecheck`, `pnpm test` (89/89), `pnpm eval`, `pnpm eval:live`, `pnpm build`, `pnpm test:e2e` (15 PASS, 1 świadomy skip desktopowego duplikatu) — PASS; `eval:live` bez `--execute` jest tylko preflightem.
 - [x] `pnpm eval:live -- --execute`: limit 50 zł, 24/24 warianty modelowe i 2/2 odrzucenia przed modelem zaakceptowane; ręczny przegląd PL/EN bez krytycznej halucynacji (2026-08-09).
 - [ ] Preview: 360, 390, 768, 1024, 1440; klawiatura, focus, cookie banner i brak poziomego scrolla.
 - [ ] Upload tekstowego PDF i DOCX, błąd skanu, za duży plik, zła sygnatura.
 - [ ] Teaser ma dowód, ale pełny raport nie występuje w HTML/API/RSC.
-- [ ] Stripe sandbox: success, cancel, delayed webhook, duplicate webhook i return refresh.
+- [ ] Stripe sandbox: utworzenie Checkout 29 PLN/9 EUR, cancel i return refresh potwierdzone na preview; success/delayed webhook/duplicate wymagają płatności sandbox przed promocją.
 - [ ] Za osobną zgodą: jedna prawdziwa płatność, odblokowanie, receipt, saldo i ewentualny refund.
 - [ ] Pełny raport: refresh, bezpieczny link, print/PDF, feedback, delete i expiry.
 - [ ] GA4 DebugView/Tag Assistant: consent denied/accepted; brak PII i prywatnych URL-i.
