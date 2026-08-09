@@ -15,7 +15,7 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 | Pełny raport mógłby wyciec przed płatnością | Naprawione: projekcja teasera powstaje na serwerze; pełne pola nie trafiają do HTML, RSC ani API dla nieopłaconej analizy | Do potwierdzenia testem Stripe sandbox na preview |
 | Odblokowanie po samym parametrze URL | Naprawione: token z fragmentu jest jednorazowo wymieniany na rotowaną sesję `HttpOnly`; płatność jest sprawdzana serwerowo | Do smoke testu preview |
 | Webhook i zakup bez silnej idempotencji | Naprawione w migracji: podpis Stripe, tabela zdarzeń, transakcyjna funkcja fulfillment i deduplikowany purchase | Migracja zastosowana 2026-08-09 w `cvunfold-prod`; test preview nadal wymagany |
-| Niespójne ceny | Naprawione: serwer pobiera Stripe Price i weryfikuje kwotę, walutę, aktywność i tryb one-time; PLN 29/39 i EUR 9/12 mają osobne Price IDs | Sandbox i live Price IDs są zweryfikowane; pozostał smoke test checkoutu |
+| Niespójne ceny | Naprawione: serwer pobiera Stripe Price i weryfikuje kwotę, walutę, aktywność i tryb one-time; PLN 29/39 i EUR 9/12 mają osobne Price IDs | Sandbox Price IDs są zweryfikowane; live Price IDs oraz smoke checkoutu nadal wymagają potwierdzenia |
 | Brak pełnego EN | Naprawione: landing, upload, błędy, raport, artykuły, SEO i dokumenty informacyjne mają wersję `/en` | Copy prawne wymaga akceptacji właściciela |
 | Brak gwarantowanej retencji/usunięcia | Naprawione w kodzie: plik jest analizowany wyłącznie w pamięci, raport ma termin, delete jest natychmiastowy, cron czyści wygasłe rekordy | `CRON_SECRET` i cron trzeba zweryfikować po deployu |
 | Dane prywatne w analytics/referrerze | Naprawione: zamknięta allowlista eventów, anonimowa lokalizacja raportu, `no-referrer`, brak automatycznego page view na raporcie i brak CV/JD/nazwy pliku; po zgodzie tag może wysłać wyłącznie bezpieczny purchase | GA4 DebugView i Tag Assistant wymagają identyfikatorów właściciela |
@@ -60,6 +60,8 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 - To lokalny pomiar laboratoryjny, nie dane terenowe CrUX; INP wymaga rzeczywistych sesji.
 - Screenshot QA: 360, 390, 768, 1024 i 1440 px; landing PL/EN, upload PL/EN i przykładowy raport. Brak overflow, błędów konsoli i failed requests.
 - Build raportuje około 109 KB First Load JS dla publicznego landingu; OpenAI, Stripe i parsery nie są importowane do jego kodu klienta.
+- Preview z commita `68562d5` osiągnęło stan `READY`. Smoke PL/EN objął landing, upload, raport przykładowy, artykuły i dokumenty prywatności; odpowiedzi były poprawne i bez błędów renderu.
+- Pierwszy smoke ujawnił brak fontu w śladzie funkcji Open Graph. Dodano jawny `outputFileTracingIncludes`, ponowny build i preview przeszły, `/opengraph-image` zwraca poprawną odpowiedź, a logi poprawionego deploymentu nie zawierają błędów runtime.
 
 ## Otwarte bramki
 
@@ -68,4 +70,4 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 3. Płatny live-model eval PL/EN oraz ręczna ocena jakości; projekt OpenAI ma aktywny billing, ale wykonanie wymaga osobnej zgody kosztowej.
 4. Dane firmy, działający support i akceptacja draftów prawnych.
 5. GA4 istnieje (`G-D8TP3LQSJD`); Google Ads jest w onboardingu, Search Console nie ma jeszcze property, a consent/purchase wymaga testu preview.
-6. Preview deployment i pełny smoke test — wyłącznie po potwierdzeniu zespołu/projektu CVUnfold.
+6. Pełny dynamiczny smoke preview po uzupełnieniu brakujących zmiennych Preview: Supabase, GA4, EUR Price IDs, `CRON_SECRET` i Turnstile. Statyczny smoke PL/EN jest zaliczony.
