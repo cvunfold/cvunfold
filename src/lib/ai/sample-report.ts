@@ -41,11 +41,11 @@ const categoryScores = getRubric("senior", "frontend_developer").map((category) 
 }));
 
 export const sampleProfile = {
-  name: "Marta Nowak",
+  name: "Marta Wysocka",
   location: "Warszawa · praca hybrydowa",
   experience: "7 lat doświadczenia",
   target: "Senior Frontend Developer",
-  note: `Marta Nowak, firmy i wszystkie wyniki biznesowe są fikcyjne. Przykład pokazuje format oraz poziom szczegółowości raportu ${brand.name}.`,
+  note: `Marta Wysocka, firmy i wszystkie wyniki biznesowe są fikcyjne. Przykład pokazuje format oraz poziom szczegółowości raportu ${brand.name}.`,
   skills: ["React", "TypeScript", "Next.js", "Design Systems", "Web Performance", "Playwright"],
   positions: [
     {

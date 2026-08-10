@@ -21,6 +21,9 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 | `analysis_failed` | Bezpieczna kategoria błędu | locale, market, plan, error_category | Supabase + GA4 | diagnostic | bez raw exception |
 | `teaser_viewed` | Render nieopłaconego teasera | locale, market, plan | GA4 + Supabase | secondary | raz na mount |
 | `checkout_started` | Utworzona sesja Checkout | locale, market, plan | Supabase | secondary | zdarzenie po serwerowym utworzeniu |
+| `checkout_cancelled` | Powrót użytkownika z anulowanego Checkout | locale, market, plan | GA4 + Supabase | diagnostic | raz na analizę; cookie raportu + dedupe key |
+| `checkout_expired` | Podpisany webhook `checkout.session.expired` | locale, market, plan | Stripe/Supabase | diagnostic | session ID w dedupe key |
+| `payment_failed` | Podpisany webhook `checkout.session.async_payment_failed` | locale, market, plan | Stripe/Supabase | diagnostic | session ID w dedupe key |
 | `purchase` | Wyłącznie raport z serwerowo potwierdzoną płatnością | transaction_id, actual value, currency, plan, locale, market | Stripe/Supabase | **primary** | webhook + dedupe key; client local key + transaction ID |
 | `full_report_viewed` | Render płatnego raportu | locale, market, plan | Supabase + GA4 | secondary | raz na mount |
 | `feedback_submitted` | Zapis feedbacku płatnego raportu | locale, market, plan | Supabase | secondary | odpowiedź 2xx |

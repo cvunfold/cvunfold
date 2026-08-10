@@ -1,7 +1,8 @@
 export const analyticsEvents = [
   "page_view", "landing_view", "hero_cta_clicked", "sample_report_viewed", "pricing_viewed",
   "upload_started", "upload_completed", "analysis_started", "analysis_succeeded", "analysis_failed",
-  "teaser_viewed", "checkout_started", "purchase", "full_report_viewed", "feedback_submitted", "delete_requested",
+  "teaser_viewed", "checkout_started", "checkout_cancelled", "checkout_expired", "payment_failed",
+  "purchase", "full_report_viewed", "feedback_submitted", "delete_requested",
 ] as const;
 export type AnalyticsEvent = (typeof analyticsEvents)[number];
 
@@ -19,6 +20,9 @@ const allowed: Record<AnalyticsEvent, readonly string[]> = {
   analysis_failed: ["locale", "market", "plan", "analysis_success", "error_category", ...attributionKeys],
   teaser_viewed: ["locale", "market", "plan", ...attributionKeys],
   checkout_started: ["locale", "market", "plan", ...attributionKeys],
+  checkout_cancelled: ["locale", "market", "plan", ...attributionKeys],
+  checkout_expired: ["locale", "market", "plan", ...attributionKeys],
+  payment_failed: ["locale", "market", "plan", ...attributionKeys],
   purchase: ["transaction_id", "value", "currency", "plan", "locale", "market", ...attributionKeys],
   full_report_viewed: ["locale", "market", "plan"],
   feedback_submitted: ["locale", "market", "plan"],

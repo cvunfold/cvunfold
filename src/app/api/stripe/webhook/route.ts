@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { fulfillCheckoutSession, getStripe } from "@/lib/payments/stripe";
-import { markStripePaymentTerminal, track } from "@/lib/data/store";
+import { markStripePaymentTerminal, recordFunnelEvent, track } from "@/lib/data/store";
+import { isPlan } from "@/lib/plans";
 
 export const runtime = "nodejs";
 
@@ -22,6 +23,21 @@ export async function POST(request: Request) {
     } else if (event.type === "checkout.session.async_payment_failed" || event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
       await markStripePaymentTerminal(event.id, session.id, "failed");
+      const analysisId = session.metadata?.analysis_id;
+      const plan = session.metadata?.plan;
+      const locale = session.metadata?.locale;
+      const market = session.metadata?.market;
+      if (analysisId && isPlan(plan) && (locale === "pl" || locale === "en") && (market === "pl" || market === "en")) {
+        const name = event.type === "checkout.session.expired" ? "checkout_expired" : "payment_failed";
+        await recordFunnelEvent({
+          name,
+          analysisId,
+          locale,
+          market,
+          properties: { plan },
+          dedupeKey: `stripe-${name}:${session.id}`,
+        });
+      }
     } else if (event.type === "charge.refunded") {
       const charge = event.data.object as Stripe.Charge;
       const paymentIntentId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;

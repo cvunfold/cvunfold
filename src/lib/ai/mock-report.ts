@@ -99,7 +99,7 @@ export function createMockReport(targetSeniority: Seniority = "auto", withJob = 
     nextSteps: [
       { priority: 1, title: "Pokaż rezultaty", action: "Dodaj zweryfikowany rezultat do dwóch najważniejszych punktów doświadczenia.", expectedImpact: "high" },
       { priority: 2, title: "Wyeksponuj ownership", action: "Nazwij decyzję, za którą odpowiadałeś, oraz jej kontekst.", expectedImpact: "high" },
-      { priority: 3, title: "Popraw kolejność", action: "Przenieś najmocniejszy projekt wyżej.", expectedImpact: "medium" },
+      { priority: 3, title: "Popraw kolejność", action: "Przenieś najmocniejszy projekt wyżej w sekcji doświadczenia.", expectedImpact: "medium" },
     ],
     limitations: ["Analiza dotyczy wyłącznie treści dokumentu, nie Twoich rzeczywistych kompetencji.", "Symulowana decyzja nie przewiduje wyniku konkretnej rekrutacji."],
   };

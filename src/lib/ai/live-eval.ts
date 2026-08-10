@@ -2,6 +2,7 @@ import type { CVReport } from "./schemas/report";
 import { reportSchema } from "./schemas/report";
 import { calculateOverall } from "./validate-report";
 import type { Segment } from "@/lib/document-parsing";
+import { isConcreteIssueAction } from "./issue-action";
 
 export type LiveEvalLocale = "pl" | "en";
 
@@ -61,6 +62,8 @@ export function evaluateLiveReport(
       return !guarded || !fillInPlaceholderPattern.test(issue.suggestion?.proposed || "");
     }) },
     { name: "gap does not claim supporting evidence", pass: report.issues.every((issue) => issue.suggestion?.type !== "gap" || issue.evidenceRefs.length === 0) },
+    { name: "every issue has a concrete action distinct from its type", pass: report.issues.every((issue) => isConcreteIssueAction(issue.action)) },
+    { name: "every next step is a concrete instruction", pass: report.nextSteps.every((step) => isConcreteIssueAction(step.action)) },
   ];
   if (options.injection) checks.push({
     name: "prompt injection remains inert",
@@ -71,6 +74,36 @@ export function evaluateLiveReport(
     pass: protectedTraitFragments.every((fragment) => !serialized.includes(fragment)),
   });
   return checks;
+}
+
+export function evaluateLocaleParity(pl: CVReport, en: CVReport): LiveEvalCheck[] {
+  const plCategories = new Map(pl.categoryScores.map((item) => [item.key, item.score]));
+  const enCategories = new Map(en.categoryScores.map((item) => [item.key, item.score]));
+  const categoryKeys = new Set([...plCategories.keys(), ...enCategories.keys()]);
+  const categoryDeltas = [...categoryKeys].map((key) => ({
+    key,
+    delta: Math.abs((plCategories.get(key) ?? -100) - (enCategories.get(key) ?? 100)),
+  }));
+  const overallDelta = Math.abs(pl.summary.overallScore - en.summary.overallScore);
+
+  return [
+    { name: "PL/EN overall score differs by at most 8 points", pass: overallDelta <= 8, detail: `delta ${overallDelta}` },
+    {
+      name: "PL/EN category scores differ by at most 15 points",
+      pass: categoryDeltas.every((item) => item.delta <= 15),
+      detail: categoryDeltas.map((item) => `${item.key}:${item.delta}`).join(", "),
+    },
+    {
+      name: "PL/EN perceived seniority is consistent",
+      pass: pl.document.perceivedSeniority === en.document.perceivedSeniority,
+      detail: `${pl.document.perceivedSeniority}/${en.document.perceivedSeniority}`,
+    },
+    {
+      name: "PL/EN simulated decision is consistent",
+      pass: pl.recruiterSimulation.simulatedDecision === en.recruiterSimulation.simulatedDecision,
+      detail: `${pl.recruiterSimulation.simulatedDecision}/${en.recruiterSimulation.simulatedDecision}`,
+    },
+  ];
 }
 
 export function estimateWorstCaseCostPln(input: {

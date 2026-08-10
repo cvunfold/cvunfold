@@ -80,6 +80,24 @@ Autorytatywny koszt: poprzedni klucz testowy `4,67 USD` + klucz tego przebiegu `
 
 PASS dotyczy wyłącznie bramki jakości AI. Nie jest samodzielną zgodą na Google Ads; płatności, analytics/consent, retencja i smoke test produkcji nadal mają własne bramki.
 
+### Regresja działań i kalibracji PL/EN — 2026-08-10
+
+Po wykryciu raportów, w których pole `action` zawierało wyłącznie etykietę typu `Expose`, `Gap` albo `Rewrite`, zaostrzono prompt i dodano normalizację serwerową. Każdy problem oraz każdy krok planu działania musi teraz zawierać pełną, dokumentową instrukcję; sama klasyfikacja pozostaje wyłącznie w `suggestion.type`.
+
+Uruchomiono ukierunkowany live eval na `gpt-5.4-mini` dla trzech przypadków w PL i EN: Mid z mierzalnym rezultatem, ownership ukryty przez strukturę oraz Senior z udokumentowanym wpływem. Pierwszy przebieg ujawnił nadmierną różnicę wyniku Seniora: 72 PL vs 84 EN. Do obu promptów dodano wspólne kotwice punktowe i zasadę, że ten sam zestaw faktów powinien otrzymywać zbliżone oceny niezależnie od języka.
+
+| Przypadek | PL | EN | Różnica | Wynik |
+|---|---:|---:|---:|---|
+| Mid z mierzalnym rezultatem | 57 | 60 | 3 | PASS |
+| Ownership ukryty przez strukturę | 64 | 56 | 8 | PASS |
+| Senior z udokumentowanym wpływem | 73 | 75 | 2 | PASS |
+
+Finalne wersje `review-pl-v3.2.0` oraz `review-en-v1.2.0` uzyskały **6/6 PASS** dla schematu, evidence refs, deterministycznego overall score, guardraili factuality, konkretnych działań i planu działania. Ręczny przegląd nie wykazał dopisanych liczb, technologii, rezultatów ani ownershipu. Wszystkie działania typu GAP są warunkowe i proszą o dodanie dowodu tylko wtedy, gdy kandydat faktycznie go posiada.
+
+Udane wywołania zużyły 23 639 tokenów wejścia i 17 788 tokenów wyjścia. Szacunek według oficjalnych stawek modelu wyniósł około 0,49 zł; z buforem `2.5×` około 1,22 zł. Uwzględniając maksymalny koszt trzech przerwanych prób zakończonych timeoutem, konserwatywna górna granica całej regresji to **2,35 zł**, poniżej zatwierdzonego limitu 30 zł. Dashboard OpenAI pozostaje autorytatywnym źródłem rozliczenia.
+
+Aktualny gate tej regresji: **PASS**.
+
 Po wykonaniu należy ręcznie odpowiedzieć:
 
 1. Czy diagnoza jest specyficzna dla dokumentu?

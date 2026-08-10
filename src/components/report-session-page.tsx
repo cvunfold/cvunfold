@@ -7,6 +7,7 @@ import type { Locale } from "@/lib/i18n";
 import type { Plan } from "@/lib/plans";
 import { Logo } from "@/components/logo";
 import { ReportView } from "@/components/report-view";
+import { trackAnalyticsEvent } from "@/lib/analytics/client";
 
 type ReportResponse = {
   paid: boolean;
@@ -73,6 +74,8 @@ export function ReportSessionPage({ locale, mockMode }: { locale: Locale; mockMo
       if (!report) { if (!cancelled) setError(true); return; }
       const checkoutState = new URLSearchParams(window.location.search).get("checkout");
       if (checkoutState === "cancelled") {
+        await fetch("/api/report/checkout-event", { method: "POST" }).catch(() => undefined);
+        trackAnalyticsEvent("checkout_cancelled", { plan: report.plan, locale: report.locale, market: report.locale });
         if (!cancelled) setNotice(t.cancelled);
         window.history.replaceState(null, "", window.location.pathname);
       }

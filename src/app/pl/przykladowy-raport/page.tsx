@@ -32,7 +32,7 @@ const structuredData = {
   description,
   isPartOf: { "@id": WEBSITE_ID },
   inLanguage: SITE_LANGUAGE,
-  mainEntity: { "@type": "CreativeWork", name: "Przykładowa analiza CV Marty Nowak", isFamilyFriendly: true },
+  mainEntity: { "@type": "CreativeWork", name: "Przykładowa analiza CV Marty Wysockiej", isFamilyFriendly: true },
 };
 
 export default function SampleReportPage() {

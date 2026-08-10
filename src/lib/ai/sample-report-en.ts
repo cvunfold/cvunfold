@@ -25,8 +25,8 @@ const rationales: Record<string, string> = {
 const categoryScores = getRubric("senior", "frontend_developer", "en").map((category) => ({ ...category, score: scores[category.key], rationale: rationales[category.key], evidenceRefs: category.key === "ats" ? ["seg_summary"] : ["seg_exp_1", "seg_exp_4"] }));
 
 export const sampleProfileEn = {
-  name: "Marta Nowak",
-  note: "Marta Nowak, the companies and every business outcome are fictional. This sample demonstrates the report format and level of detail.",
+  name: "Marta Wysocka",
+  note: "Marta Wysocka, the companies and every business outcome are fictional. This sample demonstrates the report format and level of detail.",
   evidence,
 } as const;
 

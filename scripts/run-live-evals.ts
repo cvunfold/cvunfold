@@ -5,11 +5,13 @@ import { createSegments } from "../src/lib/document-parsing";
 import { reviewWithOpenAI } from "../src/lib/ai/openai-review";
 import {
   estimateWorstCaseCostPln,
+  evaluateLocaleParity,
   evaluateLiveReport,
   manualReviewQuestions,
   type LiveEvalCase,
   type LiveEvalLocale,
 } from "../src/lib/ai/live-eval";
+import type { CVReport } from "../src/lib/ai/schemas/report";
 import { EN_SYSTEM_PROMPT } from "../src/lib/ai/prompts/review-en-v1";
 import { SYSTEM_PROMPT } from "../src/lib/ai/prompts/review-pl-v3";
 
@@ -75,6 +77,7 @@ async function main(): Promise<void> {
 
   const outputDir = mkdtempSync(join(tmpdir(), "cvunfold-live-eval-"));
   const results: Result[] = [];
+  const completedReports = new Map<string, Partial<Record<LiveEvalLocale, CVReport>>>();
   let actualCostPln = alreadySpentPln;
 
   caseLoop: for (const item of cases) {
@@ -100,6 +103,9 @@ async function main(): Promise<void> {
           maxOutputTokens,
         });
         const checks = evaluateLiveReport(report, segments, locale, item);
+        const caseReports = completedReports.get(item.id) || {};
+        caseReports[locale] = report;
+        completedReports.set(item.id, caseReports);
         const costPln = (telemetry.estimatedCost || 0) * plnPerUsd * costSafetyFactor;
         actualCostPln += costPln;
         const reportFile = join(outputDir, `${item.id}-${locale}.json`);
@@ -132,6 +138,14 @@ async function main(): Promise<void> {
     }
   }
 
+  const localeParity = cases.filter((item) => !item.rejectBeforeModel).map((item) => {
+    const pair = completedReports.get(item.id);
+    const checks = pair?.pl && pair.en
+      ? evaluateLocaleParity(pair.pl, pair.en)
+      : [{ name: "both PL and EN reports are available", pass: false, detail: "missing locale report" }];
+    return { id: item.id, checks };
+  });
+
   const safeSummary = results.map(({ reportFile, ...result }) => {
     void reportFile;
     return result;
@@ -146,6 +160,7 @@ async function main(): Promise<void> {
     rawWorstCaseCostPln,
     worstCaseCostPln,
     actualCostPln,
+    localeParity,
     results: safeSummary,
   }, null, 2)}\n`, { mode: 0o600 });
 
@@ -164,7 +179,9 @@ async function main(): Promise<void> {
   ].join("\n");
   writeFileSync(join(outputDir, "manual-review.md"), `${manualReview}\n`, { mode: 0o600 });
 
-  const automaticPassed = results.length === cases.length * locales.length && results.every((result) => result.status === "passed_automatic" || result.status === "rejected_before_model");
+  const automaticPassed = results.length === cases.length * locales.length
+    && results.every((result) => result.status === "passed_automatic" || result.status === "rejected_before_model")
+    && localeParity.every((item) => item.checks.every((check) => check.pass));
   console.log(`Automatic live-model gate: ${automaticPassed ? "PASS" : "FAIL"}. Actual estimated cost: ${actualCostPln.toFixed(2)} PLN.`);
   console.log(`Temporary review bundle: ${outputDir}`);
   console.log("Manual review remains required; full synthetic reports were not written to the repository or analytics.");

@@ -1,6 +1,7 @@
 import type { CVReport, EvidenceMap, ModelReport, TeaserReport } from "./schemas/report";
 import { reportSchema } from "./schemas/report";
 import type { RubricCategory } from "@/lib/rubrics/technical-v1";
+import { normalizeIssueAction } from "./issue-action";
 
 export function calculateOverall(categories: ModelReport["categoryScores"]): number {
   const weight = categories.reduce((sum, category) => sum + category.weight, 0);
@@ -69,18 +70,20 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
       const unsafeRewrite = guardedSuggestion
         ? !item.suggestion?.original?.trim() || Boolean(item.suggestion?.proposed && (unsupportedFacts(item.suggestion.proposed, sources) || excessiveSemanticNovelty(item.suggestion.proposed, sources)))
         : false;
+      const suggestion = unsafeRewrite ? {
+        type: "question" as const,
+        original: item.suggestion?.original || null,
+        proposed: null,
+        factualityNote: parsed.locale === "en"
+          ? "This rewrite needs facts not present in the cited CV fragment. Ask the candidate before writing it."
+          : "Ta wersja wymaga faktów, których nie ma w cytowanym fragmencie CV. Najpierw dopytaj kandydata.",
+      } : item.suggestion;
       return {
         ...item,
         severity: item.severity === "critical" && item.confidence === "low" ? "important" as const : item.severity,
         evidenceRefs,
-        suggestion: unsafeRewrite ? {
-          type: "question" as const,
-          original: item.suggestion?.original || null,
-          proposed: null,
-          factualityNote: parsed.locale === "en"
-            ? "This rewrite needs facts not present in the cited CV fragment. Ask the candidate before writing it."
-            : "Ta wersja wymaga faktów, których nie ma w cytowanym fragmencie CV. Najpierw dopytaj kandydata.",
-        } : item.suggestion,
+        action: normalizeIssueAction({ action: item.action, suggestionType: suggestion?.type, title: item.title, locale: parsed.locale, factualityNote: suggestion?.factualityNote }),
+        suggestion,
       };
     });
   const recruiterPerspective = {

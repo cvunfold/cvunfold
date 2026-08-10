@@ -9,6 +9,7 @@ import {
   writeConsent,
 } from "@/lib/analytics/client";
 import { googleConsentDefaults } from "@/components/google-analytics";
+import { safeAnalyticsPayload } from "@/lib/analytics/events";
 
 afterEach(() => {
   window.localStorage.clear();
@@ -66,5 +67,13 @@ describe("Google tag bootstrap", () => {
 
     expect(consentDefault).toBeGreaterThan(-1);
     expect(tagInitialization).toBeGreaterThan(consentDefault);
+  });
+});
+
+describe("checkout diagnostic events", () => {
+  it("allows only privacy-safe cancellation fields", () => {
+    expect(safeAnalyticsPayload("checkout_cancelled", {
+      locale: "pl", market: "pl", plan: "full_review", filename: "private-cv.pdf",
+    }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
   });
 });

@@ -42,4 +42,11 @@ describe("Stripe price boundary", () => {
     expect(migration).toContain("stripe-purchase:");
     expect(migration).toContain("on conflict (dedupe_key)");
   });
+
+  it("records failed and expired checkout states with dedupe keys", () => {
+    const webhook = readFileSync("src/app/api/stripe/webhook/route.ts", "utf8");
+    expect(webhook).toContain('"checkout_expired"');
+    expect(webhook).toContain('"payment_failed"');
+    expect(webhook).toContain("stripe-${name}:${session.id}");
+  });
 });
