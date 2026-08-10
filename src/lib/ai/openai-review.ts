@@ -21,6 +21,35 @@ export function isRetryableOpenAIError(error: unknown): boolean {
   return typeof value.name === "string" && /(?:APIConnectionError|APITimeoutError|InternalServerError|RateLimitError)/.test(value.name);
 }
 
+export function toSafeOpenAIErrorCode(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
+  const value = error as { status?: unknown; code?: unknown; type?: unknown; name?: unknown };
+  const status = typeof value.status === "number" ? value.status : Number(value.status);
+  const code = typeof value.code === "string" ? value.code : "";
+  const type = typeof value.type === "string" ? value.type : "";
+  const name = typeof value.name === "string" ? value.name : "";
+
+  if (
+    status === 401
+    || status === 403
+    || /(?:invalid_api_key|authentication|insufficient_permissions)/i.test(`${code} ${type} ${name}`)
+  ) return "OPENAI_AUTH_FAILED";
+  if (status === 429 || /(?:rate_limit|insufficient_quota)/i.test(`${code} ${type} ${name}`)) return "OPENAI_RATE_LIMITED";
+  return null;
+}
+
+export function getSafeOpenAIErrorDiagnostic(error: unknown): Record<string, string | number> {
+  if (!error || typeof error !== "object") return { kind: typeof error };
+  const value = error as { status?: unknown; code?: unknown; type?: unknown; name?: unknown };
+  const diagnostic: Record<string, string | number> = {};
+  const status = typeof value.status === "number" ? value.status : Number(value.status);
+  if (Number.isInteger(status) && status >= 400 && status <= 599) diagnostic.status = status;
+  for (const [key, raw] of [["code", value.code], ["type", value.type], ["name", value.name]] as const) {
+    if (typeof raw === "string" && /^[a-zA-Z0-9_.-]{1,80}$/.test(raw)) diagnostic[key] = raw;
+  }
+  return Object.keys(diagnostic).length ? diagnostic : { kind: "unknown_object" };
+}
+
 export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CVReport; telemetry: ReviewTelemetry }> {
   const apiKey = process.env.OPENAI_API_KEY; const model = process.env.OPENAI_REVIEW_MODEL;
   if (!apiKey || !model) throw new Error("OPENAI_NOT_CONFIGURED");

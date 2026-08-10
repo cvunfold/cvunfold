@@ -10,7 +10,7 @@ import { consumeAnalysisQuota, rateLimit } from "@/lib/security/rate-limit";
 import { validateSignature, validateUpload } from "@/lib/security/upload";
 import type { Seniority } from "@/lib/rubrics/technical-v1";
 import { parseTargetRoleId } from "@/lib/roles";
-import { reviewWithOpenAI } from "@/lib/ai/openai-review";
+import { getSafeOpenAIErrorDiagnostic, reviewWithOpenAI, toSafeOpenAIErrorCode } from "@/lib/ai/openai-review";
 import { isLocale, reportPath, type Locale } from "@/lib/i18n";
 import { marketForLocale } from "@/lib/plans";
 import { parseAttribution } from "@/lib/analytics/attribution";
@@ -88,13 +88,15 @@ export async function POST(request: Request) {
     ]).catch(() => undefined);
     return NextResponse.json({ accessToken: token, reportPath: reportPath(locale), teaser: toTeaser(report) });
   } catch (error) {
-    const rawCode = error instanceof Error ? error.message : "ANALYSIS_FAILED";
+    const rawCode = toSafeOpenAIErrorCode(error) || (error instanceof Error ? error.message : "ANALYSIS_FAILED");
     const code = error instanceof Error && /timeout/i.test(`${error.name} ${error.message}`) ? "ANALYSIS_TIMEOUT" : rawCode;
     const messages: Record<string, string> = { EMPTY_FILE: "Plik jest pusty.", FILE_TOO_LARGE: "Plik przekracza dozwolony rozmiar.",
       UNSUPPORTED_FILE_TYPE: "Prześlij PDF lub DOCX.", INVALID_FILE_SIGNATURE: "Zawartość pliku nie zgadza się z rozszerzeniem.",
       INVALID_FILE_MIME: "Typ pliku nie zgadza się z rozszerzeniem. Wyeksportuj CV ponownie jako PDF lub DOCX.",
       DOCX_ARCHIVE_UNSAFE: "Ten plik DOCX ma nietypową lub zbyt dużą strukturę. Wyeksportuj go ponownie albo użyj PDF.",
-      UNREADABLE_DOCUMENT: "Nie udało się odczytać tekstu. Prześlij tekstowy PDF lub DOCX.", OPENAI_NOT_CONFIGURED: "Integracja AI nie jest jeszcze skonfigurowana.",
+      UNREADABLE_DOCUMENT: "Nie udało się odczytać tekstu. Prześlij tekstowy PDF lub DOCX.", OPENAI_NOT_CONFIGURED: "Analiza AI jest chwilowo niedostępna. Spróbuj ponownie później.",
+      OPENAI_AUTH_FAILED: "Analiza AI jest chwilowo niedostępna. Spróbuj ponownie później.",
+      OPENAI_RATE_LIMITED: "Analiza AI jest chwilowo przeciążona. Spróbuj ponownie za chwilę.",
       NOT_A_CV: "Ten dokument nie wygląda jak CV. Prześlij dokument zawierający doświadczenie, umiejętności i historię zawodową.",
       INVALID_TARGET_ROLE: "Wybierz obsługiwaną rolę techniczną.",
       DOCUMENT_TEXT_TOO_LONG: "Dokument zawiera zbyt dużo tekstu. Skróć CV do najważniejszych informacji.",
@@ -111,13 +113,14 @@ export async function POST(request: Request) {
       INVALID_FILE_SIGNATURE: "invalid_file_signature", INVALID_FILE_MIME: "invalid_file_mime", DOCX_ARCHIVE_UNSAFE: "unsafe_archive",
       UNREADABLE_DOCUMENT: "unreadable_document", DOCUMENT_TEXT_TOO_LONG: "document_too_long", NOT_A_CV: "not_a_cv",
       INVALID_TARGET_ROLE: "invalid_target_role", RATE_LIMIT_CHECK_FAILED: "rate_limit", ANALYSIS_TIMEOUT: "timeout",
-      OPENAI_NOT_CONFIGURED: "configuration", OPENAI_INVALID_RESPONSE: "model", INVALID_RUBRIC_WEIGHTS: "model",
+      OPENAI_NOT_CONFIGURED: "configuration", OPENAI_AUTH_FAILED: "configuration", OPENAI_RATE_LIMITED: "rate_limit",
+      OPENAI_INVALID_RESPONSE: "model", INVALID_RUBRIC_WEIGHTS: "model",
       SUPABASE_SAVE_FAILED: "storage", ANALYSIS_FAILED: "unknown",
       TURNSTILE_REQUIRED: "rate_limit", TURNSTILE_FAILED: "rate_limit", TURNSTILE_UNAVAILABLE: "rate_limit",
     };
     const errorCategory = errorCategories[safeCode] || "unknown";
-    console.error(`[analysis_failed] ${safeCode}`);
-    const status = code === "RATE_LIMIT_CHECK_FAILED" || code === "OPENAI_NOT_CONFIGURED" ? 503
+    console.error(`[analysis_failed] ${safeCode}`, getSafeOpenAIErrorDiagnostic(error));
+    const status = code === "RATE_LIMIT_CHECK_FAILED" || code === "OPENAI_NOT_CONFIGURED" || code === "OPENAI_AUTH_FAILED" || code === "OPENAI_RATE_LIMITED" ? 503
       : code === "ANALYSIS_TIMEOUT" ? 504
       : code === "OPENAI_INVALID_RESPONSE" || code === "SUPABASE_SAVE_FAILED" || safeCode === "ANALYSIS_FAILED" ? 502
       : 400;
@@ -130,7 +133,8 @@ export async function POST(request: Request) {
       NOT_A_CV: "This document does not appear to be a CV.", INVALID_TARGET_ROLE: "Choose a supported technical role.",
       RATE_LIMIT_CHECK_FAILED: "We cannot safely start the analysis right now. Try again shortly.",
       DOCUMENT_TEXT_TOO_LONG: "The document contains too much text. Shorten the CV to its most relevant information.",
-      OPENAI_NOT_CONFIGURED: "The AI review is temporarily unavailable.", OPENAI_INVALID_RESPONSE: "The review did not pass quality validation. Please try again.",
+      OPENAI_NOT_CONFIGURED: "The AI review is temporarily unavailable.", OPENAI_AUTH_FAILED: "The AI review is temporarily unavailable.",
+      OPENAI_RATE_LIMITED: "The AI review is temporarily overloaded. Please try again shortly.", OPENAI_INVALID_RESPONSE: "The review did not pass quality validation. Please try again.",
       ANALYSIS_TIMEOUT: "The review took too long. Please try again shortly.", SUPABASE_SAVE_FAILED: "We could not store the report safely. Please try again.",
       TURNSTILE_REQUIRED: "Complete the anti-abuse check.", TURNSTILE_FAILED: "We could not verify the anti-abuse check. Refresh and try again.",
       TURNSTILE_UNAVAILABLE: "The anti-abuse check is temporarily unavailable. Please try again later.",
