@@ -7,9 +7,10 @@ export const SITE_URL = brand.siteUrl;
 export const SITE_LOCALE = "pl_PL";
 export const SITE_LANGUAGE = "pl-PL";
 export const SITE_DESCRIPTION = "Analiza CV oczami rekrutera: sprawdź seniority, ownership, wpływ i wiarygodność techniczną na podstawie dowodów z dokumentu.";
-export const SITE_LAST_SIGNIFICANT_UPDATE = "2026-08-09";
+export const SITE_LAST_SIGNIFICANT_UPDATE = "2026-08-10";
 export const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;
+export const AUTHOR_ID = `${SITE_URL}/#pawel-maczka-czarnecki`;
 
 export function absoluteUrl(path = "/"): string {
   return new URL(path, SITE_URL).toString();
@@ -60,7 +61,7 @@ export function buildArticleStructuredData(article: Article, locale: Locale = "p
         isAccessibleForFree: true,
         wordCount: articleWordCount(article),
         mainEntityOfPage: { "@id": `${articleUrl}#webpage` },
-        author: { "@type": "Organization", "@id": ORGANIZATION_ID, name: SITE_NAME, url: SITE_URL },
+        author: { "@type": "Person", "@id": AUTHOR_ID, name: "Paweł Mączka-Czarnecki", url: absoluteUrl(locale === "pl" ? "/o-metodologii" : "/en/methodology") },
         publisher: { "@id": ORGANIZATION_ID },
       },
       {

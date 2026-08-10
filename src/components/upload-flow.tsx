@@ -22,7 +22,7 @@ const copy = {
     offerToggle: "Dopasuj analizę do konkretnej oferty", offerLabel: "Treść ogłoszenia", optional: "opcjonalnie", offerPlaceholder: "Wklej treść ogłoszenia. Nie wpisuj danych kontaktowych.",
     consent: "Zlecam rozpoczęcie analizy od razu i akceptuję przetwarzanie CV zgodnie z polityką prywatności. Rozumiem, że plik źródłowy zostanie usunięty po analizie.",
     privacy: "Polityka prywatności", terms: "Regulamin", submit: "Analizuj CV", loading: "Analizujemy…", private: "Bez konta. CV nie trafia do pracodawców ani analytics.",
-    plan: { full_review: "Pełny raport", job_match: "Raport + dopasowanie do oferty" }, free: "Wynik wstępny bezpłatnie", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
+    plan: { full_review: "Pełny raport", job_match: "Raport + dopasowanie do oferty" }, free: "Wynik wstępny", freePrice: "Darmowe", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
     statusIdle: "Dowód przed opinią", statusIdleCopy: "Każda ważna uwaga wskazuje konkretny fragment dokumentu.", statusLoading: "Analizujemy Twoje CV", statusLoadingCopy: "Przechodzimy przez dokument krok po kroku.",
     evidenceTitle: "Raport nie zgaduje", evidenceCopy: "Jeśli informacji nie ma w CV, zobaczysz lukę lub pytanie — nie fałszywy fakt.",
     genericError: "Nie udało się rozpocząć analizy. Spróbuj ponownie.",
@@ -36,7 +36,7 @@ const copy = {
     offerToggle: "Match the analysis to a specific job", offerLabel: "Job description", optional: "optional", offerPlaceholder: "Paste the job description. Do not include contact details.",
     consent: "I request that the analysis starts immediately and accept CV processing under the privacy policy. I understand that the source file is deleted after analysis.",
     privacy: "Privacy policy", terms: "Terms", submit: "Analyse my CV", loading: "Analysing…", private: "No account. Your CV is never sent to employers or analytics.",
-    plan: { full_review: "Full report", job_match: "Report + job matching" }, free: "Initial result free", full: "Full report", oneTime: "one-time payment · no subscription",
+    plan: { full_review: "Full report", job_match: "Report + job matching" }, free: "Initial result", freePrice: "Free", full: "Full report", oneTime: "one-time payment · no subscription",
     statusIdle: "Evidence before opinion", statusIdleCopy: "Every important finding points to a specific part of the document.", statusLoading: "Analysing your CV", statusLoadingCopy: "We move through the document step by step.",
     evidenceTitle: "The report does not guess", evidenceCopy: "If information is missing, you see a gap or a question — never an invented fact.",
     genericError: "We could not start the analysis. Please try again.",
@@ -123,7 +123,7 @@ export function UploadFlow({ mockMode, initialJobMatch, locale }: Props) {
         <h1>{t.title}</h1>
         <p className="analysis-intro">{t.intro}</p>
         <div className="analysis-plan-summary" aria-label={t.full}>
-          <div><span>{t.free}</span><strong>0</strong></div>
+          <div><span>{t.free}</span><strong>{t.freePrice}</strong></div>
           <div><span>{t.plan[plan]}</span><strong>{formatPlanPrice(plan, locale)}</strong><small>{t.oneTime}</small></div>
         </div>
         <button type="button" className={`dropzone ${file ? "has-file" : ""}`} disabled={loading}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowIcon, CheckIcon, LockIcon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { ScoreRing } from "@/components/score-ring";
@@ -6,7 +7,7 @@ import { JsonLd } from "@/components/json-ld";
 import { PricingObserver } from "@/components/pricing-observer";
 import { MobileStickyCta } from "@/components/mobile-sticky-cta";
 import { brand } from "@/lib/brand";
-import { analysisPath, articlesPath, legalPath, sampleReportPath, type Locale } from "@/lib/i18n";
+import { analysisPath, articlesPath, legalPath, methodologyPath, sampleReportPath, type Locale } from "@/lib/i18n";
 import { formatPlanPrice, PLAN_CATALOG } from "@/lib/plans";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -45,6 +46,7 @@ const copy = {
     articles: [["Ownership", "Dlaczego ownership jest ważny dla pracodawców?", "dlaczego-ownership-jest-wazny-dla-pracodawcow"], ["Seniority", "Jak pokazać seniority bez deklaracji?", "jak-pokazac-seniority-w-cv"], ["Kariera i AI", "Jak budować bezpieczniejszą karierę w świecie AI?", "jak-nie-dac-sie-zastapic-przez-ai"]],
     read: "Czytaj", finalTitle: "Sprawdź, co naprawdę komunikuje Twoje CV.", finalCopy: "Wynik wstępny jest bezpłatny. Cena pełnego raportu jest znana przed uploadem.",
     footerCopy: "Merytoryczna analiza CV dla developerów.", footerLinks: ["Prywatność", "Regulamin", "Cookies", "Usuń dane", "Kontakt"],
+    methodology: { label: "METODOLOGIA I ODPOWIEDZIALNOŚĆ", title: "To nie jest anonimowy prompt.", copy: "Za metodę i produkt odpowiada Paweł Mączka-Czarnecki — Senior Frontend Developer z 15-letnim doświadczeniem w branży technologicznej, obejmującym prowadzenie zespołów i rozmów technicznych.", link: "Zobacz, jak powstaje analiza" },
   },
   en: {
     nav: ["Difference", "Report", "Pricing", "FAQ"], navIds: ["difference", "report", "pricing", "faq"], switchLabel: "PL",
@@ -80,6 +82,7 @@ const copy = {
     articles: [["Ownership", "Why does ownership matter to employers?", "why-ownership-matters-to-employers"], ["Seniority", "How do you show seniority without declaring it?", "how-to-show-seniority-in-a-cv"], ["Career and AI", "How do you build a safer career in the age of AI?", "how-to-stay-relevant-in-the-age-of-ai"]],
     read: "Read", finalTitle: "See what your CV really communicates.", finalCopy: "The initial result is free. The full report price is clear before upload.",
     footerCopy: "Evidence-based CV review for developers.", footerLinks: ["Privacy", "Terms", "Cookies", "Delete data", "Contact"],
+    methodology: { label: "METHODOLOGY AND ACCOUNTABILITY", title: "This is not an anonymous prompt.", copy: "The method and product are owned by Paweł Mączka-Czarnecki — a Senior Frontend Developer with 15 years in technology, including team leadership and technical interviews.", link: "See how the review is produced" },
   },
 } as const;
 
@@ -117,6 +120,7 @@ export function LandingPage({ locale }: { locale: Locale }) {
     <section className="compact-section container"><div className="launch-section-head"><span>RUBRIC</span><h2>{t.checksTitle}</h2></div><div className="launch-checks">{t.checks.map(([title, text]) => <article key={title}><CheckIcon/><div><h3>{title}</h3><p>{text}</p></div></article>)}</div></section>
     <section id="jak" className="how-section"><div className="container"><div className="launch-section-head"><span>PROCESS</span><h2>{t.howTitle}</h2></div><ol>{t.how.map(([number, title, text]) => <li key={number}><b>{number}</b><h3>{title}</h3><p>{text}</p></li>)}</ol></div></section>
     <section className="promise-strip"><div className="container"><LockIcon/><div><h2>{t.promiseTitle}</h2><p>{t.promiseCopy}</p></div></div></section>
+    <section className="methodology-proof container"><Image src="/images/pawel-maczka-czarnecki.png" width={512} height={512} sizes="72px" alt={locale === "pl" ? "Paweł Mączka-Czarnecki, twórca CV Unfold" : "Paweł Mączka-Czarnecki, creator of CV Unfold"}/><div><span>{t.methodology.label}</span><h2>{t.methodology.title}</h2><p>{t.methodology.copy}</p><Link href={methodologyPath(locale)}>{t.methodology.link}<ArrowIcon/></Link></div></section>
 
     <section id={sectionIds[2]} className="launch-pricing container"><div className="launch-section-head"><span>PRICING</span><h2>{t.pricingTitle}</h2></div><div>{t.priceCards.map((card) => <article key={card.plan}><header><h3>{card.title}</h3><strong>{formatPlanPrice(card.plan, locale)}</strong></header><p>{card.copy}</p><ul>{card.items.map((item) => <li key={item}><CheckIcon/>{item}</li>)}</ul><Link className="button" href={analysisPath(locale, card.plan === "job_match")} data-analytics-event="hero_cta_clicked" data-analytics-placement={`pricing_${card.plan}`}>{t.select}<ArrowIcon/></Link><small>{t.oneTime}</small></article>)}</div></section>
     <section className="privacy-strip"><div className="container"><LockIcon/><div><h2>{t.privateTitle}</h2><p>{t.privateCopy}</p></div><Link href={legalPath(locale, "privacy")}>{t.footerLinks[0]}<ArrowIcon/></Link></div></section>
@@ -124,7 +128,7 @@ export function LandingPage({ locale }: { locale: Locale }) {
 
     <section className="launch-articles container"><div className="launch-section-head"><span>KNOWLEDGE</span><h2>{t.articlesTitle}</h2><p>{t.articlesCopy}</p></div><div>{t.articles.map(([category, title, slug]) => <article key={slug}><span>{category}</span><h3>{title}</h3><Link href={`${articlesPath(locale)}/${slug}`}>{t.read}<ArrowIcon/></Link></article>)}</div><Link className="all-articles" href={articlesPath(locale)}>{locale === "pl" ? "Wszystkie artykuły" : "All articles"}<ArrowIcon/></Link></section>
     <section className="final-cta"><div className="container"><div><h2>{t.finalTitle}</h2><p>{t.finalCopy}</p></div><Link className="button" href={analysisPath(locale)} data-analytics-event="hero_cta_clicked" data-analytics-placement="final">{t.primary}<ArrowIcon/></Link></div></section>
-    <footer className="footer-shell"><div className="footer launch-footer container"><div><Logo locale={locale}/><p>{t.footerCopy}</p></div><nav>{(["privacy", "terms", "cookies", "delete", "contact"] as const).map((page, index) => <Link key={page} href={legalPath(locale, page)}>{t.footerLinks[index]}</Link>)}</nav><span>© {new Date().getFullYear()} {brand.name}</span></div></footer>
+    <footer className="footer-shell"><div className="footer launch-footer container"><div><Logo locale={locale}/><p>{t.footerCopy}</p></div><nav><Link href={methodologyPath(locale)}>{locale === "pl" ? "Metodologia" : "Methodology"}</Link>{(["privacy", "terms", "cookies", "delete", "contact"] as const).map((page, index) => <Link key={page} href={legalPath(locale, page)}>{t.footerLinks[index]}</Link>)}</nav><span>© {new Date().getFullYear()} {brand.name}</span></div></footer>
     <MobileStickyCta href={analysisPath(locale)} label={locale === "pl" ? "Sprawdź CV" : "Review my CV"} price={formatPlanPrice("full_review", locale)}/>
   </main>;
 }

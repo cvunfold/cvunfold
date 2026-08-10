@@ -64,6 +64,24 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "cvunfold.pl" }],
+        destination: "https://cvunfold.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.cvunfold.pl" }],
+        destination: "https://cvunfold.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.cvunfold.com" }],
+        destination: "https://cvunfold.com/:path*",
+        permanent: true,
+      },
       { source: "/pl", destination: "/", permanent: true },
       { source: "/pl/analiza", destination: "/analiza", permanent: true },
       { source: "/pl/przykladowy-raport", destination: "/przykladowy-raport", permanent: true },

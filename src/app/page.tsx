@@ -8,7 +8,7 @@ const description = "Sprawdź, czy CV pokazuje Twój rzeczywisty poziom. Otrzyma
 export const metadata: Metadata = {
   title: { absolute: title },
   description,
-  alternates: { canonical: "/", languages: { "pl-PL": "/", en: "/en" } },
+  alternates: { canonical: "/", languages: { "pl-PL": "/", en: "/en", "x-default": "/" } },
   openGraph: { title, description, url: "/", locale: "pl_PL", type: "website", siteName: brand.name },
   twitter: { card: "summary_large_image", title, description, images: ["/opengraph-image"] },
 };

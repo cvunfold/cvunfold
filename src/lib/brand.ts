@@ -17,7 +17,7 @@ export const brand: BrandConfig = {
   wordmarkPrefix: prefix,
   wordmarkAccent: accent,
   monogram: process.env.NEXT_PUBLIC_BRAND_MONOGRAM?.trim() || "CV",
-  siteUrl: process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://cvunfold.pl",
+  siteUrl: process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://cvunfold.com",
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || undefined,
 };
 

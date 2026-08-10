@@ -3,8 +3,8 @@ import robots from "@/app/robots";
 import sitemap from "@/app/sitemap";
 import { articles } from "@/lib/content/articles";
 import { articlesEn } from "@/lib/content/articles-en";
-import { brand } from "@/lib/brand";
 import {
+  AUTHOR_ID,
   SITE_URL,
   absoluteUrl,
   buildArticleStructuredData,
@@ -22,10 +22,12 @@ describe("public search surfaces", () => {
     expect(urls).toContain(absoluteUrl("/en/articles"));
     expect(urls).toContain(absoluteUrl("/przykladowy-raport"));
     expect(urls).toContain(absoluteUrl("/en/sample-report"));
+    expect(urls).toContain(absoluteUrl("/o-metodologii"));
+    expect(urls).toContain(absoluteUrl("/en/methodology"));
     expect(urls).not.toContain(absoluteUrl("/analiza"));
     expect(urls).not.toContain(absoluteUrl("/en/analysis"));
     expect(urls.some((url) => url.includes("/raport"))).toBe(false);
-    expect(entries).toHaveLength(16 + articles.length + articlesEn.length);
+    expect(entries).toHaveLength(18 + articles.length + articlesEn.length);
 
     for (const entry of entries) {
       expect(entry.url.startsWith(SITE_URL)).toBe(true);
@@ -48,7 +50,7 @@ describe("public search surfaces", () => {
 });
 
 describe("structured article data", () => {
-  it("connects article, page and breadcrumbs without inventing an author", () => {
+  it("connects article, named author, page and breadcrumbs", () => {
     const article = articles[0];
     const data = buildArticleStructuredData(article);
     const graph = data["@graph"];
@@ -63,7 +65,12 @@ describe("structured article data", () => {
       headline: article.title,
       articleSection: article.category,
       datePublished: `${article.publishedAt}T09:00:00+02:00`,
-      author: { name: brand.name },
+      author: {
+        "@type": "Person",
+        "@id": AUTHOR_ID,
+        name: "Paweł Mączka-Czarnecki",
+        url: absoluteUrl("/o-metodologii"),
+      },
     });
     expect(blogPost?.wordCount).toBeGreaterThan(500);
     expect(blogPost && "image" in blogPost ? blogPost.image?.[0] : undefined)

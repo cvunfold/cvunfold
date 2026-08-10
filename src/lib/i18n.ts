@@ -27,6 +27,10 @@ export function articlesPath(locale: Locale): string {
   return locale === "pl" ? "/artykuly" : "/en/articles";
 }
 
+export function methodologyPath(locale: Locale): string {
+  return locale === "pl" ? "/o-metodologii" : "/en/methodology";
+}
+
 export function reportPath(locale: Locale): string {
   return locale === "pl" ? "/raport" : "/en/report";
 }
