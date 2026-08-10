@@ -8,9 +8,10 @@ Każda operacja zewnętrzna wymaga preflightu: **SERVICE, ACCOUNT, ORGANIZATION/
 - [ ] Supabase: potwierdzony projekt CVUnfold; migracje zastosowane; RLS/advisors bez krytycznych uwag.
 - [ ] Stripe: potwierdzone konto CV Unfold, live products 29/39 PLN i 9/12 EUR, Price IDs, live webhook i secret.
 - [x] OpenAI: potwierdzony projekt CVUnfold, limit 50 zł i live eval PL/EN zaliczony 2026-08-09; przed produkcją ustawić zweryfikowane modele i stawki w env.
+- [x] Stripe live EUR: osobne angielskie produkty one-time utworzone 2026-08-10; `STRIPE_PRICE_FULL_REVIEW_EUR=price_1U2nABPlwW2w7lmMZfBn40OT`, `STRIPE_PRICE_JOB_MATCH_EUR=price_1U2nBXPlwW2w7lmMDP1yb2RB` (ceny tax-inclusive).
 - [ ] Brand/domain/company/support env uzupełnione; przekierowanie `support@cvunfold.com` jest aktywne, ale trzeba potwierdzić dostarczenie wiadomości testowej.
 - [ ] GA4 ID, Ads ID/Label, Search Console verification ustawione.
-- [ ] Consent i dokumenty prawne zaakceptowane przez właściciela; polityka zwrotów/support w Stripe zgodne.
+- [x] Właściciel zaakceptował 2026-08-10 drafty regulaminu, polityki prywatności i cookies. Akceptacja właściciela nie jest opinią ani przeglądem prawnym; przed skalowaniem warto zlecić kontrolę prawnikowi. Polityka zwrotów/support w Stripe nadal musi odpowiadać publicznym dokumentom.
 - [ ] `ACCESS_TOKEN_SECRET`, `RATE_LIMIT_HMAC_SECRET`, `CRON_SECRET`, `ADMIN_SECRET` są unikalne i losowe.
 - [ ] Turnstile ma osobne prod keys i hostname aktualnej domeny; klient i sekret występują parą.
 - [ ] Retencja 30 dni zgodna z copy; Vercel Cron widoczny i chroniony.
@@ -23,10 +24,12 @@ Każda operacja zewnętrzna wymaga preflightu: **SERVICE, ACCOUNT, ORGANIZATION/
 - [ ] Preview: 360, 390, 768, 1024, 1440; klawiatura, focus, cookie banner i brak poziomego scrolla.
 - [ ] Upload tekstowego PDF i DOCX, błąd skanu, za duży plik, zła sygnatura.
 - [ ] Teaser ma dowód, ale pełny raport nie występuje w HTML/API/RSC.
-- [ ] Stripe sandbox: utworzenie Checkout 29 PLN/9 EUR, cancel i return refresh potwierdzone na preview; success/delayed webhook/duplicate wymagają płatności sandbox przed promocją.
+- [x] Stripe sandbox 29 PLN: Checkout `cs_test_a1OdlD0ZaYBlkLbEb9PEnWX2F2vKmHi6DVpwwKd6AbeFRudyPn6MHkbr0E` zakończony testową kartą 4242 dnia 2026-08-10; Stripe potwierdził `paid`, poprawne `analysis_id`/`plan`, raport został odblokowany i pozostał odblokowany po refresh. Nie użyto prawdziwych pieniędzy.
 - [ ] Za osobną zgodą: jedna prawdziwa płatność, odblokowanie, receipt, saldo i ewentualny refund.
 - [ ] Pełny raport: refresh, bezpieczny link, print/PDF, feedback, delete i expiry.
 - [ ] GA4 DebugView/Tag Assistant: consent denied/accepted; brak PII i prywatnych URL-i.
+- [x] Production deploy 2026-08-10: commit aplikacji `97061f8`, Vercel `dpl_9jRLbHDBfwNtkmoha1T1mMn9z4V9`, stan `READY`, alias `https://cvunfold.pl`.
+- [x] Production smoke: `/`, `/en`, `/analiza`, `/raport` i `/sitemap.xml` zwracają 200; `www` przekierowuje do non-www; strony analizy i raportu mają `noindex`, `no-store` oraz `Referrer-Policy: no-referrer`; brak error/fatal logs nowego deploymentu.
 - [ ] Google Ads: purchase primary; reszta secondary; brak równoległej primary importowanej z GA4.
 - [ ] `/robots.txt`, `/sitemap.xml`, canonical, OG, 404, HTTPS, www redirect.
 

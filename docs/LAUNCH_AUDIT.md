@@ -12,15 +12,15 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 
 | Problem | Stan kodu | Stan launchu |
 |---|---|---|
-| Pełny raport mógłby wyciec przed płatnością | Naprawione: projekcja teasera powstaje na serwerze; pełne pola nie trafiają do HTML, RSC ani API dla nieopłaconej analizy | Potwierdzone na preview dla nowych analiz PL i EN; płatny wariant czeka na test Stripe live |
-| Odblokowanie po samym parametrze URL | Naprawione: token z fragmentu jest jednorazowo wymieniany na rotowaną sesję `HttpOnly`; płatność jest sprawdzana serwerowo | Preview zachowuje teaser po refresh i anulowaniu Checkout; pełne odblokowanie czeka na płatność testową |
-| Webhook i zakup bez silnej idempotencji | Naprawione w migracji: podpis Stripe, tabela zdarzeń, transakcyjna funkcja fulfillment i deduplikowany purchase | Migracja zastosowana 2026-08-09 w `cvunfold-prod`; test preview nadal wymagany |
-| Niespójne ceny | Naprawione: serwer pobiera Stripe Price i weryfikuje kwotę, walutę, aktywność i tryb one-time; PLN 29/39 i EUR 9/12 mają osobne Price IDs | Sandbox Checkout potwierdzony dla 29 PLN i 9 EUR; live PLN istnieje, live EUR nadal wymaga utworzenia i potwierdzenia |
-| Brak pełnego EN | Naprawione: landing, upload, błędy, raport, artykuły, SEO i dokumenty informacyjne mają wersję `/en` | Copy prawne wymaga akceptacji właściciela |
+| Pełny raport mógłby wyciec przed płatnością | Naprawione: projekcja teasera powstaje na serwerze; pełne pola nie trafiają do HTML, RSC ani API dla nieopłaconej analizy | Potwierdzone na preview dla nowych analiz PL i EN; sandbox 29 PLN odblokował pełny raport dopiero po `paid` 2026-08-10; live wymaga jeszcze osobnego zakupu po deployu |
+| Odblokowanie po samym parametrze URL | Naprawione: token z fragmentu jest jednorazowo wymieniany na rotowaną sesję `HttpOnly`; płatność jest sprawdzana serwerowo | Preview zachowuje teaser po refresh i anulowaniu Checkout; po płatności sandbox pełny raport pozostał odblokowany po refresh |
+| Webhook i zakup bez silnej idempotencji | Naprawione w migracji: podpis Stripe, tabela zdarzeń, transakcyjna funkcja fulfillment i deduplikowany purchase | Migracja zastosowana 2026-08-09 w `cvunfold-prod`; sandbox Checkout 29 PLN miał jedno `paid` z poprawnym `analysis_id` i odblokował właściwy raport 2026-08-10; finalna deduplikacja GA4 wymaga testu live |
+| Niespójne ceny | Naprawione: serwer pobiera Stripe Price i weryfikuje kwotę, walutę, aktywność i tryb one-time; PLN 29/39 i EUR 9/12 mają osobne Price IDs | Sandbox Checkout potwierdzony dla 29 PLN i 9 EUR; live EUR 9/12 utworzone, zweryfikowane i przypisane do Production env projektu `cvunfold` 2026-08-10 |
+| Brak pełnego EN | Naprawione: landing, upload, błędy, raport, artykuły, SEO i dokumenty informacyjne mają wersję `/en` | Właściciel zaakceptował drafty prawne 2026-08-10; nie oznacza to niezależnego przeglądu prawnego |
 | Brak gwarantowanej retencji/usunięcia | Naprawione w kodzie: plik jest analizowany wyłącznie w pamięci, raport ma termin, delete jest natychmiastowy, cron czyści wygasłe rekordy | Preview potwierdziło brak `temporary_file_key` dla wszystkich testowych analiz; autoryzowany cron trzeba sprawdzić po deployu produkcyjnym |
 | Dane prywatne w analytics/referrerze | Naprawione: zamknięta allowlista eventów, anonimowa lokalizacja raportu, `no-referrer`, brak automatycznego page view na raporcie i brak CV/JD/nazwy pliku; po zgodzie tag może wysłać wyłącznie bezpieczny purchase | GA4 DebugView i Tag Assistant wymagają identyfikatorów właściciela |
 | Nadużycie anonimowego AI | Naprawione: krótkoterminowy i trwały limit, limit tekstu/pliku/stron, kontrola archiwum DOCX, token-free CV detection, opcjonalny Turnstile sprawdzany na serwerze | Dla ruchu reklamowego zalecane jest skonfigurowanie produkcyjnego Turnstile |
-| Dokumenty publiczne z fikcyjnymi danymi | Nie wymyślamy danych; strony jawnie blokują sprzedaż, gdy brakuje danych firmy | Dane firmy, support i akceptacja treści są wymagane przed live sales |
+| Dokumenty publiczne z fikcyjnymi danymi | Naprawione: publiczne dokumenty używają podanych danych działalności i kontaktu; właściciel zaakceptował drafty regulaminu, prywatności i cookies 2026-08-10 | Drafty nie były niezależnie weryfikowane prawnie; zgodność Stripe support/refund trzeba potwierdzić przed szerszą sprzedażą |
 | Semantyczna jakość modelu | Guardraile i 13 syntetycznych przypadków przechodzą lokalnie; płatny 13×PL/EN `eval:live` zakończył się PASS WITH OBSERVATION przy limicie 50 zł | 24/24 warianty modelowe i 2/2 odrzucenia przed modelem zaakceptowane; koszt autorytatywny około 22,42 zł, bez krytycznych halucynacji |
 
 ## P1 — przed Google Ads
@@ -65,8 +65,8 @@ Po zmianach główna ścieżka odpowiada kolejno na: dla kogo jest produkt, jaki
 
 ## Otwarte bramki
 
-1. Autoryzowany test Vercel Cron po deployu produkcyjnym; migracja Supabase i ochrona `CRON_SECRET` są zastosowane.
-2. Stripe sandbox checkout/cancel działa. Nadal potrzebne są live EUR Price IDs oraz jeden zakup 29 PLN po deployu, aby sprawdzić webhook, odblokowanie i dokładnie jeden `purchase`.
-3. Dane firmy są publicznie uzupełnione, `support@cvunfold.com` przekierowuje przez OVH; pozostały test dostarczenia wiadomości i akceptacja draftów prawnych przez właściciela.
+1. Produkcyjny artefakt commita `97061f8` wdrożono 2026-08-10 jako `dpl_9jRLbHDBfwNtkmoha1T1mMn9z4V9`; deployment ma stan `READY`, domena działa, a nowy deployment nie wygenerował błędów runtime. Pozostał autoryzowany test Vercel Cron; migracja Supabase i ochrona `CRON_SECRET` są zastosowane.
+2. Stripe sandbox checkout/cancel/success działa: płatność 29 PLN testową kartą potwierdziła `paid`, poprawne metadata, odblokowanie i refresh. Live EUR Price IDs zostały utworzone i przypisane do Production env 2026-08-10; nadal trzeba wykonać jeden zakup 29 PLN po deployu, aby potwierdzić live webhook, saldo/receipt i dokładnie jeden `purchase`.
+3. Dane firmy są publicznie uzupełnione, `support@cvunfold.com` przekierowuje przez OVH, a właściciel zaakceptował drafty prawne 2026-08-10. Wiadomość testową wysłano z tej samej skrzynki Gmail, do której wraca przekierowanie, więc wynik jest niejednoznaczny z powodu możliwej deduplikacji; dostarczenie trzeba potwierdzić z innego adresu.
 4. GA4 istnieje (`G-D8TP3LQSJD`); Google Ads jest w onboardingu, Search Console nie ma jeszcze property, a consent/purchase wymaga finalnego DebugView/Tag Assistant.
-5. Angielski Stripe Checkout używa obecnie wspólnego produktu z polską nazwą. Przed pełnym EN live należy utworzyć zweryfikowane live EUR ceny, najlepiej na osobnych angielskich produktach.
+5. Angielskie produkty live utworzono osobno 2026-08-10: pełna analiza `price_1U2nABPlwW2w7lmMZfBn40OT` (9 EUR) oraz analiza z dopasowaniem `price_1U2nBXPlwW2w7lmMDP1yb2RB` (12 EUR). Obie ceny są one-time, tax-inclusive i przypisane do Production env; pozostał test Checkout po deployu.
