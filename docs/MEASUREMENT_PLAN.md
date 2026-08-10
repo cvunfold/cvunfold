@@ -19,6 +19,7 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 | `analysis_started` | Submit oraz bezpieczny event serwerowy | jw.; DB: plan + UTM | GA4 + Supabase | secondary | systemy raportowane oddzielnie |
 | `analysis_succeeded` | Walidowany raport zapisany | client: plan/success; server: czas/model/wersje/tokeny/koszt | Supabase | secondary | jeden zapis na analizę |
 | `analysis_failed` | Bezpieczna kategoria błędu | locale, market, plan, error_category | Supabase + GA4 | diagnostic | bez raw exception |
+| `analysis_configuration_failed` | Analiza kończy się błędem konfiguracji dostawcy AI | locale, market, plan, analysis_success | GA4 | diagnostic alert | bez CV, PII, nazwy pliku, promptu i komunikatu dostawcy; alert już przy 1 zdarzeniu |
 | `teaser_viewed` | Render nieopłaconego teasera | locale, market, plan | GA4 + Supabase | secondary | raz na mount |
 | `checkout_started` | Utworzona sesja Checkout | locale, market, plan | Supabase | secondary | zdarzenie po serwerowym utworzeniu |
 | `checkout_cancelled` | Powrót użytkownika z anulowanego Checkout | locale, market, plan | GA4 + Supabase | diagnostic | raz na analizę; cookie raportu + dedupe key |
@@ -28,6 +29,13 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 | `full_report_viewed` | Render płatnego raportu | locale, market, plan | Supabase + GA4 | secondary | raz na mount |
 | `feedback_submitted` | Zapis feedbacku płatnego raportu | locale, market, plan | Supabase | secondary | odpowiedź 2xx |
 | `delete_requested` | Skuteczne żądanie usunięcia | locale, market | Supabase | diagnostic | zapis poza kasowanym FK |
+
+### Alert awarii konfiguracji analizy
+
+- GA4 custom dimension: `Kategoria błędu analizy`, zakres `Zdarzenie`, parametr `error_category` — utworzona 2026-08-10.
+- Docelowa reguła: co godzinę, `Platforma zawiera web`, `Kategoria błędu analizy = configuration`, `Liczba zdarzeń > 0`.
+- Powiadomienie: właściciel usługi CVUnfold w GA4.
+- Aktywacja reguły wymaga pojawienia się nowego wymiaru w kreatorze statystyk niestandardowych; GA4 deklaruje zwykle 24–48 godzin przetwarzania definicji. Do tego czasu źródłem operacyjnym pozostają bezpieczny log `[analysis_failed] OPENAI_AUTH_FAILED` i serwerowy `analysis_failed` w bazie.
 
 ## Purchase — jeden autorytatywny mechanizm
 

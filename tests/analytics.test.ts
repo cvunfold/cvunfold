@@ -77,3 +77,12 @@ describe("checkout diagnostic events", () => {
     }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
   });
 });
+
+describe("analysis configuration alert event", () => {
+  it("allows only coarse, non-sensitive fields", () => {
+    expect(safeAnalyticsPayload("analysis_configuration_failed", {
+      locale: "pl", market: "pl", plan: "full_review", analysis_success: false,
+      filename: "private-cv.pdf", provider_message: "invalid_api_key", report_token: "secret",
+    }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review", analysis_success: false });
+  });
+});

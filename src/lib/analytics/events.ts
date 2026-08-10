@@ -1,6 +1,6 @@
 export const analyticsEvents = [
   "page_view", "landing_view", "hero_cta_clicked", "sample_report_viewed", "pricing_viewed",
-  "upload_started", "upload_completed", "analysis_started", "analysis_succeeded", "analysis_failed",
+  "upload_started", "upload_completed", "analysis_started", "analysis_succeeded", "analysis_failed", "analysis_configuration_failed",
   "teaser_viewed", "checkout_started", "checkout_cancelled", "checkout_expired", "payment_failed",
   "purchase", "full_report_viewed", "feedback_submitted", "delete_requested",
 ] as const;
@@ -18,6 +18,7 @@ const allowed: Record<AnalyticsEvent, readonly string[]> = {
   analysis_started: ["locale", "market", "plan", "broad_role_enum", "selected_seniority_enum", ...attributionKeys],
   analysis_succeeded: ["locale", "market", "plan", "analysis_success", ...attributionKeys],
   analysis_failed: ["locale", "market", "plan", "analysis_success", "error_category", ...attributionKeys],
+  analysis_configuration_failed: ["locale", "market", "plan", "analysis_success", ...attributionKeys],
   teaser_viewed: ["locale", "market", "plan", ...attributionKeys],
   checkout_started: ["locale", "market", "plan", ...attributionKeys],
   checkout_cancelled: ["locale", "market", "plan", ...attributionKeys],

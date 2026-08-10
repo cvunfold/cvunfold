@@ -998,10 +998,11 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 .level-score-list i b { display: block; height: 100%; background: var(--accent); }
 .level-score-list strong { text-align: right; }
 .level-demo > footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 14px 23px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
-.level-demo .score-ring.compact { width: 64px; height: 64px; flex-basis: 64px; }
-.level-demo .score-ring.compact::before { inset: 5px; }
-.level-demo .score-ring.compact strong { font-size: 22px; }
-.level-demo .score-ring.compact span { font-size: 12px; }
+.level-demo .score-ring.compact { width: 88px; height: 88px; flex-basis: 88px; }
+.level-demo .score-ring.compact::before { inset: 7px; }
+.level-demo .score-ring.compact > div { flex-wrap: nowrap; padding-inline: 5px; }
+.level-demo .score-ring.compact strong { font-size: 23px; letter-spacing: -.035em; }
+.level-demo .score-ring.compact span { margin-left: 1px; font-size: 10px; letter-spacing: -.025em; }
 .level-demo .score-ring.compact small { display: none; }
 
 .launch-section-head { max-width: 720px; }
@@ -1204,8 +1205,19 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 }
 
 /* Legal documents */
-.legal-page { min-height: 100vh; background: #fff; }
-.legal-page > .site-header { background: var(--ink); color: #fff; }
+.legal-page { --launch-max: 1180px; min-height: 100vh; background: #fff; }
+.legal-page .container { width: min(var(--launch-max), calc(100% - 48px)); }
+.legal-page > .site-header {
+  position: sticky;
+  z-index: 30;
+  top: 0;
+  height: 74px;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 0 0 100vmax var(--ink);
+  clip-path: inset(0 -100vmax);
+}
 .legal-page > .site-header > a:last-child { margin-left: auto; font-size: 12px; font-weight: 750; }
 .legal-shell { display: grid; grid-template-columns: 210px minmax(0,760px); gap: 80px; padding-block: 65px 90px; }
 .legal-shell > nav { position: sticky; top: 96px; align-self: start; display: grid; }
@@ -1221,4 +1233,4 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 .legal-shell address { display: grid; gap: 5px; font-style: normal; }
 .legal-shell address a { text-decoration: underline; }
 .payment-notice { position: fixed; z-index: 60; top: 12px; left: 50%; width: min(680px,calc(100% - 24px)); padding: 12px 16px; transform: translateX(-50%); border: 1px solid var(--warning); border-radius: 6px; background: #fff8e8; box-shadow: 0 8px 30px rgba(7,22,47,.15); color: #5c4a26; font-size: 12px; font-weight: 650; text-align: center; }
-@media (max-width: 720px) { .legal-shell { display: block; padding-block: 40px 65px; } .legal-shell > nav { position: static; display: flex; gap: 12px; overflow-x: auto; margin-bottom: 38px; } .legal-shell > nav a { flex: none; } .legal-shell h1 { font-size: 47px; } }
+@media (max-width: 720px) { .legal-page .container { width: min(100% - 28px, 560px); } .legal-page > .site-header { height: 64px; } .legal-shell { display: block; padding-block: 40px 65px; } .legal-shell > nav { position: static; display: flex; gap: 12px; overflow-x: auto; margin-bottom: 38px; } .legal-shell > nav a { flex: none; } .legal-shell h1 { font-size: 47px; } }

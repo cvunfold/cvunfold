@@ -106,6 +106,9 @@ export function UploadFlow({ mockMode, initialJobMatch, locale }: Props) {
     } catch (caught) {
       const category = typeof caught === "object" && caught && "category" in caught ? String(caught.category) : "unknown";
       trackAnalyticsEvent("analysis_failed", { ...analyticsBase(selectedPlan), analysis_success: false, error_category: category });
+      if (category === "configuration") {
+        trackAnalyticsEvent("analysis_configuration_failed", { ...analyticsBase(selectedPlan), analysis_success: false });
+      }
       setError(caught instanceof Error ? caught.message : t.genericError);
       setTurnstileToken("");
       setTurnstileEpoch((value) => value + 1);

@@ -22,10 +22,10 @@ const content = {
   },
 } as const;
 
-function ProviderDetails({ locale }: { locale: Locale }) {
+function ProviderDetails({ locale, includeEmail = true }: { locale: Locale; includeEmail?: boolean }) {
   const t = content[locale];
   if (!companyName || !companyId || !companyAddress || !brand.supportEmail) return <p className="legal-warning">{t.missing}</p>;
-  return <address><strong>{companyName}</strong><span>{companyAddress}</span><span>{companyId}</span><a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a></address>;
+  return <address><strong>{companyName}</strong><span>{companyAddress}</span><span>{companyId}</span>{includeEmail ? <a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a> : null}</address>;
 }
 
 function Sections({ locale, kind }: { locale: Locale; kind: LegalPageKind }) {
@@ -45,7 +45,7 @@ function Sections({ locale, kind }: { locale: Locale; kind: LegalPageKind }) {
     <section><h2>{en ? "Lost access" : "Brak dostępu do raportu"}</h2><p>{en ? "If you no longer have access, contact the service provider. For security, deletion cannot be performed from a public token placed in a query string and may require verification sufficient to identify the relevant record without exposing CV content." : "Jeśli nie masz już dostępu, skontaktuj się z usługodawcą. Ze względów bezpieczeństwa usunięcia nie wykonujemy na podstawie publicznego sekretu w query stringu i możemy poprosić o weryfikację wystarczającą do wskazania rekordu bez ujawniania treści CV."}</p></section>
   </>;
   if (kind === "contact") return <>
-    <section><h2>{en ? "Service provider" : "Usługodawca"}</h2><ProviderDetails locale={locale}/></section>
+    <section><h2>{en ? "Service provider" : "Usługodawca"}</h2><ProviderDetails locale={locale} includeEmail={false}/></section>
     <section><h2>{en ? "Support" : "Wsparcie"}</h2><p>{brand.supportEmail ? <a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a> : content[locale].missing}</p></section>
   </>;
   return <>
