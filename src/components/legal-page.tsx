@@ -12,12 +12,12 @@ const companyAddress = process.env.NEXT_PUBLIC_COMPANY_ADDRESS?.trim();
 const content = {
   pl: {
     labels: { terms: "Regulamin", privacy: "Polityka prywatności", cookies: "Polityka cookies", delete: "Usunięcie danych", contact: "Kontakt" },
-    back: "Strona główna", reviewed: "Wersja produktu: 9 sierpnia 2026", draft: "Dokument operacyjny produktu. Przed uruchomieniem sprzedaży wymaga akceptacji właściciela i, jeśli to potrzebne, przeglądu prawnego.",
+    back: "Strona główna", reviewed: "Obowiązuje od: 10 sierpnia 2026", draft: "Dokument opisuje zasady świadczenia usługi CV Unfold w aktualnej wersji produktu.",
     missing: "Dane identyfikacyjne usługodawcy nie zostały jeszcze skonfigurowane. Sprzedaż produkcyjna pozostaje zablokowana do ich uzupełnienia.",
   },
   en: {
     labels: { terms: "Terms", privacy: "Privacy policy", cookies: "Cookie policy", delete: "Delete data", contact: "Contact" },
-    back: "Home", reviewed: "Product version: 9 August 2026", draft: "Operational product document. It requires owner approval and, where appropriate, legal review before live sales are enabled.",
+    back: "Home", reviewed: "Effective from: 10 August 2026", draft: "This document describes the CV Unfold service in its current product version.",
     missing: "The service provider's identification details have not been configured. Live sales remain blocked until they are supplied.",
   },
 } as const;
@@ -51,7 +51,7 @@ function Sections({ locale, kind }: { locale: Locale; kind: LegalPageKind }) {
   return <>
     <section><h2>{en ? "Service" : "Usługa"}</h2><p>{en ? "The service analyses how experience is presented in a CV. It does not assess the person, guarantee an interview or reproduce a decision made by a specific recruiter. The free result is limited; paid plans unlock the report scope shown before checkout." : "Usługa analizuje sposób przedstawienia doświadczenia w CV. Nie ocenia osoby, nie gwarantuje rozmowy i nie odtwarza decyzji konkretnego rekrutera. Bezpłatny wynik ma ograniczony zakres; płatne warianty odblokowują zakres pokazany przed checkoutem."}</p></section>
     <section><h2>{en ? "Payment and delivery" : "Płatność i dostarczenie"}</h2><p>{en ? "Payment is one-off and processed by Stripe. The final amount and currency are shown in Stripe Checkout. The digital report is made available after server-side payment confirmation. A Stripe receipt is not presented as a Polish tax invoice." : "Płatność jest jednorazowa i obsługiwana przez Stripe. Końcowa kwota i waluta są pokazane w Stripe Checkout. Raport cyfrowy zostaje udostępniony po serwerowym potwierdzeniu płatności. Potwierdzenie Stripe nie jest przedstawiane jako polska faktura podatkowa."}</p></section>
-    <section><h2>{en ? "Immediate performance" : "Natychmiastowe rozpoczęcie świadczenia"}</h2><p>{en ? "Before analysis, the user requests immediate performance of the digital service. The wording and consequences for statutory withdrawal rights require owner acceptance and appropriate legal review before live sales." : "Przed analizą użytkownik zleca natychmiastowe rozpoczęcie świadczenia usługi cyfrowej. Treść zgody i skutki dla ustawowego prawa odstąpienia wymagają akceptacji właściciela oraz odpowiedniego przeglądu prawnego przed uruchomieniem sprzedaży."}</p></section>
+    <section><h2>{en ? "Immediate performance" : "Natychmiastowe rozpoczęcie świadczenia"}</h2><p>{en ? "Before analysis, the user requests that the digital service begins immediately. Any mandatory consumer rights remain applicable under the governing law." : "Przed analizą użytkownik zleca natychmiastowe rozpoczęcie świadczenia usługi cyfrowej. Bezwzględnie obowiązujące prawa konsumenta pozostają zachowane zgodnie z właściwymi przepisami."}</p></section>
     <section><h2>{en ? "Responsible use" : "Odpowiedzialne korzystanie"}</h2><p>{en ? "Do not upload documents you are not authorised to process. Automated abuse, attempts to bypass limits, extract prompts or access another person's report are prohibited." : "Nie przesyłaj dokumentów, których nie masz prawa przetwarzać. Niedozwolone są automatyczne nadużycia, omijanie limitów, próby wydobycia promptów i dostępu do raportu innej osoby."}</p></section>
     <section><h2>{en ? "Provider" : "Usługodawca"}</h2><ProviderDetails locale={locale}/></section>
   </>;
