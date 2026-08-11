@@ -756,6 +756,7 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 .feedback label { font-size: 12px; font-weight: 700; }
 .feedback select, .feedback textarea { width: 100%; display: block; margin-top: 5px; padding: 9px; border: 1px solid var(--line); border-radius: 4px; }
 .feedback label:nth-child(3) { grid-column: 1 / -1; }
+.feedback form > small { grid-column: 1 / -1; max-width: 720px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .feedback button { justify-self: start; }
 .sample-cta { display: flex; align-items: center; justify-content: space-between; gap: 35px; padding: 27px 0; }
 .sample-cta h2 { margin: 0 0 4px; font: 600 27px/1.1 var(--serif); }
