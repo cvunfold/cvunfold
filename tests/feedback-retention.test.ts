@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const migration = readFileSync(new URL("../supabase/migrations/202608110001_feedback_quality_aggregates.sql", import.meta.url), "utf8");
+const migration = readFileSync(new URL("../supabase/migrations/20260811203319_feedback_quality_aggregates.sql", import.meta.url), "utf8");
 const tableDefinition = migration.match(/create table if not exists public\.feedback_quality_aggregates \(([\s\S]*?)\n\);/)?.[1] || "";
 
 describe("feedback quality retention", () => {
