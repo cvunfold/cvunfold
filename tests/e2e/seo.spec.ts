@@ -4,6 +4,7 @@ test("public pages expose canonical bilingual metadata", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle("Analiza CV developera: seniority i pierwsze wrażenie | CV Unfold");
   await expect(page.locator("html")).toHaveAttribute("lang", "pl");
+  await expect(page.locator("h1")).toHaveCount(1);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /^https:\/\/cvunfold\.pl\/?$/);
   await expect(page.locator('link[hreflang="en"]')).toHaveAttribute("href", "https://cvunfold.pl/en");
   await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "CV Unfold");
@@ -17,9 +18,11 @@ test("public pages expose canonical bilingual metadata", async ({ page }) => {
   await expect(page).toHaveURL(/\/en$/);
   await expect(page).toHaveTitle("Developer CV review: seniority and first impression | CV Unfold");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.locator("h1")).toHaveCount(1);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://cvunfold.pl/en");
   await expect(page.locator("h1")).toContainText("Does your CV show");
   await page.goto("/artykuly/jak-nie-dac-sie-zastapic-przez-ai");
+  await expect(page.locator("h1")).toHaveCount(1);
   await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");
   const types = (await page.locator('script[type="application/ld+json"]').allTextContents()).flatMap((value) => JSON.parse(value)["@graph"]?.map((node: { "@type": string }) => node["@type"]) ?? []);
   expect(types).toEqual(expect.arrayContaining(["BlogPosting", "WebPage", "BreadcrumbList"]));

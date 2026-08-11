@@ -128,7 +128,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
     settings: "Ustawienia prywatności",
   };
   return <>
-    {showBanner ? <aside className="consent-banner" role="dialog" aria-labelledby="consent-title" aria-describedby="consent-copy">
+    {showBanner ? <div className="consent-banner" role="dialog" aria-labelledby="consent-title" aria-describedby="consent-copy">
       <div>
         <span>{copy.eyebrow}</span>
         <h2 id="consent-title">{copy.title}</h2>
@@ -138,7 +138,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
         <button type="button" className="consent-secondary" onClick={() => choose("denied")}>{copy.reject}</button>
         <button type="button" className="button" onClick={() => choose("granted")}>{copy.accept}</button>
       </div>
-    </aside> : <button type="button" className="privacy-settings" onClick={() => setSettingsOpen(true)}>{copy.settings}</button>}
+    </div> : <button type="button" className="privacy-settings" onClick={() => setSettingsOpen(true)}>{copy.settings}</button>}
   </>;
 }
 
