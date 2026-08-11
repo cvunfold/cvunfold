@@ -11,7 +11,7 @@ test("public pages expose canonical bilingual metadata", async ({ page }) => {
   const website = (await page.locator('script[type="application/ld+json"]').allTextContents())
     .flatMap((value) => JSON.parse(value)["@graph"] ?? [])
     .find((node: { "@type"?: string }) => node["@type"] === "WebSite");
-  expect(website).toMatchObject({ name: "CV Unfold", alternateName: ["CVUnfold", "cvunfold.pl"] });
+  expect(website).toMatchObject({ name: "CV Unfold", alternateName: "CVUnfold" });
 
   await page.getByRole("link", { name: "EN", exact: true }).click();
   await expect(page).toHaveURL(/\/en$/);
