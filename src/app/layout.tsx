@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   category: "career",
   classification: "Analiza CV i rozwój kariery w branży technologicznej",
   formatDetection: { telephone: false, address: false, email: false },
-  manifest: "/manifest.webmanifest",
   robots: {
     index: true,
     follow: true,
