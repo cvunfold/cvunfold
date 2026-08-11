@@ -237,17 +237,30 @@ export async function recordFunnelEvent(input: {
 }
 
 export function track(name: string): void { store.events.push({ name, at: new Date() }); }
+
+function summarizeFeedbackCounts(rows: Array<{ rating: number; accurate: string; response_count: number }>) {
+  const count = rows.reduce((sum, item) => sum + Number(item.response_count || 0), 0);
+  const weightedRating = rows.reduce((sum, item) => sum + item.rating * Number(item.response_count || 0), 0);
+  return {
+    count,
+    averageRating: count ? Math.round(weightedRating / count * 100) / 100 : null,
+    accuracy: Object.fromEntries(["yes", "partly", "no"].map((value) => [value,
+      rows.filter((item) => item.accurate === value).reduce((sum, item) => sum + Number(item.response_count || 0), 0)])),
+  };
+}
+
 export async function diagnostics() {
   const client = supabaseClient();
   if (client) {
     const since = new Date(Date.now() - 86_400_000).toISOString();
-    const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }] = await Promise.all([
+    const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }] = await Promise.all([
       client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,attribution").gte("created_at", since),
       client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since),
       client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market").gte("created_at", since),
       client.from("feedback").select("rating,accurate").gte("created_at", since),
+      client.from("feedback_quality_aggregates").select("rating,accurate,response_count"),
     ]);
-    if (analysesError || eventsError || paymentsError || feedbackError) throw new Error("SUPABASE_DIAGNOSTICS_FAILED");
+    if (analysesError || eventsError || paymentsError || feedbackError || feedbackAggregateError) throw new Error("SUPABASE_DIAGNOSTICS_FAILED");
     const eventCounts = Object.fromEntries([...new Set((events || []).map((event) => event.event_name))]
       .map((name) => [name, (events || []).filter((event) => event.event_name === name).length]));
     const count = (name: string) => Number(eventCounts[name] || 0);
@@ -281,8 +294,11 @@ export async function diagnostics() {
       },
       promptVersions: Object.fromEntries([...new Set((analyses || []).map((item) => item.prompt_version))].map((version) => [version, (analyses || []).filter((item) => item.prompt_version === version).length])),
       rubricVersions: Object.fromEntries([...new Set((analyses || []).map((item) => item.rubric_version))].map((version) => [version, (analyses || []).filter((item) => item.rubric_version === version).length])),
-      feedback: { count: feedbackRows?.length || 0, averageRating: feedbackRows?.length ? Math.round(feedbackRows.reduce((sum, item) => sum + item.rating, 0) / feedbackRows.length * 100) / 100 : null,
-        accuracy: Object.fromEntries(["yes", "partly", "no"].map((value) => [value, (feedbackRows || []).filter((item) => item.accurate === value).length])) },
+      feedback: {
+        last24Hours: { count: feedbackRows?.length || 0, averageRating: feedbackRows?.length ? Math.round(feedbackRows.reduce((sum, item) => sum + item.rating, 0) / feedbackRows.length * 100) / 100 : null,
+          accuracy: Object.fromEntries(["yes", "partly", "no"].map((value) => [value, (feedbackRows || []).filter((item) => item.accurate === value).length])) },
+        retainedAggregate: summarizeFeedbackCounts(feedbackAggregateRows || []),
+      },
       topErrorCategories: Object.fromEntries([...new Set(errorCategories)].map((category) => [category, errorCategories.filter((item) => item === category).length])),
       events: eventCounts,
     };
