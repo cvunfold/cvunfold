@@ -1,9 +1,9 @@
 # Search Console setup
 
-Status 2026-08-10: właściwość `https://cvunfold.com/` jest zweryfikowana przez
-metatag, a `https://cvunfold.com/sitemap.xml` ma status **Sukces** i 30 wykrytych
-adresów. Właściwość domenowa `cvunfold.com` została rozpoczęta i czeka wyłącznie
-na rekord TXT w OVH.
+Status 2026-08-10: właściwość URL-prefix `https://cvunfold.com/` jest
+zweryfikowana przez metatag, a właściwość domenowa `cvunfold.com` przez rekord
+TXT w OVH. `https://cvunfold.com/sitemap.xml` ma status **Sukces** i 30
+wykrytych adresów również w widoku domenowym.
 
 ## Stan techniczny
 
@@ -18,9 +18,9 @@ na rekord TXT w OVH.
 
 ## Weryfikacja domeny
 
-1. Właściwość URL-prefix `https://cvunfold.com/` jest już zweryfikowana przez `GOOGLE_SITE_VERIFICATION`.
-2. Metatagu nie usuwaj — Search Console używa go do utrzymania weryfikacji.
-3. Po zalogowaniu do OVH dodaj rekord TXT pokazany w rozpoczętej właściwości domenowej `cvunfold.com`, a następnie kliknij **Weryfikuj**.
+1. Właściwość URL-prefix `https://cvunfold.com/` jest zweryfikowana przez `GOOGLE_SITE_VERIFICATION`.
+2. Właściwość domenowa `cvunfold.com` jest zweryfikowana przez rekord TXT u dostawcy DNS.
+3. Nie usuwaj metatagu ani rekordu TXT — utrzymują obie niezależne metody weryfikacji.
 4. Sitemap została już przesłana. Nie przesyłaj jej ponownie, chyba że Search Console zgłosi błąd.
 
 ## Kontrola po deployu

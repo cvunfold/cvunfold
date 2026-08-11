@@ -19,4 +19,11 @@ describe("knowledge articles", () => {
     expect(articlesEn).toHaveLength(articles.length);
     expect(articlesEn.every((article) => article.sections.length >= 4 && article.checklist.length >= 4)).toBe(true);
   });
+
+  it("publishes the developer CV length guide from the evidence hierarchy", () => {
+    const article = articlesBySlug.get("ile-stron-powinno-miec-cv-programisty");
+    expect(article?.title).toContain("Ile stron powinno mieć CV programisty?");
+    expect(article?.sections.some(({ heading }) => heading.includes("Krótki konkret"))).toBe(true);
+    expect(article?.checklist.length).toBeGreaterThanOrEqual(4);
+  });
 });

@@ -1103,8 +1103,10 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 .launch-articles article + article { padding-left: 28px; border-left: 1px solid var(--line); }
 .launch-articles article > span { color: var(--accent-deep); font-size: 12px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
 .launch-articles h3 { margin: 21px 0; font: 600 27px/1.15 var(--serif); }
-.launch-articles article a, .all-articles { display: inline-flex; align-items: center; gap: 9px; margin-top: auto; font-size: 12px; font-weight: 750; }
-.launch-articles article a svg, .all-articles svg { color: var(--accent-deep); }
+.launch-articles h3 a:hover { color: var(--accent-deep); }
+.launch-articles h3 a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent), transparent 35%); outline-offset: 3px; }
+.launch-articles article > a, .all-articles { display: inline-flex; align-items: center; gap: 9px; margin-top: auto; font-size: 12px; font-weight: 750; }
+.launch-articles article > a svg, .all-articles svg { color: var(--accent-deep); }
 .all-articles { margin-top: 24px; }
 .final-cta { padding-block: 57px; background: var(--accent); }
 .final-cta .container { display: flex; align-items: center; justify-content: space-between; gap: 40px; }
@@ -1244,8 +1246,8 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 @media (max-width: 720px) { .legal-page .container { width: min(100% - 28px, 560px); } .legal-page > .site-header { height: 64px; } .legal-shell { display: block; padding-block: 40px 65px; } .legal-shell > nav { position: static; display: flex; gap: 12px; overflow-x: auto; margin-bottom: 38px; } .legal-shell > nav a { flex: none; } .legal-shell h1 { font-size: 47px; } }
 
 /* Methodology and accountable author */
-.methodology-proof { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 23px; align-items: center; padding-block: 42px; }
-.methodology-proof img { width: 72px; height: 72px; object-fit: cover; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px var(--line), 0 10px 25px rgba(7,22,47,.11); }
+.methodology-proof { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 28px; align-items: center; padding-block: 42px; }
+.methodology-proof img { width: 112px; height: 112px; object-fit: cover; border: 4px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px var(--line), 0 12px 28px rgba(7,22,47,.13); }
 .methodology-proof > div > span { color: var(--accent-deep); font-size: 12px; font-weight: 850; letter-spacing: .09em; }
 .methodology-proof h2 { margin: 6px 0 5px; font: 600 29px/1.03 var(--serif); letter-spacing: -.035em; }
 .methodology-proof p { max-width: 800px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
@@ -1357,8 +1359,8 @@ svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-widt
 }
 
 @media (max-width: 720px) {
-  .methodology-proof { grid-template-columns: 56px minmax(0,1fr); gap: 16px; padding-block: 35px; }
-  .methodology-proof img { width: 56px; height: 56px; align-self: start; }
+  .methodology-proof { grid-template-columns: 80px minmax(0,1fr); gap: 17px; padding-block: 35px; }
+  .methodology-proof img { width: 80px; height: 80px; align-self: start; }
   .methodology-proof h2 { font-size: 25px; }
   .methodology-proof p { font-size: 13px; }
   .methodology-page .container { width: min(100% - 28px,560px); }

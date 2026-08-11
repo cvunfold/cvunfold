@@ -348,6 +348,83 @@ export const articles: Article[] = [
       "Czy potrafisz rozwinąć każdy techniczny punkt podczas rozmowy?",
     ],
   },
+  {
+    slug: "ile-stron-powinno-miec-cv-programisty",
+    category: "Długość CV",
+    title: "Ile stron powinno mieć CV programisty? Co skrócić, a co warto rozwinąć",
+    description: "Jedna czy dwie strony CV programisty? Sprawdź, kiedy wystarczy krótki konkret, a kiedy warto pokazać decyzję, ryzyko i efekt swojej pracy.",
+    excerpt: "Dwie strony nie są błędem, a jedno zdanie nie zawsze jest zbyt krótkie. Liczy się to, czy każdy dodatkowy fragment wnosi nowy dowód.",
+    readingTime: "7 min",
+    publishedAt: "2026-08-11",
+    intro: "Pytanie „jedna czy dwie strony?” brzmi jak wybór formatu, ale w praktyce dotyczy hierarchii informacji. CV ma być wystarczająco krótkie, żeby dało się je szybko zrozumieć, i wystarczająco konkretne, żeby doświadczenie nie zamieniło się w listę deklaracji. Dla programisty z dłuższym stażem dwie strony mogą być całkowicie uzasadnione. Problem zaczyna się dopiero wtedy, gdy druga strona powstaje przez rozwijanie punktów, które nie dodają żadnego nowego sygnału.",
+    sections: [
+      {
+        heading: "Jedna czy dwie strony? Liczy się gęstość informacji",
+        paragraphs: [
+          "Jedna strona jest użytecznym ograniczeniem dla osoby z krótką historią zawodową albo wtedy, gdy tylko część doświadczenia pasuje do wybranej roli. Nie jest jednak uniwersalną normą, do której trzeba dopasować każde CV kosztem czytelności, małej czcionki lub usuwania ważnych projektów.",
+          "Dwie strony są rozsądne, gdy druga nadal zawiera istotne i różne dowody: kolejne etapy rozwoju, trudniejsze problemy, zmianę zakresu odpowiedzialności lub doświadczenie ważne dla oferty. Jeżeli na drugą stronę przechodzą dwa rozwlekłe punkty o typowych obowiązkach, lepiej najpierw poprawić ich gęstość niż walczyć z samym podziałem strony.",
+        ],
+      },
+      {
+        heading: "Krótki konkret może być wystarczający",
+        paragraphs: [
+          "CV nie musi zawierać pełnego studium przypadku dla każdego projektu. Zdanie „Wydzieliłem moduł płatności z monolitu do osobnego serwisu” jest krótkie, ale przekazuje konkretną zmianę i daje dobry punkt wyjścia do rozmowy. Nie wiadomo jeszcze, dlaczego podjęto tę decyzję, lecz wiadomo przynajmniej, co kandydat faktycznie zrobił.",
+          "To ważna różnica. „Projektowanie architektury mikroserwisowej” może napisać niemal każdy, bo nie wskazuje żadnego rozpoznawalnego wkładu. Krótki opis nie jest słaby tylko dlatego, że nie zawiera całej historii. Powinien jednak nazywać działanie i jego przedmiot na tyle precyzyjnie, aby rozmówca mógł zadać sensowne pytanie.",
+        ],
+        example: {
+          before: "Projektowanie architektury mikroserwisowej.",
+          after: "Wydzieliłem moduł płatności z monolitu do osobnego serwisu.",
+          note: "Druga wersja nadal jest krótka. Jej przewagą nie jest długość, lecz konkretny zakres zmiany.",
+        },
+      },
+      {
+        heading: "Rozwijaj punkty, które mają udowodnić seniority",
+        paragraphs: [
+          "Nie każdy punkt musi pokazywać pełny tok rozumowania. W każdej ważnej roli warto jednak wybrać dwa lub trzy fragmenty, które mają najmocniej potwierdzić poziom kandydata. To właśnie przy nich dodatkowe miejsce może przynieść realną wartość.",
+          "Wersja kompaktowa może brzmieć: „Wydzieliłem moduł płatności z monolitu do osobnego serwisu”. Wersja dowodowa może dodać, że decyzja wynikała z analizy zależności, ryzyka wdrożeń lub potrzeby niezależnego skalowania. Drugi wariant mocniej pokazuje seniority, ale pierwszy nadal może być dobrym wyborem, gdy dokument jest już gęsty albo szczegóły łatwiej rozwinąć podczas rozmowy.",
+          "Rozszerzenie ma sens wtedy, gdy ujawnia indywidualny wkład: decyzję, ograniczenie, ryzyko, kompromis albo odpowiedzialność za wdrożenie. Samo dopisanie „we współpracy z zespołem backendowym” zwykle niewiele zmienia, ponieważ taka współpraca jest normalną częścią pracy frontendowej i bez dodatkowego kontekstu nie wiadomo, co oznaczała.",
+        ],
+        example: {
+          before: "Współpraca z zespołem backendowym przy migracji checkoutu do Next.js.",
+          after: "Podzieliłem migrację checkoutu na etapy, uzgodniłem kontrakt API z backendem i odpowiadałem za bezpieczny rollout.",
+          note: "Dłuższa wersja zasługuje na miejsce, bo pokazuje decyzję, realny punkt współpracy i zakres odpowiedzialności.",
+        },
+      },
+      {
+        heading: "Liczba nie zastępuje opisu trudności",
+        paragraphs: [
+          "Metryka pomaga potwierdzić rezultat, ale sama nie mówi jeszcze, jak trudna była praca. Poprawa LCP z 4,2 do 2,1 sekundy wygląda atrakcyjnie, lecz punktem wyjścia mogła być fatalna konfiguracja, którą wystarczyło poprawić jednym oczywistym ruchem. Bez mechanizmu zmiany trudno ocenić, czego wynik dowodzi o kandydacie.",
+          "Opis diagnozy potrafi powiedzieć więcej: kandydat rozpoznał, że główny bundle blokował renderowanie, wydzielił krytyczną ścieżkę i przeniósł pozostały kod do ładowania asynchronicznego. Jeżeli miejsce pozwala, najlepiej połączyć sposób działania z wynikiem. Gdy trzeba wybierać, zachowaj fragment, który najlepiej pokazuje kompetencję istotną dla docelowej roli.",
+        ],
+        example: {
+          before: "Poprawiłem wynik LCP z 4,2 do 2,1 sekundy.",
+          after: "Zidentyfikowałem, że główny bundle blokuje renderowanie, wydzieliłem krytyczną ścieżkę i przeniosłem pozostały kod do ładowania asynchronicznego.",
+          note: "Liczba pokazuje efekt. Druga wersja pokazuje diagnozę i sposób myślenia. Najmocniejszy opis łączy oba elementy, jeśli są prawdziwe i mieszczą się w hierarchii CV.",
+        },
+      },
+      {
+        heading: "Jak skracać bez utraty najważniejszych dowodów",
+        paragraphs: [
+          "Najpierw usuń informacje, które wynikają z samej roli lub powtarzają się w każdym stanowisku: ogólne deklaracje współpracy, listy typowych obowiązków i technologie już widoczne w sekcji umiejętności. Następnie połącz punkty opisujące ten sam problem i przenieś najmocniejsze dowody na początek każdej roli.",
+          "Skracanie nie powinno polegać na usuwaniu decyzji, rezultatów i ograniczeń, a pozostawianiu samych nazw technologii. To właśnie te pierwsze informacje odróżniają Twoje doświadczenie od setek podobnych profili. Jeżeli musisz wybierać, zachowaj opis, którego nie mógłby bez zmiany podpisać prawie każdy programista pracujący w podobnym stacku.",
+        ],
+      },
+      {
+        heading: "Dobra długość wynika z priorytetów, nie z reguły",
+        paragraphs: [
+          "Nie istnieje jedna poprawna liczba stron dla juniora, seniora i osoby zmieniającej specjalizację. Istnieje natomiast prosta kontrola jakości: każdy dodatkowy punkt powinien wnosić nowy kontekst, dowód albo ważny warunek dopasowania do oferty.",
+          "Zostaw krótkie konkrety tam, gdzie wystarczy fakt i dobry punkt zaczepienia do rozmowy. Rozwijaj kilka fragmentów, które naprawdę mają udowodnić poziom, sposób podejmowania decyzji lub wpływ. Wtedy druga strona nie jest oznaką rozwlekłości — jest konsekwencją doświadczenia, które nadal ma znaczenie dla odbiorcy.",
+        ],
+      },
+    ],
+    checklist: [
+      "Czy druga strona zawiera nowe dowody, zamiast powtarzać typowe obowiązki?",
+      "Czy każdy krótki punkt nazywa konkretne działanie i jego przedmiot?",
+      "Czy dwa lub trzy najmocniejsze punkty pokazują decyzję, ograniczenie albo odpowiedzialność?",
+      "Czy liczby mają kontekst, który wyjaśnia trudność i Twój wkład?",
+      "Czy możesz skrócić informacje drugorzędne bez usuwania najmocniejszych dowodów?",
+    ],
+  },
 ];
 
 export const articlesBySlug = new Map(articles.map((article) => [article.slug, article]));
