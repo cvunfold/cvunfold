@@ -1,7 +1,13 @@
 # Search Console setup
 
+Status 2026-08-10: właściwość URL-prefix `https://cvunfold.com/` jest
+zweryfikowana przez metatag, a właściwość domenowa `cvunfold.com` przez rekord
+TXT w OVH. `https://cvunfold.com/sitemap.xml` ma status **Sukces** i 30
+wykrytych adresów również w widoku domenowym.
+
 ## Stan techniczny
 
+- Główny host to `cvunfold.com`; `.pl` i oba warianty `www` przekierowują 308 do `.com`.
 - Polski jest domyślny: `/`; angielski: `/en`.
 - Legacy `/pl/*` przekierowuje 308 do kanonicznych polskich URL-i.
 - Obie wersje mają własne title, description, canonical, alternates, OG, artykuły i RSS.
@@ -12,10 +18,10 @@
 
 ## Weryfikacja domeny
 
-1. W Search Console wybierz **Domain property** dla bieżącej domeny produktu.
-2. Dodaj otrzymany rekord TXT w DNS domeny. To jest operacja właściciela i wymaga potwierdzenia właściwego konta, domeny i środowiska CVUnfold.
-3. Alternatywnie ustaw `GOOGLE_SITE_VERIFICATION` i wdroż meta verification, ale Domain property nadal lepiej obejmuje protokoły i subdomeny.
-4. Po weryfikacji prześlij `https://<domena>/sitemap.xml`.
+1. Właściwość URL-prefix `https://cvunfold.com/` jest zweryfikowana przez `GOOGLE_SITE_VERIFICATION`.
+2. Właściwość domenowa `cvunfold.com` jest zweryfikowana przez rekord TXT u dostawcy DNS.
+3. Nie usuwaj metatagu ani rekordu TXT — utrzymują obie niezależne metody weryfikacji.
+4. Sitemap została już przesłana. Nie przesyłaj jej ponownie, chyba że Search Console zgłosi błąd.
 
 ## Kontrola po deployu
 
@@ -31,4 +37,3 @@
 - Co tydzień: Pages/Indexing, canonical conflicts, sitemap errors, Core Web Vitals.
 - Po zmianie marki lub domeny: nie kasuj starych URL-i; utrzymuj trwałe 301 i zaktualizuj sitemap/canonical/OG.
 - Nie twórz hreflang ani alternates dla języka, którego pełna strona faktycznie nie istnieje. Obecnie PL i EN istnieją.
-

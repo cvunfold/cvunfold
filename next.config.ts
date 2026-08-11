@@ -1,32 +1,13 @@
 import type { NextConfig } from "next";
+import { buildContentSecurityPolicy } from "./src/lib/security/csp";
 
 const googleAnalyticsEnabled = Boolean(process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID || process.env.NEXT_PUBLIC_GOOGLE_ADS_ID);
-const googleScriptSources = googleAnalyticsEnabled ? " https://www.googletagmanager.com" : "";
-const googleConnectSources = googleAnalyticsEnabled
-  ? " https://www.google-analytics.com https://*.google-analytics.com https://www.google.com https://www.google.pl https://www.googleadservices.com https://googleads.g.doubleclick.net https://stats.g.doubleclick.net"
-  : "";
-const googleImageSources = googleAnalyticsEnabled
-  ? " https://www.google-analytics.com https://www.google.com https://www.google.pl https://www.googleadservices.com https://googleads.g.doubleclick.net https://stats.g.doubleclick.net"
-  : "";
 const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
-const turnstileScriptSource = turnstileEnabled ? " https://challenges.cloudflare.com" : "";
-const turnstileConnectSource = turnstileEnabled ? " https://challenges.cloudflare.com" : "";
-const scriptPolicy = process.env.NODE_ENV === "development"
-  ? `script-src 'self' 'unsafe-inline' 'unsafe-eval'${googleScriptSources}${turnstileScriptSource}`
-  : `script-src 'self' 'unsafe-inline'${googleScriptSources}${turnstileScriptSource}`;
-const csp = [
-  "default-src 'self'",
-  scriptPolicy,
-  "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${googleImageSources}`,
-  "font-src 'self'",
-  `connect-src 'self'${googleConnectSources}${turnstileConnectSource}`,
-  `frame-src 'self'${turnstileScriptSource}`,
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "form-action 'self'",
-].join("; ");
+const csp = buildContentSecurityPolicy({
+  googleEnabled: googleAnalyticsEnabled,
+  turnstileEnabled,
+  development: process.env.NODE_ENV === "development",
+});
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,

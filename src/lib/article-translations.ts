@@ -5,6 +5,7 @@ const plToEn = {
   "obowiazki-to-nie-rezultaty-jak-opisywac-wplyw": "responsibilities-are-not-outcomes",
   "pierwsze-20-sekund-cv": "the-first-20-seconds-of-a-cv",
   "wiarygodnosc-techniczna-w-cv": "technical-credibility-in-a-developer-cv",
+  "ile-stron-powinno-miec-cv-programisty": "how-many-pages-should-a-developer-cv-be",
 } as const;
 
 const enToPl = Object.fromEntries(Object.entries(plToEn).map(([pl, en]) => [en, pl])) as Record<string, string>;
@@ -20,4 +21,10 @@ export function articleAlternates(slug: string, locale: "pl" | "en") {
     en: `/en/articles/${enSlug}`,
     "x-default": `/artykuly/${plSlug}`,
   };
+}
+
+export function translatedArticlePath(slug: string, locale: "pl" | "en") {
+  const alternates = articleAlternates(slug, locale);
+  if (!alternates) return locale === "pl" ? "/en/articles" : "/artykuly";
+  return locale === "pl" ? alternates.en : alternates["pl-PL"];
 }

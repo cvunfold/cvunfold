@@ -107,8 +107,10 @@ export default async function ArticlePage({ params }: Props) {
           </section>)}
 
           <section className="article-checklist">
-            <span className="article-section-number" aria-hidden="true">✓</span>
-            <h2>Sprawdź swoje CV</h2>
+            <div className="article-checklist-heading">
+              <span className="article-section-number" aria-hidden="true">✓</span>
+              <h2>Sprawdź swoje CV</h2>
+            </div>
             <ul>{article.checklist.map((item) => <li key={item}><CheckIcon />{item}</li>)}</ul>
           </section>
         </div>

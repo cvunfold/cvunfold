@@ -3,8 +3,9 @@ import Link from "next/link";
 import { ArrowIcon, CheckIcon, LockIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
 import { Logo } from "@/components/logo";
+import { PublicHeader } from "@/components/public-header";
 import { brand } from "@/lib/brand";
-import { analysisPath, articlesPath, homePath, methodologyPath, sampleReportPath, type Locale } from "@/lib/i18n";
+import { analysisPath, articlesPath, homePath, methodologyPath, type Locale } from "@/lib/i18n";
 import { absoluteUrl, AUTHOR_ID, ORGANIZATION_ID, WEBSITE_ID } from "@/lib/seo";
 
 const content = {
@@ -122,16 +123,7 @@ export function MethodologyPage({ locale }: { locale: Locale }) {
 
   return <main className="methodology-page">
     <JsonLd data={structuredData}/>
-    <header className="site-header container">
-      <Logo locale={locale}/>
-      <nav aria-label={en ? "Main navigation" : "Główna nawigacja"}>
-        <Link href={homePath(locale)}>{t.nav.home}</Link>
-        <Link href={sampleReportPath(locale)}>{t.nav.report}</Link>
-        <Link href={articlesPath(locale)}>{t.nav.articles}</Link>
-      </nav>
-      <Link className="language-switch" href={methodologyPath(en ? "pl" : "en")}>{t.nav.switch}</Link>
-      <Link className="button small" href={analysisPath(locale)}>{t.nav.cta}<ArrowIcon/></Link>
-    </header>
+    <PublicHeader locale={locale} languageHref={methodologyPath(en ? "pl" : "en")}/>
 
     <section className="methodology-hero container">
       <div className="methodology-hero-copy">
