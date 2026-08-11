@@ -21,3 +21,9 @@ export function articleAlternates(slug: string, locale: "pl" | "en") {
     "x-default": `/artykuly/${plSlug}`,
   };
 }
+
+export function translatedArticlePath(slug: string, locale: "pl" | "en") {
+  const alternates = articleAlternates(slug, locale);
+  if (!alternates) return locale === "pl" ? "/en/articles" : "/artykuly";
+  return locale === "pl" ? alternates.en : alternates["pl-PL"];
+}

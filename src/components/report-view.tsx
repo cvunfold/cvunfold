@@ -43,7 +43,7 @@ const copy = {
     rating: "Ocena", accuracy: "Trafność", comment: "Komentarz", send: "Wyślij feedback", thanks: "Dziękujemy — ta informacja pomaga poprawiać kolejne wersje.",
     accurate: ["Tak", "Częściowo", "Nie"], copied: "Link skopiowany", copyFailed: "Nie udało się skopiować linku.",
     deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
-    samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV",
+    samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV", backHome: "Wróć do strony głównej",
   },
   en: {
     sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
@@ -61,7 +61,7 @@ const copy = {
     rating: "Rating", accuracy: "Accuracy", comment: "Comment", send: "Send feedback", thanks: "Thank you — this helps us improve the next version.",
     accurate: ["Yes", "Partly", "No"], copied: "Link copied", copyFailed: "We could not copy the link.",
     deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
-    samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV",
+    samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV", backHome: "Back to homepage",
   },
 } as const;
 
@@ -168,7 +168,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
       </aside>
 
       <div className="report-content">
-        {demo ? <div className="sample-disclosure"><div><b>{t.sample}</b><small>{t.samplePrivate}</small></div><p>{demo.note}</p></div> : null}
+        {demo ? <div className="sample-disclosure"><div><b>{t.sample}</b><small>{t.samplePrivate}</small></div><p>{demo.note}</p><Link className="sample-home-link" href={homePath(locale)}>{t.backHome}<ArrowIcon/></Link></div> : null}
         <header className="report-title">
           <div><h1>{demo ? t.sampleReport : t.yourReport}</h1><h2>{demo ? `${demo.name} · ` : ""}{data.document.perceivedRole} · {seniorityLabel(data.document.perceivedSeniority)}</h2><span>{t.documentPerception}</span><p>{locale === "pl" ? "Na podstawie treści i struktury CV. To nie jest ocena osoby." : "Based on the CV's content and structure. This is not an assessment of the person."}</p></div>
           <div className="report-actions">
