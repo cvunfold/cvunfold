@@ -25,15 +25,29 @@ export const articles: Article[] = [
   {
     slug: "jak-nie-dac-sie-zastapic-przez-ai",
     category: "Kariera i AI",
-    title: "Jak nie dać się zastąpić przez AI?",
-    description: "Jak budować bezpieczniejszą karierę w świecie AI: rozwijać ownership, osąd, wiedzę domenową i wpływ zamiast konkurować wyłącznie szybkością wykonywania zadań.",
-    excerpt: "Nie wygrasz z AI liczbą wygenerowanych zadań. Możesz za to budować wartość opartą na rozumieniu problemu, decyzjach, odpowiedzialności i wpływie.",
-    readingTime: "10 min",
+    title: "Czy AI zastąpi programistów? Jak zabezpieczyć swoją karierę",
+    description: "Czy AI zastąpi programistów? Sprawdź, które zadania są podatne na automatyzację i jak rozwijać ownership, osąd, wiedzę domenową oraz wpływ.",
+    excerpt: "AI przyspiesza przewidywalne zadania. Zobacz, jak budować przewagę opartą na decyzjach, kontekście, odpowiedzialności i wpływie.",
+    readingTime: "14 min",
     publishedAt: "2026-08-09",
-    intro: "Żaden zawód nie daje pełnej gwarancji bezpieczeństwa, a straszenie prostym hasłem „AI zabierze pracę” niewiele pomaga. Rozsądniejsze pytanie brzmi: jak budować profil, którego wartość nie zależy wyłącznie od szybkiego wykonywania zadań? Najbardziej odporna kariera powstaje tam, gdzie łączysz narzędzia AI z kontekstem, osądem, odpowiedzialnością i zdolnością doprowadzania ważnych problemów do rezultatu.",
+    intro: "Czy AI zastąpi programistów? Zmieni sposób pracy i zmniejszy wartość części powtarzalnych zadań, ale nie daje to uczciwej podstawy do obietnicy, że cały zawód zniknie albo pozostanie bez zmian. Lepsze pytanie brzmi: jak nie dać się zastąpić przez AI tam, gdzie Twoja rola sprowadza się dziś głównie do przewidywalnego wykonania? Ten poradnik pomaga przesunąć wartość w stronę kontekstu, osądu, odpowiedzialności i doprowadzania ważnych problemów do rezultatu.",
     sections: [
       {
-        heading: "Nie konkuruj z AI szybkością wykonywania",
+        heading: "Krótka odpowiedź: AI zmieni pracę programisty, nie całą odpowiedzialność",
+        paragraphs: [
+          "AI potrafi już przyspieszać pisanie kodu, testów, dokumentacji, analizę błędów i poznawanie obcego systemu. To realna zmiana. Nie wynika z niej jednak, że narzędzie samodzielnie przejmuje pełny kontekst produktu, konsekwencje decyzji, uzgodnienia między zespołami i odpowiedzialność za zachowanie systemu po wdrożeniu.",
+          "Najbardziej narażona nie jest konkretna nazwa stanowiska, lecz praca opisana wyłącznie jako seria dobrze zdefiniowanych zadań. Im większa część Twojej wartości polega na rozpoznaniu właściwego problemu, ocenie ryzyka, podjęciu decyzji i sprawdzeniu efektu, tym trudniej sprowadzić ją do samego wygenerowania rozwiązania.",
+        ],
+      },
+      {
+        heading: "Które zadania są najbardziej podatne na automatyzację",
+        paragraphs: [
+          "Najłatwiej przyspieszyć zadania powtarzalne, dobrze opisane i łatwe do zweryfikowania: przygotowanie standardowego komponentu, szkicu testów, transformacji danych, dokumentacji albo pierwszej wersji rozwiązania w znanym wzorcu. Nie oznacza to, że te zadania przestają być potrzebne. Oznacza, że samo ich wykonywanie daje coraz słabszą przewagę.",
+          "Zrób prosty przegląd tygodnia. Oznacz zadania, w których wejście i oczekiwany wynik były oczywiste, oraz te, w których trzeba było odkryć brakujące założenie, wybrać kompromis, porozumieć się z innymi albo ponieść odpowiedzialność za wynik. Pierwsza grupa pokazuje, co warto automatyzować. Druga wskazuje, gdzie rozwijać swoją specjalizację.",
+        ],
+      },
+      {
+        heading: "Nie konkuruj z AI wyłącznie szybkością wykonywania",
         paragraphs: [
           "Jeśli Twoja przewaga brzmi „piszę kod szybciej”, „tworzę więcej wariantów” albo „obsługuję więcej ticketów”, narzędzia AI będą coraz mocniej naciskały właśnie na ten obszar. Szybsze wykonanie nadal ma znaczenie, lecz staje się łatwiejsze do skopiowania i trudniejsze do obrony jako jedyna wartość specjalisty.",
           "Zmień jednostkę, w której opisujesz swoją pracę. Zamiast liczby wykonanych zadań pokaż problem, ryzyko, decyzję i zmianę, która nastąpiła. Pracodawca potrzebuje nie tylko outputu, ale osoby, która rozumie, jaki output ma sens, w jakim kontekście i za jaką cenę.",
@@ -42,7 +56,7 @@ export const articles: Article[] = [
       {
         heading: "Przesuń się od wykonania do ownershipu problemu",
         paragraphs: [
-          "AI potrafi pomóc przygotować implementację, przypadki testowe, dokumentację czy konfigurację infrastruktury. Nie przejmuje jednak automatycznie odpowiedzialności za to, czy zespół rozwiązuje właściwy problem, czy założenia są prawdziwe i czy rezultat działa w realnym środowisku organizacji.",
+          "AI potrafi pomóc przygotować implementację, przypadki testowe, dokumentację czy konfigurację infrastruktury. Samo wygenerowanie materiału nie rozstrzyga jednak, czy zespół rozwiązuje właściwy problem, czy założenia są prawdziwe i czy rezultat działa w realnym środowisku organizacji.",
           "Ownership oznacza rozpoznanie niejasności, zebranie kontekstu, zaproponowanie kierunku, uzgodnienie kompromisów i sprawdzenie efektu po wdrożeniu. To nie przywilej managera ani Leada. Frontend Developer może przejąć odpowiedzialność za wydajność krytycznej ścieżki, QA za strategię ryzyka, a Platform Engineer za doświadczenie zespołów korzystających z platformy.",
         ],
         example: {
@@ -73,6 +87,13 @@ export const articles: Article[] = [
         ],
       },
       {
+        heading: "Autodiagnoza: czy Twoja praca wygląda jak wykonywanie ticketów?",
+        paragraphs: [
+          "Spójrz na ostatnie trzy miesiące i odpowiedz bez upiększania: kto definiował problem, kto wybierał podejście, kto nazywał ryzyko, kto uzgadniał zależności i kto sprawdzał efekt po wdrożeniu? Jeżeli w każdym przypadku Twoja rola zaczynała się od gotowego zadania i kończyła na pull requeście, to użyteczny sygnał rozwojowy, a nie wyrok na Twoją karierę.",
+          "Wybierz jeden obszar, w którym możesz rozszerzyć odpowiedzialność bez zmiany stanowiska. Zapytaj o cel biznesowy, zaproponuj sposób pomiaru, opisz trade-off albo wróć do danych po wdrożeniu. Nawet mała inicjatywa może zmienić Twoją rolę z osoby realizującej instrukcję w osobę współodpowiedzialną za rezultat.",
+        ],
+      },
+      {
         heading: "Pokaż w CV wartość odporną na automatyzację",
         paragraphs: [
           "CV powinno pokazywać nie tylko narzędzia, lecz również to, dlaczego powierzano Ci określone problemy. Wyeksponuj decyzje, wiedzę domenową, odpowiedzialność za rezultat, pracę z ryzykiem i wpływ wykraczający poza własną listę zadań. Nie deklaruj, że jesteś „odporny na AI”. Daj odbiorcy dowody, z których sam wyciągnie taki wniosek.",
@@ -84,11 +105,22 @@ export const articles: Article[] = [
           note: "Druga wersja nie próbuje wygrać listą narzędzi. Pokazuje kontekst, odpowiedzialność i domknięcie pętli informacji zwrotnej.",
         },
       },
+      {
+        heading: "Plan działania na najbliższe 30 dni",
+        paragraphs: [
+          "Tydzień 1: spisz zadania z ostatniego miesiąca i podziel je na przewidywalne wykonanie oraz pracę wymagającą kontekstu, decyzji lub współpracy. Wybierz jeden powtarzalny fragment, który świadomie przyspieszysz z AI, wraz ze sposobem weryfikacji jakości.",
+          "Tydzień 2: przejmij jeden mały problem od diagnozy do sprawdzenia efektu. Nazwij cel, ograniczenia, ryzyko i miarę powodzenia. Nie musisz prowadzić dużego projektu — ważne, by domknąć pętlę odpowiedzialności.",
+          "Tydzień 3: zapisz jedną decyzję wraz z odrzuconymi opcjami i konsekwencjami. Udostępnij wiedzę w formie krótkiego RFC, checklisty, standardu albo dokumentacji, która ułatwi pracę innym.",
+          "Tydzień 4: popraw w CV dwa punkty. Usuń język obowiązków, pokaż własny zakres i rezultat, ale nie dopisuj liczb ani odpowiedzialności, których nie potrafisz obronić na rozmowie. Na koniec przygotuj jedną historię o użyciu AI: co przyspieszyło, jak zweryfikowałeś wynik i za co nadal odpowiadał człowiek.",
+        ],
+      },
     ],
     checklist: [
+      "Czy wiesz, które elementy Twojej pracy są przewidywalne i łatwe do przyspieszenia przez AI?",
       "Czy potrafisz nazwać problemy, za które odpowiadasz, a nie tylko zadania, które wykonujesz?",
-      "Czy pokazujesz decyzje wymagające kontekstu, osądu albo pracy z ryzykiem?",
+      "Czy pokazujesz decyzje wymagające wiedzy domenowej, osądu albo pracy z ryzykiem?",
       "Czy umiesz wyjaśnić, jak weryfikujesz jakość pracy wspieranej przez AI?",
+      "Czy wracasz do efektu po wdrożeniu zamiast kończyć odpowiedzialność na pull requeście?",
       "Czy Twoja praca ułatwia innym podejmowanie lepszych decyzji lub bezpieczne działanie?",
       "Czy CV pokazuje rezultat i odpowiedzialność wyraźniej niż sam stack narzędzi?",
     ],
