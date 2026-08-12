@@ -2,7 +2,7 @@ import type { Article } from "./articles";
 
 export const articlesEn: Article[] = [
   {
-    slug: "how-to-stay-relevant-in-the-age-of-ai", category: "Career and AI", title: "Will AI replace software developers? How to future-proof your career", readingTime: "14 min", publishedAt: "2026-08-09",
+    slug: "how-to-stay-relevant-in-the-age-of-ai", category: "Career and AI", title: "Will AI replace software developers? How to future-proof your career", readingTime: "14 min", publishedAt: "2026-08-09", updatedAt: "2026-08-12",
     description: "Will AI replace software developers? Learn which tasks are easiest to automate and how to build value through ownership, judgement, domain context and impact.",
     excerpt: "AI accelerates predictable tasks. Build an advantage around decisions, context, responsibility and measurable impact.",
     intro: "Will AI replace software developers? It will change the work and reduce the value of some repeatable tasks, but that does not justify a promise that the whole profession will disappear or remain unchanged. A better question is how to avoid being replaceable where your role currently consists mainly of predictable execution. This guide helps you move your value towards context, judgement, responsibility and carrying important problems through to outcomes.",

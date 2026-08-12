@@ -65,6 +65,7 @@ describe("structured article data", () => {
       headline: article.title,
       articleSection: article.category,
       datePublished: `${article.publishedAt}T09:00:00+02:00`,
+      dateModified: `${article.updatedAt ?? article.publishedAt}T09:00:00+02:00`,
       author: {
         "@type": "Person",
         "@id": AUTHOR_ID,
@@ -75,6 +76,14 @@ describe("structured article data", () => {
     expect(blogPost?.wordCount).toBeGreaterThan(500);
     expect(blogPost && "image" in blogPost ? blogPost.image?.[0] : undefined)
       .toBe(absoluteUrl("/opengraph-image"));
+  });
+
+  it("publishes the latest real article update in the sitemap", () => {
+    const article = articles[0];
+    const entry = sitemap().find(({ url }) => url === absoluteUrl(`/artykuly/${article.slug}`));
+
+    expect(article.updatedAt).toBe("2026-08-12");
+    expect(entry?.lastModified).toBe(article.updatedAt);
   });
 
   it("escapes markup-like text before embedding JSON-LD in HTML", () => {
