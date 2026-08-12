@@ -9,7 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/en/terms", "/en/privacy", "/en/cookies", "/en/delete-data", "/en/contact"];
   return [
     ...publicPages.map((path) => ({ url: absoluteUrl(path), lastModified: SITE_LAST_SIGNIFICANT_UPDATE })),
-    ...articles.map((article) => ({ url: absoluteUrl(`/artykuly/${article.slug}`), lastModified: article.publishedAt })),
-    ...articlesEn.map((article) => ({ url: absoluteUrl(`/en/articles/${article.slug}`), lastModified: article.publishedAt })),
+    ...articles.map((article) => ({ url: absoluteUrl(`/artykuly/${article.slug}`), lastModified: article.updatedAt ?? article.publishedAt })),
+    ...articlesEn.map((article) => ({ url: absoluteUrl(`/en/articles/${article.slug}`), lastModified: article.updatedAt ?? article.publishedAt })),
   ];
 }

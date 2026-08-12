@@ -56,7 +56,7 @@ export function buildArticleStructuredData(article: Article, locale: Locale = "p
         articleSection: article.category,
         image: [articleImageUrl(article, locale)],
         datePublished: `${article.publishedAt}T09:00:00+02:00`,
-        dateModified: `${article.publishedAt}T09:00:00+02:00`,
+        dateModified: `${article.updatedAt ?? article.publishedAt}T09:00:00+02:00`,
         inLanguage: language,
         isAccessibleForFree: true,
         wordCount: articleWordCount(article),

@@ -16,6 +16,7 @@ export type Article = {
   excerpt: string;
   readingTime: string;
   publishedAt: string;
+  updatedAt?: string;
   intro: string;
   sections: ArticleSection[];
   checklist: string[];
@@ -30,6 +31,7 @@ export const articles: Article[] = [
     excerpt: "AI przyspiesza przewidywalne zadania. Zobacz, jak budować przewagę opartą na decyzjach, kontekście, odpowiedzialności i wpływie.",
     readingTime: "14 min",
     publishedAt: "2026-08-09",
+    updatedAt: "2026-08-12",
     intro: "Czy AI zastąpi programistów? Zmieni sposób pracy i zmniejszy wartość części powtarzalnych zadań, ale nie daje to uczciwej podstawy do obietnicy, że cały zawód zniknie albo pozostanie bez zmian. Lepsze pytanie brzmi: jak nie dać się zastąpić przez AI tam, gdzie Twoja rola sprowadza się dziś głównie do przewidywalnego wykonania? Ten poradnik pomaga przesunąć wartość w stronę kontekstu, osądu, odpowiedzialności i doprowadzania ważnych problemów do rezultatu.",
     sections: [
       {
