@@ -6,9 +6,11 @@ describe("knowledge articles", () => {
   it("publishes the AI career pillar as the leading article", () => {
     const article = articlesBySlug.get("jak-nie-dac-sie-zastapic-przez-ai");
     expect(articles[0]).toBe(article);
-    expect(article?.title).toBe("Jak nie dać się zastąpić przez AI?");
-    expect(article?.sections.length).toBeGreaterThanOrEqual(6);
-    expect(article?.checklist.length).toBeGreaterThanOrEqual(4);
+    expect(article?.title).toBe("Czy AI zastąpi programistów? Jak zabezpieczyć swoją karierę");
+    expect(article?.sections.length).toBeGreaterThanOrEqual(10);
+    expect(article?.sections.some((section) => section.heading.includes("Autodiagnoza"))).toBe(true);
+    expect(article?.sections.some((section) => section.heading.includes("30 dni"))).toBe(true);
+    expect(article?.checklist.length).toBeGreaterThanOrEqual(7);
   });
 
   it("keeps article slugs unique for static routes and the sitemap", () => {
