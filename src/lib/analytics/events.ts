@@ -49,9 +49,12 @@ const enumValues: Record<string, readonly string[]> = {
 
 export function safeAnalyticsPayload(event: AnalyticsEvent, properties: Record<string, string | number | boolean> = {}) {
   const allowedKeys = new Set(allowed[event]);
+  const attributionKeySet = new Set<string>(attributionKeys);
+  const safeAttributionValue = /^[\p{L}\p{N}._~+\- ]+$/u;
   const safeProperties = Object.fromEntries(Object.entries(properties).flatMap(([key, raw]) => {
     if (!allowedKeys.has(key)) return [];
     const value = typeof raw === "string" ? raw.slice(0, 160) : raw;
+    if (attributionKeySet.has(key) && (typeof value !== "string" || !safeAttributionValue.test(value))) return [];
     if (enumValues[key] && (typeof value !== "string" || !enumValues[key].includes(value))) return [];
     if (key === "value" && (typeof value !== "number" || !Number.isFinite(value) || value < 0)) return [];
     return [[key, value]];
