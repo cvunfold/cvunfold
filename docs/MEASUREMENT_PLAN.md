@@ -23,7 +23,7 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 | `handoff_link_opened` | Otwarcie bezpiecznego linku na urządzeniu docelowym | jw. + `handoff_origin` | GA4 | diagnostic | raz po mount |
 | `analysis_started` | Submit oraz bezpieczny event serwerowy | jw.; DB: plan + UTM | GA4 + Supabase | secondary | systemy raportowane oddzielnie |
 | `analysis_succeeded` | Walidowany raport zapisany | client: plan/success; server: czas/model/wersje/tokeny/koszt | Supabase | secondary | jeden zapis na analizę |
-| `analysis_failed` | Bezpieczna kategoria błędu | locale, market, plan, error_category | Supabase + GA4 | diagnostic | bez raw exception |
+| `analysis_failed` | Bezpieczna kategoria błędu | locale, market, plan, error_category | Supabase + GA4 | diagnostic | bez raw exception; runtime może dostać tylko techniczne liczniki ekstrakcji z zamkniętej allowlisty opisanej w `PRIVACY_AND_RETENTION.md` |
 | `analysis_configuration_failed` | Analiza kończy się błędem konfiguracji dostawcy AI | locale, market, plan, analysis_success | GA4 | diagnostic alert | bez CV, PII, nazwy pliku, promptu i komunikatu dostawcy; alert już przy 1 zdarzeniu |
 | `teaser_viewed` | Render nieopłaconego teasera | locale, market, plan | GA4 + Supabase | secondary | raz na mount |
 | `checkout_started` | Utworzona sesja Checkout | locale, market, plan + zamknięty kontekst | Supabase + GA4 | secondary | wyłącznie po udanym `createCheckout`; nie przy samym kliknięciu |

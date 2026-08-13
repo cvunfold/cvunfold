@@ -10,13 +10,14 @@ import { consumeAnalysisQuota, rateLimit } from "@/lib/security/rate-limit";
 import { validateSignature, validateUpload } from "@/lib/security/upload";
 import { parseSeniority } from "@/lib/rubrics/technical-v1";
 import { parseTargetRoleId } from "@/lib/roles";
-import { getSafeOpenAIErrorDiagnostic, reviewWithOpenAI, toSafeOpenAIErrorCode } from "@/lib/ai/openai-review";
+import { reviewWithOpenAI, toSafeOpenAIErrorCode } from "@/lib/ai/openai-review";
 import { isLocale, reportPath, type Locale } from "@/lib/i18n";
 import { marketForLocale } from "@/lib/plans";
 import { parseAttribution } from "@/lib/analytics/attribution";
 import type { ReviewTelemetry } from "@/lib/ai/openai-review";
 import { verifyTurnstile } from "@/lib/security/turnstile";
 import { DEFAULT_LANDING_VARIANT } from "@/lib/audience";
+import { buildSafeAnalysisFailureLog } from "@/lib/observability/analysis-failure";
 
 export const runtime = "nodejs";
 
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
     await verifyTurnstile(String(form.get("turnstileToken") || ""), clientIp);
     if (jobDescription.length > Number(process.env.MAX_JOB_DESCRIPTION_LENGTH || 20_000)) throw new Error("JOB_DESCRIPTION_TOO_LONG");
     const mockMode = process.env.MOCK_MODE === "true";
+    const documentQaMode = mockMode && process.env.NODE_ENV !== "production" && process.env.DOCUMENT_QA_MODE === "true";
     let report;
     let telemetry: ReviewTelemetry = { model: "mock", inputTokens: 0, outputTokens: 0, estimatedCost: 0 };
     if (!mockMode) {
@@ -79,6 +81,10 @@ export async function POST(request: Request) {
       report = review.report;
       telemetry = review.telemetry;
     } else {
+      if (documentQaMode) {
+        await validateSignature(file);
+        validateCvText((await parseDocument(file)).text);
+      }
       const mock = createMockReport(seniority, jobDescription.length > 0, targetRole, locale);
       const mockEvidence = mock.evidenceMap || {};
       report = validateEvidence(mock, new Set(Object.keys(mockEvidence)), mockEvidence);
@@ -127,7 +133,12 @@ export async function POST(request: Request) {
       TURNSTILE_REQUIRED: "rate_limit", TURNSTILE_FAILED: "rate_limit", TURNSTILE_UNAVAILABLE: "rate_limit",
     };
     const errorCategory = errorCategories[safeCode] || "unknown";
-    console.error(`[analysis_failed] ${safeCode}`, getSafeOpenAIErrorDiagnostic(error));
+    console.error(JSON.stringify(buildSafeAnalysisFailureLog({
+      code: safeCode,
+      durationMs: Date.now() - startedAt,
+      error,
+      requestId: request.headers.get("x-vercel-id"),
+    })));
     const status = code === "RATE_LIMIT_CHECK_FAILED" || code === "OPENAI_NOT_CONFIGURED" || code === "OPENAI_AUTH_FAILED" || code === "OPENAI_RATE_LIMITED" ? 503
       : code === "ANALYSIS_TIMEOUT" ? 504
       : code === "OPENAI_INVALID_RESPONSE" || code === "SUPABASE_SAVE_FAILED" || safeCode === "ANALYSIS_FAILED" ? 502
