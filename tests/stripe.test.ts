@@ -37,7 +37,7 @@ describe("Stripe price boundary", () => {
   });
 
   it("keeps webhook fulfillment idempotent and purchase recording server-side", () => {
-    const migration = readFileSync("supabase/migrations/20260809132954_launch_readiness.sql", "utf8");
+    const migration = readFileSync("supabase/migrations/20260809170853_launch_readiness.sql", "utf8");
     expect(migration).toContain("webhook_events");
     expect(migration).toContain("stripe-purchase:");
     expect(migration).toContain("on conflict (dedupe_key)");

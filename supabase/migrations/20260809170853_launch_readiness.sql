@@ -1,3 +1,4 @@
+-- Keep the local migration version aligned with the applied production history.
 alter table public.analyses
   add column if not exists market text not null default 'pl' check (market in ('pl', 'en')),
   add column if not exists attribution jsonb not null default '{}'::jsonb,
