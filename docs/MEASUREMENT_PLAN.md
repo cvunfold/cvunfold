@@ -51,9 +51,10 @@ Jeżeli skonfigurowano `NEXT_PUBLIC_GOOGLE_ADS_ID` oraz `NEXT_PUBLIC_GOOGLE_ADS_
 ## UTM i atrybucja
 
 - Przechowujemy `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` w `sessionStorage`, następnie w allowlistowanym rekordzie analizy.
-- `gclid`, `gbraid`, `wbraid` mogą być zachowane do przyszłej zgodnej integracji, ale obecnie nie są wysyłane jako parametry eventów i nigdy nie trafiają do linku raportu.
+- Po zgodzie publiczny `page_location` zachowuje wyłącznie zwalidowane UTM i identyfikatory kliknięcia, a GA4 otrzymuje także standardowe pola `campaign_source`, `campaign_medium`, `campaign_name`, `campaign_content` i `campaign_term`. Pozostałe parametry URL są odcinane.
+- `gclid`, `gbraid`, `wbraid` nie są własnymi parametrami eventów i nigdy nie trafiają do linku handoffu, linku raportu ani prywatnego `page_location`.
+- `analyses.attribution` zawiera zamknięty kontekst `landing_variant=developer`, rolę, seniority i opcjonalny `handoff_origin`. Nie zawiera nazwy pliku, treści CV, dostawcy pliku ani prywatnego URL-a.
 - Diagnostics łączy zakupy z bezpiecznym `attribution.source`; wydatki Ads są łączone później poza aplikacją.
-- `analyses.attribution` przechowuje także zamknięte `landing_variant=developer`, rolę, seniority i opcjonalny `handoff_origin`.
 - Link handoffu nie kopiuje bieżącego query stringa. Zachowuje wyłącznie rolę, seniority, plan i `handoff=mobile`; nie zawiera źródła kampanii, CV, ogłoszenia, nazwy pliku, tokenu, click ID ani szczegółowych UTM.
 - Diagnostics agreguje analizy i zakupy według wariantu, roli, seniority i planu; wartości historyczne bez kontekstu są oznaczone jako `legacy_unknown`.
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { createMockReport } from "@/lib/ai/mock-report";
-import { saveAnalysis } from "@/lib/data/store";
+import { diagnostics, saveAnalysis } from "@/lib/data/store";
 import { createAccessToken } from "@/lib/security/tokens";
 import { POST as createSession } from "@/app/api/report-session/route";
 import { GET as getReport, DELETE as deleteReport } from "@/app/api/report/route";
@@ -33,6 +33,14 @@ describe("private report API boundary", () => {
     expect(payload.report).not.toHaveProperty("issues");
     expect(payload.report).not.toHaveProperty("strengths");
     expect(JSON.stringify(payload.report)).not.toContain("full_report_json");
+  });
+
+  it("deduplicates repeated teaser reads for the server funnel", async () => {
+    const before = await diagnostics();
+    await getReport(new Request("http://localhost/api/report", { headers: { cookie } }));
+    await getReport(new Request("http://localhost/api/report", { headers: { cookie } }));
+    const after = await diagnostics();
+    expect(Number(after.events.teaser_viewed || 0) - Number(before.events.teaser_viewed || 0)).toBe(1);
   });
 
   it("unlocks only after the server marks the analysis paid", async () => {

@@ -1,8 +1,14 @@
 "use client";
 
 import { safeAnalyticsPayload, type AnalyticsEvent } from "./events";
-import { parseAttribution } from "./attribution";
+import { parseAttribution, type Attribution } from "./attribution";
 import type { MeasurementContext } from "@/lib/audience";
+import {
+  googleCampaignFields,
+  marketingAttributionFromSearch,
+  marketingAttributionToSearch,
+  sanitizeMarketingAttribution,
+} from "./safe-attribution";
 import { brandStorageKey } from "@/lib/brand";
 
 export const CONSENT_STORAGE_KEY = brandStorageKey("google-consent");
@@ -43,8 +49,12 @@ export function safeAnalyticsPath(pathname: string): string {
   return pathname.slice(0, 160);
 }
 
-export function safeAnalyticsLocation(pathname: string, origin: string): string {
-  return `${origin.replace(/\/$/, "")}${safeAnalyticsPath(pathname)}`;
+export function safeAnalyticsLocation(pathname: string, origin: string, search = ""): string {
+  const safePath = safeAnalyticsPath(pathname);
+  const safeSearch = safePath === "/raport" || safePath === "/en/report"
+    ? ""
+    : marketingAttributionToSearch(marketingAttributionFromSearch(search));
+  return `${origin.replace(/\/$/, "")}${safePath}${safeSearch}`;
 }
 
 export function readConsent(): ConsentChoice | null {
@@ -59,31 +69,26 @@ export function writeConsent(value: ConsentChoice): void {
   window.dispatchEvent(new CustomEvent(CONSENT_UPDATED_EVENT, { detail: value }));
 }
 
-export function readSafeAttribution(): AnalyticsProperties {
+export function readSafeAttribution(): Attribution {
   if (typeof window === "undefined") return {};
   const key = brandStorageKey("attribution");
-  const params = new URLSearchParams(window.location.search);
-  const fromUrl = Object.fromEntries([
-    ["source", params.get("utm_source")],
-    ["medium", params.get("utm_medium")],
-    ["campaign", params.get("utm_campaign")],
-    ["content", params.get("utm_content")],
-    ["term", params.get("utm_term")],
-    ["gclid", params.get("gclid")],
-    ["gbraid", params.get("gbraid")],
-    ["wbraid", params.get("wbraid")],
-  ].filter((entry): entry is [string, string] => Boolean(entry[1])).map(([name, value]) => [name, value.slice(0, 120)]));
-  if (Object.keys(fromUrl).length) window.sessionStorage.setItem(key, JSON.stringify(fromUrl));
+  const fromUrl = marketingAttributionFromSearch(window.location.search);
   try {
-    return parseAttribution({ ...JSON.parse(window.sessionStorage.getItem(key) || "{}"), ...fromUrl });
+    const stored = parseAttribution(JSON.parse(window.sessionStorage.getItem(key) || "{}"));
+    const attribution = parseAttribution({ ...stored, ...fromUrl });
+    if (Object.keys(fromUrl).length) {
+      window.sessionStorage.setItem(key, JSON.stringify(sanitizeMarketingAttribution(attribution)));
+    }
+    return attribution;
   } catch {
     return parseAttribution(fromUrl);
   }
 }
 
 function sendEvent(event: AnalyticsEvent, properties: AnalyticsProperties): void {
-  const payload = safeAnalyticsPayload(event, { ...readSafeAttribution(), ...properties });
-  window.gtag?.("event", payload.event, payload.properties);
+  const attribution = readSafeAttribution();
+  const payload = safeAnalyticsPayload(event, { ...attribution, ...properties });
+  window.gtag?.("event", payload.event, { ...payload.properties, ...googleCampaignFields(attribution) });
 }
 
 export function trackAnalyticsEvent(event: AnalyticsEvent, properties: AnalyticsProperties = {}): void {

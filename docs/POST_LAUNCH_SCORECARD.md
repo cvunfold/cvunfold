@@ -15,6 +15,19 @@ Snapshot przekazany przez właściciela 2026-08-13. To punkt odniesienia do dals
 
 Pięć kliknięć może wskazywać, że reklama budzi zainteresowanie, ale nie pozwala jeszcze ocenić opłacalności ani jakości kupujących.
 
+## Snapshot przed naprawą atrybucji — 13 sierpnia 2026
+
+| Metryka | Wartość |
+|---|---:|
+| Wyświetlenia | 129 |
+| Kliknięcia | 12 |
+| CTR | 9,30% |
+| Średni CPC | 3,69 zł |
+| Koszt | 44,24 zł |
+| Raportowane konwersje | 0 |
+
+Kampania nie miała ustawionych opcji adresu URL, a aplikacja usuwała parametry kampanii z `page_location` GA4. Suffix UTM przeszedł test strony docelowej i został zapisany 13 sierpnia 2026. Poprawka dotyczy nowych kliknięć; historycznych sesji oznaczonych jako direct nie należy retroaktywnie przypisywać do kampanii.
+
 ## Próg brutto i rzeczywista marża
 
 Przy średnim CPC 3,35 zł sam przychód brutto pokrywa reklamę w przybliżeniu przy:
@@ -51,3 +64,9 @@ Nie rozpoznajemy ani nie raportujemy dostawcy pliku. Pełny Google Picker pozost
 ## Reguła interpretacji
 
 CTR, otwarcie pickera, upload i wygenerowanie teasera są sygnałami diagnostycznymi. Nie są substytutem zakupu, CAC ani marży. Każdą decyzję o skalowaniu zapisujemy wraz z zakresem danych, okresem i stanem jakości pomiaru.
+
+## Lejek do odczytu
+
+`landing_view → file_picker_opened → upload_started → analysis_succeeded → teaser_viewed → checkout_started → purchase`
+
+Interpretujemy pierwszy istotny spadek, a nie samą liczbę odwiedzin. Przykładowo: dużo otwarć selektora i mało `upload_started` wskazuje tarcie przy wyborze pliku; dużo teaserów i brak checkoutu wskazuje raczej problem wartości raportu lub oferty.

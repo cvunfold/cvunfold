@@ -2,9 +2,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   configureAdsPurchaseDestination,
+  clearPendingAnalytics,
   flushPendingAnalytics,
   markAnalyticsReady,
+  readSafeAttribution,
   resetAnalyticsReady,
+  safeAnalyticsLocation,
+  trackAnalyticsEvent,
   trackPurchaseConversion,
   writeConsent,
 } from "@/lib/analytics/client";
@@ -14,7 +18,9 @@ import { safeAnalyticsPayload } from "@/lib/analytics/events";
 afterEach(() => {
   window.localStorage.clear();
   window.sessionStorage.clear();
+  window.history.replaceState(null, "", "/");
   configureAdsPurchaseDestination();
+  clearPendingAnalytics();
   resetAnalyticsReady();
   delete window.gtag;
 });
@@ -67,6 +73,64 @@ describe("Google tag bootstrap", () => {
 
     expect(consentDefault).toBeGreaterThan(-1);
     expect(tagInitialization).toBeGreaterThan(consentDefault);
+  });
+});
+
+describe("campaign attribution", () => {
+  it("keeps only validated campaign parameters in a public GA4 page location", () => {
+    const search = "?utm_source=google&utm_medium=cpc&utm_campaign=cv_developer_pl_search&utm_term=senior+frontend&gclid=abc_DEF-123&private=secret&utm_content=bad%40email.pl";
+    expect(safeAnalyticsLocation("/", "https://cvunfold.com/", search)).toBe(
+      "https://cvunfold.com/?utm_source=google&utm_medium=cpc&utm_campaign=cv_developer_pl_search&utm_term=senior+frontend&gclid=abc_DEF-123",
+    );
+  });
+
+  it("never adds campaign or click parameters to a private report location", () => {
+    expect(safeAnalyticsLocation("/raport", "https://cvunfold.com", "?utm_source=google&gclid=abc-123&session_id=secret"))
+      .toBe("https://cvunfold.com/raport");
+  });
+
+  it("stores only the closed attribution allowlist and sends GA4 campaign fields", () => {
+    window.history.replaceState(null, "", "/?utm_source=google&utm_medium=cpc&utm_campaign=cv_developer_pl_search&utm_content=123-456&utm_term=cv+seniora&gclid=abc_DEF-123&email=private%40example.com");
+    expect(readSafeAttribution()).toEqual({
+      source: "google", medium: "cpc", campaign: "cv_developer_pl_search", content: "123-456", term: "cv seniora", gclid: "abc_DEF-123",
+    });
+
+    const gtag = vi.fn();
+    window.gtag = gtag;
+    writeConsent("granted");
+    markAnalyticsReady();
+    trackAnalyticsEvent("page_view", { locale: "pl", market: "pl", landing_variant: "developer" });
+    expect(gtag).toHaveBeenCalledWith("event", "page_view", expect.objectContaining({
+      campaign_source: "google",
+      campaign_medium: "cpc",
+      campaign_name: "cv_developer_pl_search",
+      campaign_content: "123-456",
+      campaign_term: "cv seniora",
+      landing_variant: "developer",
+    }));
+    expect(JSON.stringify(gtag.mock.calls)).not.toContain("private@example.com");
+  });
+});
+
+describe("file picker diagnostics", () => {
+  it("accepts only closed file-interaction fields", () => {
+    expect(safeAnalyticsPayload("upload_started", {
+      locale: "pl", market: "pl", plan: "full_review", broad_role_enum: "frontend_developer",
+      selected_seniority_enum: "senior", upload_entrypoint: "picker", landing_variant: "developer",
+      filename: "private-cv.pdf", file_provider: "google-drive", cv_text: "secret",
+    }).properties).toEqual({
+      locale: "pl", market: "pl", plan: "full_review", broad_role_enum: "frontend_developer",
+      selected_seniority_enum: "senior", upload_entrypoint: "picker", landing_variant: "developer",
+    });
+    expect(safeAnalyticsPayload("file_picker_cancelled", {
+      locale: "pl", market: "pl", plan: "full_review", filename: "private-cv.pdf",
+    }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
+  });
+
+  it("keeps plan and the closed variant on sample-report views", () => {
+    expect(safeAnalyticsPayload("sample_report_viewed", {
+      locale: "en", market: "en", plan: "full_review", landing_variant: "developer", report_token: "secret",
+    }).properties).toEqual({ locale: "en", market: "en", plan: "full_review", landing_variant: "developer" });
   });
 });
 

@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     locale: item.locale,
     market: item.market,
     properties: { plan: item.plan, ...measurementContext },
+    dedupeKey: `${item.paid ? "full-report-viewed" : "teaser-viewed"}:${item.id}`,
   }).catch(() => undefined);
   return NextResponse.json({
     paid: item.paid,

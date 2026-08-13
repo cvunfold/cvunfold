@@ -20,7 +20,7 @@ export type StripePayment = PendingPayment & {
   eventId: string; paymentIntentId: string | null; customerId: string | null;
 };
 
-type Store = { analyses: Map<string, Analysis>; events: Array<{ name: string; at: Date }> };
+type Store = { analyses: Map<string, Analysis>; events: Array<{ name: string; at: Date }>; eventDedupeKeys: Set<string> };
 type StoredAnalysisRow = {
   id: string; created_at: string; expires_at: string; access_token_hash: string; status: "complete" | "deleted";
   paid_at: string | null; job_description_present: boolean; locale: Locale; market: Market; attribution: Attribution | null; duration_ms: number | null;
@@ -30,7 +30,8 @@ type StoredAnalysisRow = {
 };
 
 const globalStore = globalThis as typeof globalThis & { __cvunfold?: Store };
-const store: Store = globalStore.__cvunfold ?? { analyses: new Map(), events: [] };
+const store: Store = globalStore.__cvunfold ?? { analyses: new Map(), events: [], eventDedupeKeys: new Set() };
+store.eventDedupeKeys ??= new Set();
 globalStore.__cvunfold = store;
 
 function supabaseClient() {
@@ -232,7 +233,12 @@ export async function recordFunnelEvent(input: {
       && ["string", "number", "boolean"].includes(typeof value)
       && (!safePropertyEnums[key] || typeof value === "string" && safePropertyEnums[key].includes(value))));
   const client = supabaseClient();
-  if (!client) { store.events.push({ name: input.name, at: new Date() }); return; }
+  if (!client) {
+    if (input.dedupeKey && store.eventDedupeKeys.has(input.dedupeKey)) return;
+    if (input.dedupeKey) store.eventDedupeKeys.add(input.dedupeKey);
+    store.events.push({ name: input.name, at: new Date() });
+    return;
+  }
   const { error } = await client.from("funnel_events").insert({
     analysis_id: input.analysisId || null,
     payment_id: input.paymentId || null,

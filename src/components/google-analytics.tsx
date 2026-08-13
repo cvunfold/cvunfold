@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   clearPendingAnalytics,
   configureAdsPurchaseDestination,
   flushPendingAnalytics,
   markAnalyticsReady,
+  readSafeAttribution,
   readConsent,
   resetAnalyticsReady,
   safeAnalyticsLocation,
@@ -15,6 +16,7 @@ import {
   writeConsent,
   type ConsentChoice,
 } from "@/lib/analytics/client";
+import { googleCampaignFields } from "@/lib/analytics/safe-attribution";
 import { brand } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n";
 import { DEFAULT_LANDING_VARIANT } from "@/lib/audience";
@@ -25,6 +27,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
   const pathname = usePathname();
   const [choice, setChoice] = useState<ConsentChoice | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const lastTrackedPage = useRef("");
   const enabled = Boolean(analyticsId || adsId);
   const locale: Locale = pathname.startsWith("/en") ? "en" : "pl";
   const isSensitivePage = pathname === "/raport" || pathname === "/en/report" || pathname.includes("/raport/");
@@ -40,15 +43,16 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
 
   useEffect(() => {
     if (!enabled || choice !== "granted") return;
+    const attribution = readSafeAttribution();
     const pagePath = safeAnalyticsPath(pathname);
-    const pageLocation = safeAnalyticsLocation(pathname, window.location.origin);
+    const pageLocation = safeAnalyticsLocation(pathname, window.location.origin, window.location.search);
     window.gtag?.("consent", "update", {
       analytics_storage: "granted",
       ad_storage: "granted",
       ad_user_data: "granted",
       ad_personalization: "granted",
     });
-    window.gtag?.("set", { page_path: pagePath, page_location: pageLocation });
+    window.gtag?.("set", { page_path: pagePath, page_location: pageLocation, ...googleCampaignFields(attribution) });
     if (analyticsId) window.gtag?.("config", analyticsId, { send_page_view: false });
     if (adsId) window.gtag?.("config", adsId);
     const tagId = analyticsId || adsId;
@@ -64,9 +68,13 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
 
   useEffect(() => {
     if (!enabled || isSensitivePage || choice !== "granted") return;
+    const attribution = readSafeAttribution();
     const pagePath = safeAnalyticsPath(pathname);
-    const pageLocation = safeAnalyticsLocation(pathname, window.location.origin);
-    window.gtag?.("set", { page_path: pagePath, page_location: pageLocation });
+    const pageLocation = safeAnalyticsLocation(pathname, window.location.origin, window.location.search);
+    const pageKey = `${pagePath}|${pageLocation}`;
+    if (lastTrackedPage.current === pageKey) return;
+    lastTrackedPage.current = pageKey;
+    window.gtag?.("set", { page_path: pagePath, page_location: pageLocation, ...googleCampaignFields(attribution) });
     trackAnalyticsEvent("page_view", { locale, market: locale, landing_variant: DEFAULT_LANDING_VARIANT });
     if (pathname === "/" || pathname === "/en") {
       trackAnalyticsEvent("landing_view", { locale, market: locale, landing_variant: DEFAULT_LANDING_VARIANT });

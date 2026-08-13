@@ -1,6 +1,6 @@
 # CVUnfold external resource registry
 
-Last verified: 2026-08-10 (Europe/Warsaw).
+Last verified: 2026-08-13 (Europe/Warsaw).
 
 This registry is the preflight source of truth for external writes. A shared
 email address is not an ownership signal. NeoPadel and all other client or
@@ -16,7 +16,7 @@ employer resources remain forbidden.
 | OVHcloud | `xl5829-ovh` (`Paweł Mączka-Czarnecki IT`) | private business account | `cvunfold.pl`, `cvunfold.com` | Public DNS and mail forwarding / Production | Approved; apex and `www` point to Vercel (`216.150.1.1`); `support@cvunfold.com` forwards to the owner's private Gmail; public MX records are `mx1.mail.ovh.net`, `mx2.mail.ovh.net`, and `mx3.mail.ovh.net` |
 | Vercel | `pawelmaczkaczarnecki` | `pawelmaczkaczarnecki's projects` (Pro) | `cvunfold`, linked to `cvunfold/cvunfold` | Production at `cvunfold.com`; `cvunfold.pl`, `www.cvunfold.pl`, and `www.cvunfold.com` redirect with 308 to `cvunfold.com`; Preview enabled | Approved; domain switch and production deployment `dpl_H6RtKey57vYcs1sPUrKCD4ZPvqDc` verified 2026-08-10; Supabase integration restricted to this project |
 | OpenAI Platform | private business account | Personal organization | `CVUnfold` (`proj_SL3YR6PScXe3vj52C31b1FyJ`) | Vercel Production / Preview | Project and restricted backend key approved; Usage Tier 1 and funded auto-reload verified; capped PL/EN live eval passed 2026-08-09 and its temporary key was revoked |
-| Google Ads | `pawelmaczkaczarnecki@gmail.com` | private business Google account | customer `461-172-5021`; campaign `24116869899` | Production / active learning | Search campaign is active with a 50 PLN daily budget and direct final URL `https://cvunfold.com/`; the sole primary `Zakup` conversion remains inactive/unverified and must be confirmed before scaling spend |
+| Google Ads | `pawelmaczkaczarnecki@gmail.com` | private business Google account | customer `461-172-5021`; campaign `24116869899` | Production / active learning | Search campaign is active with an 80 PLN daily budget and direct final URL `https://cvunfold.com/`; campaign final URL suffix `utm_source=google&utm_medium=cpc&utm_campaign=cv_developer_pl_search&utm_content={adgroupid}-{creative}&utm_term={keyword}` passed the Google landing-page test and was saved 2026-08-13; the sole primary `Zakup` conversion remains unverified and must be confirmed before scaling spend |
 | Google Search Console | `pawelmaczkaczarnecki@gmail.com` | private business Google account | URL-prefix property `https://cvunfold.com/`; Domain property `cvunfold.com` | Production | URL-prefix property verified by HTML meta tag; Domain property verified through the OVH DNS TXT record on 2026-08-10; `/sitemap.xml` has status **Success** with 30 discovered URLs in the domain view |
 
 Before any write, revalidate the service, account, organization/team, project,
