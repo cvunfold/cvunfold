@@ -8,6 +8,7 @@ import type { Plan } from "@/lib/plans";
 import { Logo } from "@/components/logo";
 import { ReportView } from "@/components/report-view";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
+import type { MeasurementContext } from "@/lib/audience";
 
 type ReportResponse = {
   paid: boolean;
@@ -16,6 +17,7 @@ type ReportResponse = {
   expiresAt: string;
   report: CVReport | TeaserReport;
   purchase?: Purchase;
+  measurementContext: MeasurementContext;
 };
 
 const messages = {
@@ -75,7 +77,7 @@ export function ReportSessionPage({ locale, mockMode }: { locale: Locale; mockMo
       const checkoutState = new URLSearchParams(window.location.search).get("checkout");
       if (checkoutState === "cancelled") {
         await fetch("/api/report/checkout-event", { method: "POST" }).catch(() => undefined);
-        trackAnalyticsEvent("checkout_cancelled", { plan: report.plan, locale: report.locale, market: report.locale });
+        trackAnalyticsEvent("checkout_cancelled", { plan: report.plan, locale: report.locale, market: report.locale, ...report.measurementContext });
         if (!cancelled) setNotice(t.cancelled);
         window.history.replaceState(null, "", window.location.pathname);
       }
@@ -96,5 +98,5 @@ export function ReportSessionPage({ locale, mockMode }: { locale: Locale; mockMo
 
   if (error) return <main className="report-state"><Logo locale={locale}/><h1>{t.missing}</h1><button className="button" onClick={() => window.location.reload()}>{t.retry}</button></main>;
   if (!data || pending) return <main className="report-state"><Logo locale={locale}/><div className="analysis-spinner"/><h1>{pending ? t.pending : t.loading}</h1></main>;
-  return <>{notice ? <div className="payment-notice" role="status">{notice}</div> : null}<ReportView paid={data.paid} plan={data.plan} purchase={data.purchase} data={data.report} locale={data.locale} expiresAt={data.expiresAt} mockMode={mockMode}/></>;
+  return <>{notice ? <div className="payment-notice" role="status">{notice}</div> : null}<ReportView paid={data.paid} plan={data.plan} purchase={data.purchase} data={data.report} locale={data.locale} expiresAt={data.expiresAt} mockMode={mockMode} measurementContext={data.measurementContext}/></>;
 }

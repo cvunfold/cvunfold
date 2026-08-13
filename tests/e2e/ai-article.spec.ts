@@ -4,10 +4,10 @@ test("AI career article stays low in the funnel and remains available", async ({
   await page.goto("/");
   const knowledge = page.locator(".launch-articles");
   await expect(knowledge).toBeVisible();
-  await expect(knowledge.getByRole("heading", { name: /bezpieczniejszą karierę/ })).toBeVisible();
+  await expect(knowledge.getByRole("heading", { name: "Czy AI zastąpi programistów?" })).toBeVisible();
   await knowledge.getByRole("link", { name: "Czytaj" }).last().click();
   await expect(page).toHaveURL(/\/artykuly\/jak-nie-dac-sie-zastapic-przez-ai$/);
-  await expect(page.getByRole("heading", { name: "Jak nie dać się zastąpić przez AI?", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Czy AI zastąpi programistów?", level: 1 })).toBeVisible();
 });
 
 test("English content is a complete navigable surface", async ({ page }) => {

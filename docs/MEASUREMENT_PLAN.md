@@ -10,22 +10,27 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 
 | Event | Moment | Parametry allowlist | Źródło prawdy | Ads | Deduplikacja / test |
 |---|---|---|---|---|---|
-| `landing_view` | Render `/` lub `/en` po zgodzie | locale, market, UTM | GA4 | secondary | raz na page view; DebugView |
-| `hero_cta_clicked` | CTA hero/cennik/final | locale, market, placement, UTM | GA4 | secondary | kliknięcie; DebugView |
-| `sample_report_viewed` | Render syntetycznego raportu | locale, market, plan | GA4 | secondary | raz na mount; DebugView |
-| `pricing_viewed` | Pierwsze wejście cennika w viewport | locale, market, UTM | GA4 | secondary | `IntersectionObserver` disconnect |
-| `upload_started` | Wybór poprawnego pliku | locale, market, plan, role enum, seniority enum, UTM | GA4 | secondary | jedno wybranie pliku |
+| `landing_view` | Render `/` lub `/en` po zgodzie | locale, market, `landing_variant`, UTM | GA4 | secondary | raz na page view; DebugView |
+| `hero_cta_clicked` | CTA hero/cennik/final | locale, market, placement, wariant, UTM | GA4 | secondary | kliknięcie; DebugView |
+| `sample_report_viewed` | Render syntetycznego raportu | locale, market, plan, wariant, rola, seniority | GA4 | secondary | raz po renderze; DebugView |
+| `pricing_viewed` | Pierwsze wejście cennika w viewport | locale, market, wariant, UTM | GA4 | secondary | `IntersectionObserver` disconnect |
+| `file_picker_opened` | Jawne otwarcie natywnego selektora | locale, market, plan, wariant, role enum, seniority enum | GA4 | diagnostic | przed `input.click()` |
+| `file_picker_cancelled` | Wyłącznie natywne zdarzenie `cancel` | jw. | GA4 | diagnostic | bez heurystyki blur/focus |
+| `upload_started` | Wybór poprawnego pliku | jw. + `upload_entrypoint=picker|drop`, UTM | GA4 | secondary | po walidacji typu i limitu; bez dostawcy pliku |
 | `upload_completed` | Serwer przyjął i przetworzył upload | jw. | GA4 | secondary | odpowiedź sukcesu API |
+| `desktop_handoff_started` | Próba Web Share albo kopiowania | jw. + `handoff_method`, `handoff_origin` | GA4 | diagnostic | przy każdej rzeczywistej próbie |
+| `desktop_handoff_completed` | Web Share zakończony albo link skopiowany | jw. | GA4 | diagnostic | dopiero po sukcesie API |
+| `handoff_link_opened` | Otwarcie bezpiecznego linku na urządzeniu docelowym | jw. + `handoff_origin` | GA4 | diagnostic | raz po mount |
 | `analysis_started` | Submit oraz bezpieczny event serwerowy | jw.; DB: plan + UTM | GA4 + Supabase | secondary | systemy raportowane oddzielnie |
 | `analysis_succeeded` | Walidowany raport zapisany | client: plan/success; server: czas/model/wersje/tokeny/koszt | Supabase | secondary | jeden zapis na analizę |
 | `analysis_failed` | Bezpieczna kategoria błędu | locale, market, plan, error_category | Supabase + GA4 | diagnostic | bez raw exception |
 | `analysis_configuration_failed` | Analiza kończy się błędem konfiguracji dostawcy AI | locale, market, plan, analysis_success | GA4 | diagnostic alert | bez CV, PII, nazwy pliku, promptu i komunikatu dostawcy; alert już przy 1 zdarzeniu |
 | `teaser_viewed` | Render nieopłaconego teasera | locale, market, plan | GA4 + Supabase | secondary | raz na mount |
-| `checkout_started` | Utworzona sesja Checkout | locale, market, plan | Supabase | secondary | zdarzenie po serwerowym utworzeniu |
+| `checkout_started` | Utworzona sesja Checkout | locale, market, plan + zamknięty kontekst | Supabase + GA4 | secondary | wyłącznie po udanym `createCheckout`; nie przy samym kliknięciu |
 | `checkout_cancelled` | Powrót użytkownika z anulowanego Checkout | locale, market, plan | GA4 + Supabase | diagnostic | raz na analizę; cookie raportu + dedupe key |
 | `checkout_expired` | Podpisany webhook `checkout.session.expired` | locale, market, plan | Stripe/Supabase | diagnostic | session ID w dedupe key |
 | `payment_failed` | Podpisany webhook `checkout.session.async_payment_failed` | locale, market, plan | Stripe/Supabase | diagnostic | session ID w dedupe key |
-| `purchase` | Wyłącznie raport z serwerowo potwierdzoną płatnością | transaction_id, actual value, currency, plan, locale, market | Stripe/Supabase | **primary** | webhook + dedupe key; client local key + transaction ID |
+| `purchase` | Wyłącznie raport z serwerowo potwierdzoną płatnością | transaction_id, actual value, currency, plan, locale, market + zamknięty kontekst | Stripe/Supabase | **primary** | webhook + dedupe key; client local key + transaction ID |
 | `full_report_viewed` | Render płatnego raportu | locale, market, plan | Supabase + GA4 | secondary | raz na mount |
 | `feedback_submitted` | Zapis feedbacku płatnego raportu | locale, market, plan | Supabase | secondary | odpowiedź 2xx |
 | `delete_requested` | Skuteczne żądanie usunięcia | locale, market | Supabase | diagnostic | zapis poza kasowanym FK |
@@ -48,6 +53,9 @@ Jeżeli skonfigurowano `NEXT_PUBLIC_GOOGLE_ADS_ID` oraz `NEXT_PUBLIC_GOOGLE_ADS_
 - Przechowujemy `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` w `sessionStorage`, następnie w allowlistowanym rekordzie analizy.
 - `gclid`, `gbraid`, `wbraid` mogą być zachowane do przyszłej zgodnej integracji, ale obecnie nie są wysyłane jako parametry eventów i nigdy nie trafiają do linku raportu.
 - Diagnostics łączy zakupy z bezpiecznym `attribution.source`; wydatki Ads są łączone później poza aplikacją.
+- `analyses.attribution` przechowuje także zamknięte `landing_variant=developer`, rolę, seniority i opcjonalny `handoff_origin`.
+- Link handoffu nie kopiuje bieżącego query stringa. Zachowuje wyłącznie rolę, seniority, plan i `handoff=mobile`; nie zawiera źródła kampanii, CV, ogłoszenia, nazwy pliku, tokenu, click ID ani szczegółowych UTM.
+- Diagnostics agreguje analizy i zakupy według wariantu, roli, seniority i planu; wartości historyczne bez kontekstu są oznaczone jako `legacy_unknown`.
 
 ## QA
 

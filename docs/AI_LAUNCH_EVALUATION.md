@@ -40,17 +40,28 @@ Uruchomienie: `pnpm eval`. Każdy przypadek przechodzi: parsowanie, schema valid
 
 Wynik automatyczny: **13/13**. Jest to wynik deterministycznych guardraili i mockowej konstrukcji raportu — nie dowód semantycznej jakości produkcyjnego modelu.
 
+### Pokrycie sześciu ról
+
+Zestaw live-eval zawiera obecnie 23 przypadki dwujęzyczne:
+
+- 13 dotychczasowych przypadków Frontend;
+- po dwa nowe przypadki dla Backend, Full-stack, Mobile, QA / Test Automation i DevOps / Platform: jeden z mocnym dowodem oraz jeden z luką lub słabą ekspozycją dowodu.
+
+Nowe przypadki przekrojowe są częścią bezpłatnego preflightu i walidacji struktury fixture'ów. W tym sprincie nie uruchamiamy ich z `--execute`. Historyczne płatne wyniki poniżej dotyczą wyłącznie zestawu Frontend, dlatego nie wolno przedstawiać wszystkich sześciu ról jako jednakowo zwalidowanych.
+
 ## Obowiązkowy live-model gate
 
 Harness jest dostępny jako `pnpm eval:live`. Domyślnie wykonuje wyłącznie bezpłatny preflight. Płatne uruchomienie wymaga jawnego `pnpm eval:live -- --execute`, modelu z `OPENAI_REVIEW_MODEL`, stawek wejścia/wyjścia oraz klucza projektu CV Unfold.
 
-- 13 przypadków jest ocenianych oddzielnie po polsku i angielsku.
-- Przypadek pustego/nieczytelnego dokumentu kończy się przed modelem; łącznie pozostają 24 płatne wywołania.
+- 23 przypadki są przygotowane do oceny oddzielnie po polsku i angielsku.
+- Przypadek pustego/nieczytelnego dokumentu kończy się przed modelem; pełne wykonanie oznaczałoby 44 płatne wywołania. Ten sprint uruchamia wyłącznie dry run.
 - Przed pierwszym wywołaniem liczony jest konserwatywny koszt maksymalny. Twardy limit to `OPENAI_EVAL_MAX_COST_PLN`, najwyżej 50 zł. Przy fallbacku stawki wejścia/wyjścia muszą odpowiadać droższemu z modeli.
 - Pełne raporty syntetyczne trafiają tylko do prywatnego katalogu tymczasowego z prawami `0700/0600`; bezpieczne podsumowanie nie zawiera CV ani raportu.
 - Każdy raport przechodzi schema validation, evidence integrity, deterministyczny score, kontrolę prompt injection, severity/confidence i bezpieczny rewrite.
 
 ### Wynik płatnego live eval — 2026-08-09
+
+Poniższy historyczny wynik obejmuje pierwotne 13 przypadków Frontend. Nie obejmuje dziesięciu nowych przypadków pięciu pozostałych ról.
 
 Test wykonano wyłącznie w potwierdzonym projekcie OpenAI `CVUnfold`, przy użyciu ograniczonego klucza tymczasowego, który po teście został wycofany. Telemetria ukończonych raportów szacowała koszt na 10,20 zł, ale autorytatywny licznik klucza OpenAI pokazał **4,67 USD** (około 17,75 zł przy kursie 3,80 PLN/USD). Różnica wynika najpewniej z retry i/lub tokenów nieuwzględnionych w prostym liczniku udanych odpowiedzi.
 

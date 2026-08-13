@@ -96,7 +96,7 @@ async function main(): Promise<void> {
       try {
         const { report, telemetry } = await reviewWithOpenAI({
           segments,
-          targetRole: "frontend_developer",
+          targetRole: item.targetRole,
           targetSeniority: item.targetSeniority,
           jobDescription: item.jobDescription?.[locale],
           locale,

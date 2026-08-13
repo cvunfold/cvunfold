@@ -1,6 +1,10 @@
 export const locales = ["pl", "en"] as const;
 export type Locale = (typeof locales)[number];
 
+import type { Plan } from "@/lib/plans";
+import type { TargetRoleId } from "@/lib/roles";
+import type { Seniority } from "@/lib/rubrics/technical-v1";
+
 export function isLocale(value: unknown): value is Locale {
   return typeof value === "string" && locales.includes(value as Locale);
 }
@@ -14,9 +18,27 @@ export function homePath(locale: Locale): string {
   return locale === "pl" ? "/" : "/en";
 }
 
-export function analysisPath(locale: Locale, withJob = false): string {
+export type AnalysisPathOptions = {
+  withJob?: boolean;
+  plan?: Plan;
+  role?: TargetRoleId;
+  seniority?: Seniority;
+  handoff?: "mobile";
+};
+
+export function analysisPath(locale: Locale, withJobOrOptions: boolean | AnalysisPathOptions = false): string {
   const path = locale === "pl" ? "/analiza" : "/en/analysis";
-  return withJob ? `${path}?job=1` : path;
+  const options: AnalysisPathOptions = typeof withJobOrOptions === "boolean"
+    ? { withJob: withJobOrOptions }
+    : withJobOrOptions;
+  const params = new URLSearchParams();
+  if (options.plan) params.set("plan", options.plan);
+  else if (options.withJob) params.set("job", "1");
+  if (options.role) params.set("role", options.role);
+  if (options.seniority) params.set("seniority", options.seniority);
+  if (options.handoff) params.set("handoff", options.handoff);
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
 }
 
 export function sampleReportPath(locale: Locale): string {

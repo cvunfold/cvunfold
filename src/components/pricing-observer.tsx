@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import type { Locale } from "@/lib/i18n";
+import { DEFAULT_LANDING_VARIANT } from "@/lib/audience";
 
 export function PricingObserver({ locale, targetId }: { locale: Locale; targetId: string }) {
   useEffect(() => {
@@ -12,7 +13,7 @@ export function PricingObserver({ locale, targetId }: { locale: Locale; targetId
     const observer = new IntersectionObserver((entries) => {
       if (!sent && entries.some((entry) => entry.isIntersecting)) {
         sent = true;
-        trackAnalyticsEvent("pricing_viewed", { locale, market: locale });
+        trackAnalyticsEvent("pricing_viewed", { locale, market: locale, landing_variant: DEFAULT_LANDING_VARIANT });
         observer.disconnect();
       }
     }, { threshold: 0.35 });

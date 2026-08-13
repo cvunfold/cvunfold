@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAnalysis, markAnalysisPaid, recordFunnelEvent } from "@/lib/data/store";
 import { createCheckout } from "@/lib/payments/stripe";
 import { reportTokenFromRequest } from "@/lib/security/report-session";
+import { measurementContextFromAttribution } from "@/lib/audience";
 
 export const runtime = "nodejs";
 
@@ -11,13 +12,21 @@ export async function POST(request: Request) {
   const item = await getAnalysis(token);
   if (!item) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
   if (item.paid) return NextResponse.json({ paid: true });
-  await recordFunnelEvent({ name: "checkout_started", analysisId: item.id, locale: item.locale, market: item.market, properties: { plan: item.plan } }).catch(() => undefined);
   if (process.env.MOCK_MODE === "true" && process.env.NODE_ENV !== "production") {
     await markAnalysisPaid(token);
     return NextResponse.json({ unlocked: true });
   }
   try {
-    return NextResponse.json({ url: await createCheckout(item) });
+    const url = await createCheckout(item);
+    await recordFunnelEvent({
+      name: "checkout_started",
+      analysisId: item.id,
+      locale: item.locale,
+      market: item.market,
+      properties: { plan: item.plan, ...measurementContextFromAttribution(item.attribution) },
+      dedupeKey: `checkout-started:${item.id}`,
+    }).catch(() => undefined);
+    return NextResponse.json({ url });
   } catch (error) {
     const code = error instanceof Error ? error.message : "STRIPE_CHECKOUT_FAILED";
     const configurationError = ["STRIPE_NOT_CONFIGURED", "STRIPE_PRICE_NOT_CONFIGURED", "STRIPE_PRICE_MISMATCH", "APP_URL_NOT_CONFIGURED", "APP_URL_NOT_SECURE"].includes(code);

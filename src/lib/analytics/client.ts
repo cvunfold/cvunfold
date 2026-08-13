@@ -1,6 +1,8 @@
 "use client";
 
 import { safeAnalyticsPayload, type AnalyticsEvent } from "./events";
+import { parseAttribution } from "./attribution";
+import type { MeasurementContext } from "@/lib/audience";
 import { brandStorageKey } from "@/lib/brand";
 
 export const CONSENT_STORAGE_KEY = brandStorageKey("google-consent");
@@ -9,7 +11,7 @@ export const CONSENT_UPDATED_EVENT = "cv-review:consent-updated";
 
 export type ConsentChoice = "granted" | "denied";
 type AnalyticsProperties = Record<string, string | number | boolean>;
-type PurchaseConversion = { transactionId: string; value: number; currency: string; plan: "full_review" | "job_match"; locale: "pl" | "en"; market: "pl" | "en" };
+type PurchaseConversion = { transactionId: string; value: number; currency: string; plan: "full_review" | "job_match"; locale: "pl" | "en"; market: "pl" | "en" } & Partial<MeasurementContext>;
 
 declare global {
   interface Window {
@@ -73,9 +75,9 @@ export function readSafeAttribution(): AnalyticsProperties {
   ].filter((entry): entry is [string, string] => Boolean(entry[1])).map(([name, value]) => [name, value.slice(0, 120)]));
   if (Object.keys(fromUrl).length) window.sessionStorage.setItem(key, JSON.stringify(fromUrl));
   try {
-    return { ...JSON.parse(window.sessionStorage.getItem(key) || "{}"), ...fromUrl };
+    return parseAttribution({ ...JSON.parse(window.sessionStorage.getItem(key) || "{}"), ...fromUrl });
   } catch {
-    return fromUrl;
+    return parseAttribution(fromUrl);
   }
 }
 
@@ -112,6 +114,10 @@ function sendPurchase(purchase: PurchaseConversion): void {
     plan: purchase.plan,
     locale: purchase.locale,
     market: purchase.market,
+    ...(purchase.landing_variant ? { landing_variant: purchase.landing_variant } : {}),
+    ...(purchase.broad_role_enum ? { broad_role_enum: purchase.broad_role_enum } : {}),
+    ...(purchase.selected_seniority_enum ? { selected_seniority_enum: purchase.selected_seniority_enum } : {}),
+    ...(purchase.handoff_origin ? { handoff_origin: purchase.handoff_origin } : {}),
   };
   sendEvent("purchase", properties);
   if (adsPurchaseDestination) {

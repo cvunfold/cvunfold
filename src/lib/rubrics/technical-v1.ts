@@ -1,7 +1,8 @@
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
 import type { Locale } from "@/lib/i18n";
 
-export type Seniority = "junior" | "mid" | "senior" | "lead" | "auto";
+export const SENIORITIES = ["junior", "mid", "senior", "lead", "auto"] as const;
+export type Seniority = (typeof SENIORITIES)[number];
 export type RubricCategory = { key: string; label: string; weight: number };
 
 const commonLabels: Record<string, string> = {
@@ -27,6 +28,10 @@ const weights: Record<Exclude<Seniority, "auto">, Record<string, number>> = {
 };
 
 export const RUBRIC_VERSION = "technical-v1.0.0";
+
+export function parseSeniority(value: unknown): Seniority | null {
+  return SENIORITIES.includes(value as Seniority) ? value as Seniority : null;
+}
 
 export function getRubric(seniority: Seniority, targetRole: TargetRoleId = "frontend_developer", locale: Locale = "pl"): RubricCategory[] {
   const resolved = seniority === "auto" ? "senior" : seniority;

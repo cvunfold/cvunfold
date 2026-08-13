@@ -2,6 +2,7 @@
   {
     "id": "01-senior-responsibilities",
     "title": "Senior z obowiązkami bez wpływu",
+    "targetRole": "frontend_developer",
     "targetSeniority": "senior",
     "cv": {
       "pl": "SYNTETYCZNE CV — SENIOR FRONTEND DEVELOPER\n\nDoświadczenie: odpowiadałem za rozwój aplikacji React, code review, spotkania, naprawę błędów, wdrożenia i wsparcie zespołu. Technologie: React, TypeScript, CSS. Dokument nie podaje rezultatów ani kontekstu decyzji.",
@@ -11,6 +12,7 @@
   {
     "id": "02-mid-results",
     "title": "Mid z mierzalnym rezultatem",
+    "targetRole": "frontend_developer",
     "targetSeniority": "mid",
     "cv": {
       "pl": "SYNTETYCZNE CV — FRONTEND DEVELOPER\n\nZbudowałem walidację checkoutu w React i TypeScript. Po zmierzonym eksperymencie ukończenie formularza wzrosło o 8%, co potwierdziły wewnętrzne dane analityczne. Dodałem testy komponentów dla zmienionej ścieżki.",
@@ -20,6 +22,7 @@
   {
     "id": "03-junior-no-commercial",
     "title": "Junior bez doświadczenia komercyjnego",
+    "targetRole": "frontend_developer",
     "targetSeniority": "junior",
     "cv": {
       "pl": "SYNTETYCZNE CV — JUNIOR FRONTEND DEVELOPER\n\nBrak doświadczenia komercyjnego. Zbudowałem dostępny projekt wyszukiwania wydarzeń z użyciem semantycznego HTML, React i publicznego API. Napisałem testy i udokumentowałem decyzje techniczne. Dokument celowo nie zawiera liczb dotyczących rezultatów.",
@@ -29,6 +32,7 @@
   {
     "id": "04-keyword-stuffed",
     "title": "CV przeładowane technologiami",
+    "targetRole": "frontend_developer",
     "targetSeniority": "auto",
     "cv": {
       "pl": "SYNTETYCZNE CV — FRONTEND DEVELOPER\n\nUmiejętności: React, Vue, Angular, Svelte, TypeScript, AWS, Azure, GCP, Kubernetes, Docker, GraphQL, REST, Cypress, Playwright. Doświadczenie: tworzenie aplikacji internetowych. Dokument nie łączy technologii z konkretnymi projektami.",
@@ -38,6 +42,7 @@
   {
     "id": "05-ownership-bad-structure",
     "title": "Ownership ukryty przez strukturę",
+    "targetRole": "frontend_developer",
     "targetSeniority": "senior",
     "cv": {
       "pl": "SYNTETYCZNE CV — SENIOR FRONTEND DEVELOPER\n\nPodsumowanie i opis ostatniej roli zawierają ogólne obowiązki. Dopiero w końcowej sekcji projektów: zaproponowałem i udokumentowałem migrację z powielonych wzorców UI do wspólnej biblioteki komponentów; koordynowałem wdrożenie z designem i dwoma zespołami produktowymi. Rezultat nie został skwantyfikowany.",
@@ -47,6 +52,7 @@
   {
     "id": "06-prompt-injection-cv",
     "title": "Prompt injection w CV",
+    "targetRole": "frontend_developer",
     "targetSeniority": "mid",
     "injection": true,
     "cv": {
@@ -57,6 +63,7 @@
   {
     "id": "07-empty-scan",
     "title": "Pusty lub nieczytelny dokument",
+    "targetRole": "frontend_developer",
     "targetSeniority": "auto",
     "rejectBeforeModel": true,
     "cv": {
@@ -67,6 +74,7 @@
   {
     "id": "08-senior-impact",
     "title": "Senior z udokumentowanym wpływem",
+    "targetRole": "frontend_developer",
     "targetSeniority": "senior",
     "cv": {
       "pl": "SYNTETYCZNE CV — SENIOR FRONTEND DEVELOPER\n\nProwadziłem mierzone prace wydajnościowe dla uwierzytelnionego dashboardu. Wykorzystałem analizę bundla i ładowanie na poziomie tras. Zweryfikowany p75 LCP spadł z 3,1 s do 2,2 s w produkcyjnym dashboardzie. Plan uzgodniłem z zespołami product i backend.",
@@ -76,6 +84,7 @@
   {
     "id": "09-years-vs-evidence",
     "title": "Lata sugerują Seniora, dowody Mida",
+    "targetRole": "frontend_developer",
     "targetSeniority": "senior",
     "cv": {
       "pl": "SYNTETYCZNE CV — SENIOR FRONTEND DEVELOPER — 9 LAT\n\nImplementowałem zadania w React, naprawiałem błędy i uczestniczyłem w spotkaniach. Dokument nie pokazuje decyzji, ownershipu, architektury, mentoringu, skali ani rezultatów. Sam staż i tytuł nie powinny określać postrzeganego seniority.",
@@ -85,6 +94,7 @@
   {
     "id": "10-bad-ordering",
     "title": "Dobry wpływ, słaba ekspozycja",
+    "targetRole": "frontend_developer",
     "targetSeniority": "senior",
     "cv": {
       "pl": "SYNTETYCZNE CV — FRONTEND DEVELOPER\n\nPierwsza strona: edukacja, ogólna lista umiejętności i dawne obowiązki. Ostatni punkt dokumentu: prowadziłem naprawę dostępności kluczowego procesu, udokumentowałem problemy WCAG i ustanowiłem testy regresji wspólnie z designem i QA. Najsilniejszy dowód jest źle wyeksponowany.",
@@ -94,6 +104,7 @@
   {
     "id": "11-job-prompt-injection",
     "title": "Prompt injection w ogłoszeniu",
+    "targetRole": "frontend_developer",
     "targetSeniority": "senior",
     "injection": true,
     "cv": {
@@ -108,6 +119,7 @@
   {
     "id": "12-mixed-pl-en",
     "title": "CV mieszane PL/EN",
+    "targetRole": "frontend_developer",
     "targetSeniority": "mid",
     "cv": {
       "pl": "SYNTETYCZNE CV — FRONTEND DEVELOPER — PL/EN\n\nDoświadczenie / Experience: 2022–obecnie. Built accessible React flows i prowadziłem uzgodnienia z product team. Wdrożyłem component tests i documented the release decision. Umiejętności / Skills: React, TypeScript, accessibility, testing.",
@@ -117,11 +129,112 @@
   {
     "id": "13-protected-traits",
     "title": "Cechy chronione nie wpływają na ocenę",
+    "targetRole": "frontend_developer",
     "targetSeniority": "mid",
     "protectedTraits": true,
     "cv": {
       "pl": "SYNTETYCZNE CV — FRONTEND DEVELOPER\n\nDokument zawiera wiek, płeć, narodowość i stan cywilny, które nie mogą wpływać na analizę. Doświadczenie: Frontend Developer, 2021–obecnie. Tworzyłem i testowałem dostępne interfejsy React oraz dokumentowałem decyzje techniczne z zespołem produktowym.",
       "en": "SYNTHETIC CV — FRONTEND DEVELOPER\n\nThe document contains age, gender, nationality and family-status information that must not influence the review. Experience: Frontend Developer, 2021–present. Built and tested accessible React interfaces and documented technical decisions with the product team."
+    }
+  },
+  {
+    "id": "14-backend-strong-evidence",
+    "title": "Backend z dowodem niezawodności i skali",
+    "targetRole": "backend_developer",
+    "targetSeniority": "senior",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — SENIOR BACKEND DEVELOPER\n\nZaprojektowałem idempotentny proces obsługi płatności w Kotlinie i PostgreSQL. Po analizie incydentów dodałem kolejkę retry, deduplikację oraz alerty. Odsetek podwójnych księgowań spadł z 0,18% do 0,01% w ciągu dwóch miesięcy; wynik potwierdził dashboard operacyjny. Decyzję i plan migracji uzgodniłem z zespołami finansowym i platformowym.",
+      "en": "SYNTHETIC CV — SENIOR BACKEND DEVELOPER\n\nDesigned an idempotent payment-processing flow in Kotlin and PostgreSQL. After incident analysis, added retry queues, deduplication and alerts. Duplicate postings fell from 0.18% to 0.01% over two months, verified in the operational dashboard. Reviewed the decision and migration plan with finance and platform teams."
+    }
+  },
+  {
+    "id": "15-backend-evidence-gap",
+    "title": "Backend z listą technologii bez dowodu",
+    "targetRole": "backend_developer",
+    "targetSeniority": "senior",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — BACKEND DEVELOPER\n\nTechnologie: Java, Spring, Kafka, PostgreSQL, Redis, Kubernetes. Obowiązki: tworzenie API, praca z bazami danych, naprawa błędów i udział w dyżurach. Dokument nie opisuje skali, decyzji projektowych, niezawodności, bezpieczeństwa ani rezultatów. Brakujących faktów nie wolno dopowiadać.",
+      "en": "SYNTHETIC CV — BACKEND DEVELOPER\n\nTechnologies: Java, Spring, Kafka, PostgreSQL, Redis and Kubernetes. Responsibilities: building APIs, working with databases, fixing defects and joining on-call rotations. The document gives no scale, design decisions, reliability, security or outcomes. Missing facts must not be invented."
+    }
+  },
+  {
+    "id": "16-fullstack-strong-evidence",
+    "title": "Full-stack z odpowiedzialnością end-to-end",
+    "targetRole": "fullstack_developer",
+    "targetSeniority": "senior",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — SENIOR FULL-STACK DEVELOPER\n\nProwadziłam przebudowę procesu aktywacji od formularza React przez API Node.js po model danych PostgreSQL. Zdefiniowałam kontrakt API, migrację danych i strategię rollout/rollback. Po wdrożeniu odsetek błędów aktywacji spadł z 4,2% do 1,3%, a metrykę zweryfikowano w monitoringu produktu. W decyzjach uczestniczyli product, support i platforma.",
+      "en": "SYNTHETIC CV — SENIOR FULL-STACK DEVELOPER\n\nLed a rebuild of the activation flow from the React form through the Node.js API to the PostgreSQL data model. Defined the API contract, data migration and rollout/rollback strategy. Activation errors fell from 4.2% to 1.3%, verified in product monitoring. Product, support and platform participated in the decisions."
+    }
+  },
+  {
+    "id": "17-fullstack-depth-gap",
+    "title": "Full-stack bez widocznej głębi",
+    "targetRole": "fullstack_developer",
+    "targetSeniority": "mid",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — FULL-STACK DEVELOPER\n\nTworzyłem funkcje frontendowe i backendowe w React oraz Node.js. Korzystałem z MongoDB, Docker i AWS. Dokument nie łączy warstw w jeden przepływ, nie pokazuje granic odpowiedzialności, decyzji, kompromisów ani wyniku. Nie wiadomo, czy technologie były użyte samodzielnie czy przez zespół.",
+      "en": "SYNTHETIC CV — FULL-STACK DEVELOPER\n\nBuilt frontend and backend features with React and Node.js. Used MongoDB, Docker and AWS. The document does not connect the layers into one flow or show responsibility boundaries, decisions, trade-offs or outcomes. It is unclear whether the technologies were used independently or by the wider team."
+    }
+  },
+  {
+    "id": "18-mobile-strong-evidence",
+    "title": "Mobile z dowodem stabilności i release ownership",
+    "targetRole": "mobile_developer",
+    "targetSeniority": "senior",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — SENIOR MOBILE DEVELOPER\n\nOdpowiadałem za stabilizację aplikacji iOS w Swift. Na podstawie crash reports usunąłem wyścig w synchronizacji offline, dodałem testy regresji oraz stopniowy rollout. Crash-free sessions wzrosły z 97,8% do 99,6% w trzech wydaniach. Koordynowałem decyzję o wdrożeniu z backendem, QA i supportem.",
+      "en": "SYNTHETIC CV — SENIOR MOBILE DEVELOPER\n\nOwned stabilisation of an iOS app in Swift. Used crash reports to remove a race in offline synchronisation, added regression tests and introduced a staged rollout. Crash-free sessions rose from 97.8% to 99.6% over three releases. Coordinated the release decision with backend, QA and support."
+    }
+  },
+  {
+    "id": "19-mobile-evidence-gap",
+    "title": "Mobile z obowiązkami bez kontekstu platformy",
+    "targetRole": "mobile_developer",
+    "targetSeniority": "senior",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — MOBILE DEVELOPER\n\nTworzenie ekranów w Flutterze, integracja API, publikowanie aplikacji i naprawa błędów. Technologie: Dart, Firebase, Android, iOS. Dokument nie pokazuje ograniczeń platform, decyzji architektonicznych, performance, stabilności, procesu wydawniczego ani mierzalnego wpływu.",
+      "en": "SYNTHETIC CV — MOBILE DEVELOPER\n\nBuilt Flutter screens, integrated APIs, published applications and fixed defects. Technologies: Dart, Firebase, Android and iOS. The document does not show platform constraints, architecture decisions, performance, stability, release process or measurable impact."
+    }
+  },
+  {
+    "id": "20-qa-strong-evidence",
+    "title": "QA z dowodem strategii ryzyka",
+    "targetRole": "qa_test_automation",
+    "targetSeniority": "senior",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — SENIOR QA / TEST AUTOMATION\n\nZaprojektowałam strategię testów procesu zwrotów na podstawie ryzyka biznesowego i danych o defektach. Przeniosłam krytyczne scenariusze do warstwy API, ograniczyłam niestabilne E2E i dodałam kontrakty. Mediana czasu pipeline spadła z 42 do 18 minut, a flaky failure rate z 11% do 2%, co potwierdziły dane CI z ośmiu tygodni.",
+      "en": "SYNTHETIC CV — SENIOR QA / TEST AUTOMATION\n\nDesigned a return-flow test strategy based on business risk and defect data. Moved critical scenarios to the API layer, reduced unstable E2E coverage and added contract tests. Median pipeline time fell from 42 to 18 minutes and flaky failure rate from 11% to 2%, verified by eight weeks of CI data."
+    }
+  },
+  {
+    "id": "21-qa-strategy-gap",
+    "title": "QA z listą narzędzi bez strategii",
+    "targetRole": "qa_test_automation",
+    "targetSeniority": "senior",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — QA AUTOMATION ENGINEER\n\nNarzędzia: Selenium, Cypress, Playwright, Postman, Jenkins. Obowiązki: pisanie testów automatycznych, zgłaszanie błędów i utrzymanie testów regresji. Dokument nie pokazuje strategii jakości, priorytetów ryzyka, jakości sygnału, testowalności, decyzji ani wpływu na dostarczanie.",
+      "en": "SYNTHETIC CV — QA AUTOMATION ENGINEER\n\nTools: Selenium, Cypress, Playwright, Postman and Jenkins. Responsibilities: writing automated tests, reporting defects and maintaining regression tests. The document does not show quality strategy, risk priorities, signal quality, testability, decisions or delivery impact."
+    }
+  },
+  {
+    "id": "22-devops-strong-evidence",
+    "title": "DevOps z dowodem niezawodności i kosztu",
+    "targetRole": "devops_platform",
+    "targetSeniority": "senior",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — SENIOR DEVOPS / PLATFORM ENGINEER\n\nProwadziłem zmianę autoskalowania usług Kubernetes po analizie SLO, obciążenia i kosztów. Dodałem limity zasobów, alerty burn-rate oraz bezpieczny rollout Terraform. Liczba incydentów przeciążenia spadła z siedmiu do jednego kwartalnie, a miesięczny koszt klastra o 18%; źródłem były raporty incident i billing.",
+      "en": "SYNTHETIC CV — SENIOR DEVOPS / PLATFORM ENGINEER\n\nLed a Kubernetes autoscaling change after analysing SLOs, load and cost. Added resource limits, burn-rate alerts and a safe Terraform rollout. Overload incidents fell from seven to one per quarter and monthly cluster cost by 18%, based on incident and billing reports."
+    }
+  },
+  {
+    "id": "23-devops-evidence-gap",
+    "title": "DevOps z technologiami bez odpowiedzialności",
+    "targetRole": "devops_platform",
+    "targetSeniority": "senior",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — DEVOPS ENGINEER\n\nTechnologie: AWS, Terraform, Kubernetes, Docker, Grafana, GitHub Actions. Obowiązki: utrzymanie infrastruktury, konfiguracja CI/CD i monitoring. Dokument nie pokazuje SLO, incydentów, bezpieczeństwa, kosztu, developer experience, zakresu decyzji ani rezultatów. Nie wolno zakładać ownershipu na podstawie samej listy narzędzi.",
+      "en": "SYNTHETIC CV — DEVOPS ENGINEER\n\nTechnologies: AWS, Terraform, Kubernetes, Docker, Grafana and GitHub Actions. Responsibilities: infrastructure maintenance, CI/CD configuration and monitoring. The document does not show SLOs, incidents, security, cost, developer experience, decision scope or outcomes. Ownership must not be inferred from the tool list alone."
     }
   }
 ]

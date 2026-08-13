@@ -3,12 +3,15 @@ import cases from "../fixtures/live-eval-cases.json";
 import { createSegments } from "@/lib/document-parsing";
 import { createMockReport } from "@/lib/ai/mock-report";
 import { estimateWorstCaseCostPln, evaluateLiveReport, evaluateLocaleParity, type LiveEvalCase } from "@/lib/ai/live-eval";
+import { TARGET_ROLES } from "@/lib/roles";
 
 describe("live-model evaluation harness", () => {
   it("defines all launch cases in both languages", () => {
     const typed = cases as LiveEvalCase[];
-    expect(typed).toHaveLength(13);
+    expect(typed).toHaveLength(23);
     expect(typed.every((item) => item.cv.pl.length > 0 && item.cv.en.length > 0)).toBe(true);
+    expect(typed.every((item) => TARGET_ROLES.some((role) => role.id === item.targetRole))).toBe(true);
+    for (const role of TARGET_ROLES) expect(typed.filter((item) => item.targetRole === role.id).length).toBeGreaterThanOrEqual(2);
     expect(typed.filter((item) => item.injection)).toHaveLength(2);
     expect(typed.filter((item) => item.protectedTraits)).toHaveLength(1);
     expect(typed.filter((item) => item.rejectBeforeModel)).toHaveLength(1);

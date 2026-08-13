@@ -12,8 +12,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:a11y": "playwright test tests/e2e/accessibility.spec.ts --project=chromium",
     "eval": "tsx scripts/run-evals.ts",
-    "eval:live": "tsx scripts/run-live-evals.ts"
+    "eval:live": "tsx scripts/run-live-evals.ts",
+    "qa:visual": "node scripts/visual-qa.mjs",
+    "qa:performance": "node scripts/performance-qa.mjs",
+    "qa:lighthouse": "node scripts/lighthouse-qa.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",
@@ -28,6 +32,7 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/eslintrc": "^3.3.1",
     "@playwright/test": "^1.55.0",
     "@testing-library/react": "^16.3.0",
@@ -35,9 +40,11 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
+    "chrome-launcher": "^1.2.1",
     "eslint": "^9.34.0",
     "eslint-config-next": "^15.5.0",
     "jsdom": "^26.1.0",
+    "lighthouse": "^13.4.1",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"

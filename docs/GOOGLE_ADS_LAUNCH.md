@@ -1,6 +1,6 @@
 # Google Ads launch pack
 
-Nie uruchamiać kampanii przed działającym purchase trackingiem, Stripe live smoke testem, live-model evalem i akceptacją dokumentów. Nie wydawać pieniędzy bez decyzji właściciela.
+Nie zwiększać budżetu przed działającym purchase trackingiem, Stripe live smoke testem, live-model evalem i akceptacją dokumentów. Nie wydawać dodatkowych pieniędzy bez decyzji właściciela. Snapshot pierwszych danych i bramki decyzji są w `docs/POST_LAUNCH_SCORECARD.md`.
 
 ## Pierwszy test
 
@@ -69,3 +69,11 @@ Nazwy kampanii/grup nie mogą zawierać danych użytkownika. Nie przenosić UTM/
 4. Zatrzymaj kampanię natychmiast, gdy purchase nie jest raportowany, płatność nie odblokowuje raportu albo failure rate rośnie nietypowo.
 5. Po około 250 zł dodaj ewidentne negatywne frazy; nie zmieniaj jednocześnie landingu, promptu, stawek i reklam.
 
+## Dyscyplina pierwszych danych
+
+- 20–30 płatnych kliknięć: oceniaj zapytania, CTR, CPC, urządzenia i techniczny lejek.
+- 30–50: szukaj pierwszego sygnału zakupowego, ale nie skaluj na podstawie CTR.
+- Zero zakupów po 50 poprawnie zmierzonych kliknięciach blokuje skalowanie.
+- Skalowanie wymaga co najmniej 100 płatnych kliknięć, 10 zakupów i dodatniej marży po VAT, Stripe, AI i zwrotach.
+- Produkcyjny A/B wymaga 500 sesji i 30 zakupów na wariant przez minimum 14 dni.
+- Pełny Google Picker rozważ dopiero po 50 mobilnych otwarciach selektora, jeśli wybór pliku jest poniżej 60% albo wynik jest o co najmniej 20 pp słabszy niż na desktopie.

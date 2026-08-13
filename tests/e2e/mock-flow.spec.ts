@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("mock vertical slice keeps paid details server-side", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /Masz doświadczenie/ })).toBeVisible();
-  await page.getByRole("link", { name: /Zobacz, na jaki poziom/ }).first().click();
+  await page.getByRole("link", { name: /Sprawdź, jaki poziom pokazuje/ }).first().click();
   const role = page.getByRole("combobox", { name: "Rola docelowa" });
   await role.click();
   await page.getByRole("option", { name: /QA \/ Test Automation/ }).click();

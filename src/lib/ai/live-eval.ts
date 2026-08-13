@@ -3,12 +3,14 @@ import { reportSchema } from "./schemas/report";
 import { calculateOverall } from "./validate-report";
 import type { Segment } from "@/lib/document-parsing";
 import { isConcreteIssueAction } from "./issue-action";
+import type { TargetRoleId } from "@/lib/roles";
 
 export type LiveEvalLocale = "pl" | "en";
 
 export type LiveEvalCase = {
   id: string;
   title: string;
+  targetRole: TargetRoleId;
   targetSeniority: "junior" | "mid" | "senior" | "lead" | "auto";
   cv: Record<LiveEvalLocale, string>;
   jobDescription?: Record<LiveEvalLocale, string>;

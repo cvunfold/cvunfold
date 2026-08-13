@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { addAnalysisFeedback, getAnalysis, recordFunnelEvent } from "@/lib/data/store";
 import { reportTokenFromRequest } from "@/lib/security/report-session";
+import { measurementContextFromAttribution } from "@/lib/audience";
 
 const schema = z.object({ rating: z.number().int().min(1).max(5), accurate: z.enum(["yes", "partly", "no"]), issueId: z.string().max(50).optional(), comment: z.string().max(1000).optional() });
 
@@ -14,6 +15,7 @@ export async function POST(request: Request) {
   if (!item) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
   if (!item.paid) return NextResponse.json({ error: "PAYMENT_REQUIRED" }, { status: 403 });
   if (!await addAnalysisFeedback(token, parsed.data)) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
-  await recordFunnelEvent({ name: "feedback_submitted", analysisId: item.id, locale: item.locale, market: item.market }).catch(() => undefined);
+  await recordFunnelEvent({ name: "feedback_submitted", analysisId: item.id, locale: item.locale, market: item.market,
+    properties: { plan: item.plan, ...measurementContextFromAttribution(item.attribution) } }).catch(() => undefined);
   return NextResponse.json({ ok: true });
 }

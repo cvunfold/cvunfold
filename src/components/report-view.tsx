@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { CVReport, TeaserReport } from "@/lib/ai/schemas/report";
 import type { Purchase } from "@/lib/data/store";
@@ -13,6 +13,7 @@ import { ArrowIcon, CheckIcon, LockIcon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { ScoreRing } from "@/components/score-ring";
 import { normalizeIssueAction } from "@/lib/ai/issue-action";
+import { DEFAULT_MEASUREMENT_CONTEXT, type MeasurementContext } from "@/lib/audience";
 
 type SampleProfile = { name: string; note: string; evidence: Record<string, string> };
 type Props = {
@@ -24,12 +25,13 @@ type Props = {
   locale: Locale;
   expiresAt?: string;
   demo?: SampleProfile;
+  measurementContext?: MeasurementContext;
 };
 
 const copy = {
   pl: {
     sample: "PRZYKŁADOWY RAPORT", yourReport: "Twój raport CV", sampleReport: "Przykładowy raport CV",
-    perceivedLevel: "POSTRZEGANY POZIOM", first20: "PIERWSZE 20 SEKUND", overall: "WYNIK OGÓLNY",
+    perceivedLevel: "POSTRZEGANY POZIOM", first20: "PIERWSZE 20 SEKUND", overall: "OGÓLNA JAKOŚĆ KOMUNIKACJI CV",
     documentPerception: "PERCEPCJA DOKUMENTU", print: "Drukuj / zapisz PDF", copyLink: "Skopiuj bezpieczny link",
     delete: "Usuń raport", expires: "Raport wygasa", profile: "Jak dokument buduje Twój profil", signals: "Co buduje ten obraz",
     reservations: "Co budzi rezerwę", questions: "O co mogą zapytać", after: ["Po 5 sekundach", "Po 10 sekundach", "Po 20 sekundach"],
@@ -47,7 +49,7 @@ const copy = {
   },
   en: {
     sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
-    perceivedLevel: "PERCEIVED LEVEL", first20: "FIRST 20 SECONDS", overall: "OVERALL SCORE",
+    perceivedLevel: "PERCEIVED LEVEL", first20: "FIRST 20 SECONDS", overall: "OVERALL CV COMMUNICATION QUALITY",
     documentPerception: "DOCUMENT PERCEPTION", print: "Print / save PDF", copyLink: "Copy secure link",
     delete: "Delete report", expires: "Report expires", profile: "How the document frames your profile", signals: "What supports this impression",
     reservations: "What creates doubt", questions: "What they may ask", after: ["After 5 seconds", "After 10 seconds", "After 20 seconds"],
@@ -89,27 +91,35 @@ const reportTopics = {
   },
 } as const;
 
-export function ReportView({ paid, plan = "full_review", purchase, data, mockMode, locale, expiresAt, demo }: Props) {
+export function ReportView({ paid, plan = "full_review", purchase, data, mockMode, locale, expiresAt, demo, measurementContext = DEFAULT_MEASUREMENT_CONTEXT }: Props) {
   const t = copy[locale];
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [linkState, setLinkState] = useState<"idle" | "copied" | "error">("idle");
+  const trackedViews = useRef(new Set<string>());
   const full = paid ? data as CVReport : null;
   const teaser = !paid ? data as TeaserReport : null;
   const price = formatPlanPrice(plan, locale);
 
   useEffect(() => {
-    trackAnalyticsEvent(demo ? "sample_report_viewed" : paid ? "full_report_viewed" : "teaser_viewed", { plan, locale, market: locale === "pl" ? "pl" : "en" });
-    if (paid && purchase) trackPurchaseConversion({ ...purchase, locale, market: locale === "pl" ? "pl" : "en" });
-  }, [demo, paid, plan, purchase, locale]);
+    const event = demo ? "sample_report_viewed" : paid ? "full_report_viewed" : "teaser_viewed";
+    if (!trackedViews.current.has(event)) {
+      trackedViews.current.add(event);
+      trackAnalyticsEvent(event, { plan, locale, market: locale, ...measurementContext });
+    }
+    if (paid && purchase) trackPurchaseConversion({ ...purchase, locale, market: locale, ...measurementContext });
+  }, [demo, locale, measurementContext, paid, plan, purchase]);
 
   async function unlock() {
     setBusy(true);
-    trackAnalyticsEvent("checkout_started", { plan, locale, market: locale === "pl" ? "pl" : "en" });
     const response = await fetch("/api/report/checkout", { method: "POST" });
     const result = await response.json().catch(() => ({}));
-    if (response.ok && result.url) { window.location.assign(result.url); return; }
+    if (response.ok && result.url) {
+      trackAnalyticsEvent("checkout_started", { plan, locale, market: locale, ...measurementContext });
+      window.location.assign(result.url);
+      return;
+    }
     if (response.ok) { router.refresh(); window.location.reload(); return; }
     window.alert(locale === "pl" ? "Nie udało się rozpocząć płatności. Spróbuj ponownie." : "We could not start checkout. Please try again.");
     setBusy(false);
@@ -119,7 +129,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
     if (!window.confirm(t.deleteConfirm)) return;
     const response = await fetch("/api/report", { method: "DELETE" });
     if (response.ok) {
-      trackAnalyticsEvent("delete_requested", { locale });
+      trackAnalyticsEvent("delete_requested", { locale, market: locale, ...measurementContext });
       router.push(`${homePath(locale)}?deleted=1`);
     }
   }
@@ -141,7 +151,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rating: Number(form.get("rating")), accurate: form.get("accurate"), comment: form.get("comment") }),
     });
-    if (response.ok) { setSent(true); trackAnalyticsEvent("feedback_submitted", { locale }); }
+    if (response.ok) { setSent(true); trackAnalyticsEvent("feedback_submitted", { locale, market: locale, plan, ...measurementContext }); }
   }
 
   const counts = paid && full

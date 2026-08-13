@@ -17,6 +17,7 @@ import {
 } from "@/lib/analytics/client";
 import { brand } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n";
+import { DEFAULT_LANDING_VARIANT } from "@/lib/audience";
 
 type Props = { analyticsId?: string; adsId?: string; adsConversionLabel?: string };
 
@@ -66,9 +67,9 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
     const pagePath = safeAnalyticsPath(pathname);
     const pageLocation = safeAnalyticsLocation(pathname, window.location.origin);
     window.gtag?.("set", { page_path: pagePath, page_location: pageLocation });
-    trackAnalyticsEvent("page_view", { locale, market: locale });
+    trackAnalyticsEvent("page_view", { locale, market: locale, landing_variant: DEFAULT_LANDING_VARIANT });
     if (pathname === "/" || pathname === "/en") {
-      trackAnalyticsEvent("landing_view", { locale, market: locale });
+      trackAnalyticsEvent("landing_view", { locale, market: locale, landing_variant: DEFAULT_LANDING_VARIANT });
     }
   }, [choice, enabled, isSensitivePage, locale, pathname]);
 
@@ -83,6 +84,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
           locale,
           market: locale,
           placement: element.dataset.analyticsPlacement || "unknown",
+          landing_variant: DEFAULT_LANDING_VARIANT,
         });
       }
     }
@@ -128,7 +130,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
     settings: "Ustawienia prywatności",
   };
   return <>
-    {showBanner ? <div className="consent-banner" role="dialog" aria-labelledby="consent-title" aria-describedby="consent-copy">
+    {showBanner ? <aside className="consent-banner" aria-labelledby="consent-title" aria-describedby="consent-copy">
       <div>
         <span>{copy.eyebrow}</span>
         <h2 id="consent-title">{copy.title}</h2>
@@ -138,7 +140,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
         <button type="button" className="consent-secondary" onClick={() => choose("denied")}>{copy.reject}</button>
         <button type="button" className="button" onClick={() => choose("granted")}>{copy.accept}</button>
       </div>
-    </div> : <button type="button" className="privacy-settings" onClick={() => setSettingsOpen(true)}>{copy.settings}</button>}
+    </aside> : <button type="button" className="privacy-settings" onClick={() => setSettingsOpen(true)}>{copy.settings}</button>}
   </>;
 }
 

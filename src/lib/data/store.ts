@@ -203,7 +203,19 @@ const funnelEventNames = new Set([
   "checkout_cancelled", "checkout_expired", "payment_failed", "purchase", "full_report_viewed",
   "feedback_submitted", "delete_requested",
 ]);
-const safePropertyKeys = new Set(["plan", "error_category", "analysis_success", "model", "prompt_version", "rubric_version", "duration_ms", "input_tokens", "output_tokens", "estimated_cost", "source", "medium", "campaign", "content", "term"]);
+const safePropertyKeys = new Set([
+  "plan", "error_category", "analysis_success", "model", "prompt_version", "rubric_version", "duration_ms",
+  "input_tokens", "output_tokens", "estimated_cost", "source", "medium", "campaign", "content", "term",
+  "landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin", "currency", "value",
+]);
+const safePropertyEnums: Record<string, readonly string[]> = {
+  plan: ["full_review", "job_match"],
+  landing_variant: ["developer"],
+  broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform"],
+  selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
+  handoff_origin: ["google_cpc", "other"],
+  currency: ["PLN", "EUR"],
+};
 
 export async function recordFunnelEvent(input: {
   name: string;
@@ -216,7 +228,9 @@ export async function recordFunnelEvent(input: {
 }): Promise<void> {
   if (!funnelEventNames.has(input.name)) return;
   const safeProperties = Object.fromEntries(Object.entries(input.properties || {})
-    .filter(([key, value]) => safePropertyKeys.has(key) && ["string", "number", "boolean"].includes(typeof value)));
+    .filter(([key, value]) => safePropertyKeys.has(key)
+      && ["string", "number", "boolean"].includes(typeof value)
+      && (!safePropertyEnums[key] || typeof value === "string" && safePropertyEnums[key].includes(value))));
   const client = supabaseClient();
   if (!client) { store.events.push({ name: input.name, at: new Date() }); return; }
   const { error } = await client.from("funnel_events").insert({
@@ -254,7 +268,7 @@ export async function diagnostics() {
   if (client) {
     const since = new Date(Date.now() - 86_400_000).toISOString();
     const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }] = await Promise.all([
-      client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,attribution").gte("created_at", since),
+      client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,attribution,job_description_present").gte("created_at", since),
       client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since),
       client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market").gte("created_at", since),
       client.from("feedback").select("rating,accurate").gte("created_at", since),
@@ -267,6 +281,16 @@ export async function diagnostics() {
     const ratio = (numerator: number, denominator: number) => denominator ? Math.round(numerator / denominator * 10_000) / 100 : null;
     const analysisById = new Map((analyses || []).map((analysis) => [analysis.id, analysis]));
     const paidPayments = (payments || []).filter((item) => item.status === "paid");
+    const segmentCounts = (values: string[]) => Object.fromEntries([...new Set(values)].sort()
+      .map((value) => [value, values.filter((candidate) => candidate === value).length]));
+    const analysisSegment = (key: keyof Attribution, fallback: string) => (analyses || []).map((analysis) => {
+      const attribution = analysis.attribution as Attribution | null;
+      return String(attribution?.[key] || fallback);
+    });
+    const purchaseSegment = (key: keyof Attribution, fallback: string) => paidPayments.map((payment) => {
+      const attribution = analysisById.get(payment.analysis_id)?.attribution as Attribution | null;
+      return String(attribution?.[key] || fallback);
+    });
     const revenueBySource = Object.fromEntries([...new Set(paidPayments.map((payment) => {
       const attribution = analysisById.get(payment.analysis_id)?.attribution as Attribution | null;
       return attribution?.source || "direct";
@@ -287,6 +311,20 @@ export async function diagnostics() {
         paidPayments.filter((item) => item.currency === currency).reduce((sum, item) => sum + item.amount_gross, 0) / 100])),
       revenueBySource,
       planSplit: Object.fromEntries(["full_review", "job_match"].map((plan) => [plan, paidPayments.filter((item) => item.plan === plan).length])),
+      segments: {
+        analyses: {
+          landingVariant: segmentCounts(analysisSegment("landing_variant", "legacy_unknown")),
+          role: segmentCounts(analysisSegment("broad_role_enum", "legacy_unknown")),
+          seniority: segmentCounts(analysisSegment("selected_seniority_enum", "legacy_unknown")),
+          plan: segmentCounts((analyses || []).map((analysis) => analysis.job_description_present ? "job_match" : "full_review")),
+        },
+        purchases: {
+          landingVariant: segmentCounts(purchaseSegment("landing_variant", "legacy_unknown")),
+          role: segmentCounts(purchaseSegment("broad_role_enum", "legacy_unknown")),
+          seniority: segmentCounts(purchaseSegment("selected_seniority_enum", "legacy_unknown")),
+          plan: segmentCounts(paidPayments.map((payment) => payment.plan)),
+        },
+      },
       conversionRatesPercent: {
         analysisSuccess: ratio(count("analysis_succeeded"), count("analysis_started")),
         teaserToCheckout: ratio(count("checkout_started"), count("teaser_viewed")),

@@ -14,6 +14,12 @@ export function MobileStickyCta({ href, label, price }: { href: string; label: s
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (visible) document.documentElement.dataset.mobileCtaVisible = "true";
+    else delete document.documentElement.dataset.mobileCtaVisible;
+    return () => { delete document.documentElement.dataset.mobileCtaVisible; };
+  }, [visible]);
+
   return <Link
     className="mobile-sticky-cta"
     href={href}
