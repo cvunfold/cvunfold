@@ -6,7 +6,7 @@ import {
   summarizeAnonymousRoleStatistics,
 } from "@/lib/analytics/anonymous-role-statistics";
 
-const migration = readFileSync(new URL("../supabase/migrations/20260814101608_anonymous_role_statistics.sql", import.meta.url), "utf8");
+const migration = readFileSync(new URL("../supabase/migrations/20260814112020_anonymous_role_statistics.sql", import.meta.url), "utf8");
 const tableDefinition = migration.match(/create table if not exists public\.anonymous_role_aggregates \(([\s\S]*?)\n\);/)?.[1] || "";
 
 describe("anonymous role statistics", () => {
