@@ -7,7 +7,7 @@ type OgImageCanvasProps = {
   footer?: string;
 };
 
-export function OgImageCanvas({ title, description, label = "ANALIZA CV OCZAMI REKRUTERA", footer = "Seniority · Ownership · Wpływ · Wiarygodność" }: OgImageCanvasProps) {
+export function OgImageCanvas({ title, description, label = "ANALIZA CV OCZAMI REKRUTERA", footer = "Pierwsze wrażenie · Dowody · Wpływ · Priorytety" }: OgImageCanvasProps) {
   const titleSize = title.length > 70 ? 55 : title.length > 48 ? 63 : 72;
   return <div style={{
     width: "100%", height: "100%", position: "relative", display: "flex", overflow: "hidden",

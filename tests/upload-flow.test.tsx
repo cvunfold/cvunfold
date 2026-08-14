@@ -37,6 +37,35 @@ const props = {
 };
 
 describe("mobile upload measurement", () => {
+  it("frames seniority as the level the user is applying for", () => {
+    render(<UploadFlow {...props}/>);
+    expect(screen.getByRole("group", { name: "Na jaki poziom aplikujesz?" })).toBeTruthy();
+    expect((screen.getByRole("radio", { name: "Nie wiem — oceń na podstawie CV" }) as HTMLInputElement).checked).toBe(true);
+    expect(screen.getByText(/To tylko punkt odniesienia/).textContent).toContain("co komunikuje Twoje CV");
+  });
+
+  it("uses the same target-level framing in English", () => {
+    render(<UploadFlow {...props} locale="en"/>);
+    expect(screen.getByRole("group", { name: "What level are you applying for?" })).toBeTruthy();
+    expect((screen.getByRole("radio", { name: "Not sure — assess from my CV" }) as HTMLInputElement).checked).toBe(true);
+  });
+
+  it("marks the Other role as experimental before the user uploads a CV", () => {
+    render(<UploadFlow {...props}/>);
+    expect(screen.queryByText(/Tryb eksperymentalny/)).toBeNull();
+    fireEvent.click(screen.getByRole("combobox", { name: "Rola docelowa" }));
+    fireEvent.click(screen.getByRole("option", { name: /Pozostałe/ }));
+    const note = screen.getByRole("note");
+    expect(note.textContent).toContain("zoptymalizowaliśmy i przetestowaliśmy dla wymienionych ról IT");
+    expect(note.textContent).toContain("wynik może być mniej precyzyjny");
+    expect(note.textContent).toContain("przed zakupem");
+  });
+
+  it("provides the same experimental disclosure in English", () => {
+    render(<UploadFlow {...props} locale="en" initialRole="other"/>);
+    expect(screen.getByRole("note").textContent).toContain("Other specialisations use general criteria");
+  });
+
   it("requires the job description when job matching is selected", () => {
     render(<UploadFlow {...props} mockMode initialJobMatch/>);
     const description = screen.getByRole("textbox", { name: /Treść ogłoszenia/ }) as HTMLTextAreaElement;

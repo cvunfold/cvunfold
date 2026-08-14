@@ -123,6 +123,10 @@ export function RoleSelect({ value, onChange, disabled = false, locale }: RoleSe
         </ul>
       </div> : null}
     </div>
-    <small className="role-helper">{locale === "pl" ? "Raport użyje kryteriów właściwych dla tej specjalizacji." : "The report will use criteria specific to this specialisation."}</small>
+    {selected.experimental ? <small className="role-helper experimental" role="note">
+      {locale === "pl"
+        ? "Tryb eksperymentalny: analizę CV Unfold zoptymalizowaliśmy i przetestowaliśmy dla wymienionych ról IT. Dla pozostałych specjalizacji użyjemy kryteriów ogólnych, więc wynik może być mniej precyzyjny. Bezpłatny wynik wstępny zobaczysz przed zakupem."
+        : "Experimental mode: we optimised and tested CV Unfold for the listed IT roles. Other specialisations use general criteria, so the result may be less precise. You will see the free initial result before purchase."}
+    </small> : <small className="role-helper">{locale === "pl" ? "Raport użyje kryteriów właściwych dla tej specjalizacji." : "The report will use criteria specific to this specialisation."}</small>}
   </div>;
 }

@@ -7,7 +7,7 @@ import { parseSeniority } from "@/lib/rubrics/technical-v1";
 
 export const metadata: Metadata = {
   title: "Prywatna analiza CV developera",
-  description: "Prześlij CV i zobacz, jaki poziom, ownership i wpływ komunikuje dokument.",
+  description: "Prześlij CV i zobacz, jak dokument pokazuje Twoje doświadczenie, odpowiedzialność i wpływ.",
   referrer: "no-referrer",
   robots: { index: false, follow: false, noimageindex: true },
 };

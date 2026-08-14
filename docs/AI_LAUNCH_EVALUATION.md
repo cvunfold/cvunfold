@@ -40,21 +40,22 @@ Uruchomienie: `pnpm eval`. Każdy przypadek przechodzi: parsowanie, schema valid
 
 Wynik automatyczny: **13/13**. Jest to wynik deterministycznych guardraili i mockowej konstrukcji raportu — nie dowód semantycznej jakości produkcyjnego modelu.
 
-### Pokrycie sześciu ról
+### Pokrycie sześciu zoptymalizowanych ról i trybu eksperymentalnego
 
-Zestaw live-eval zawiera obecnie 23 przypadki dwujęzyczne:
+Zestaw live-eval zawiera obecnie 25 przypadków dwujęzycznych:
 
 - 13 dotychczasowych przypadków Frontend;
 - po dwa nowe przypadki dla Backend, Full-stack, Mobile, QA / Test Automation i DevOps / Platform: jeden z mocnym dowodem oraz jeden z luką lub słabą ekspozycją dowodu.
+- dwa przypadki dla eksperymentalnego `Other`: nietechniczny profil z mierzalnym dowodem oraz profil bez dowodu rezultatu, dla którego model nie może dopowiadać branżowych norm.
 
-Nowe przypadki przekrojowe są częścią bezpłatnego preflightu i walidacji struktury fixture'ów. W tym sprincie nie uruchamiamy ich z `--execute`. Historyczne płatne wyniki poniżej dotyczą wyłącznie zestawu Frontend, dlatego nie wolno przedstawiać wszystkich sześciu ról jako jednakowo zwalidowanych.
+Nowe przypadki przekrojowe są częścią bezpłatnego preflightu i walidacji struktury fixture'ów. W tym sprincie nie uruchamiamy ich z `--execute`. Historyczne płatne wyniki poniżej dotyczą wyłącznie zestawu Frontend, dlatego nie wolno przedstawiać wszystkich sześciu ról jako jednakowo zwalidowanych ani trybu `Other` jako wsparcia produkcyjnie zoptymalizowanego dla dowolnego zawodu.
 
 ## Obowiązkowy live-model gate
 
 Harness jest dostępny jako `pnpm eval:live`. Domyślnie wykonuje wyłącznie bezpłatny preflight. Płatne uruchomienie wymaga jawnego `pnpm eval:live -- --execute`, modelu z `OPENAI_REVIEW_MODEL`, stawek wejścia/wyjścia oraz klucza projektu CV Unfold.
 
-- 23 przypadki są przygotowane do oceny oddzielnie po polsku i angielsku.
-- Przypadek pustego/nieczytelnego dokumentu kończy się przed modelem; pełne wykonanie oznaczałoby 44 płatne wywołania. Ten sprint uruchamia wyłącznie dry run.
+- 25 przypadków jest przygotowanych do oceny oddzielnie po polsku i angielsku.
+- Przypadek pustego/nieczytelnego dokumentu kończy się przed modelem; pełne wykonanie oznaczałoby 48 płatnych wywołań. Ten sprint uruchamia wyłącznie dry run.
 - Przed pierwszym wywołaniem liczony jest konserwatywny koszt maksymalny. Twardy limit to `OPENAI_EVAL_MAX_COST_PLN`, najwyżej 50 zł. Przy fallbacku stawki wejścia/wyjścia muszą odpowiadać droższemu z modeli.
 - Pełne raporty syntetyczne trafiają tylko do prywatnego katalogu tymczasowego z prawami `0700/0600`; bezpieczne podsumowanie nie zawiera CV ani raportu.
 - Każdy raport przechodzi schema validation, evidence integrity, deterministyczny score, kontrolę prompt injection, severity/confidence i bezpieczny rewrite.
@@ -103,7 +104,7 @@ Uruchomiono ukierunkowany live eval na `gpt-5.4-mini` dla trzech przypadków w P
 | Ownership ukryty przez strukturę | 64 | 56 | 8 | PASS |
 | Senior z udokumentowanym wpływem | 73 | 75 | 2 | PASS |
 
-Finalne wersje `review-pl-v3.2.0` oraz `review-en-v1.2.0` uzyskały **6/6 PASS** dla schematu, evidence refs, deterministycznego overall score, guardraili factuality, konkretnych działań i planu działania. Ręczny przegląd nie wykazał dopisanych liczb, technologii, rezultatów ani ownershipu. Wszystkie działania typu GAP są warunkowe i proszą o dodanie dowodu tylko wtedy, gdy kandydat faktycznie go posiada.
+Wersje użyte w tej historycznej regresji, `review-pl-v3.2.0` oraz `review-en-v1.2.0`, uzyskały **6/6 PASS** dla schematu, evidence refs, deterministycznego overall score, guardraili factuality, konkretnych działań i planu działania. Ręczny przegląd nie wykazał dopisanych liczb, technologii, rezultatów ani ownershipu. Wszystkie działania typu GAP są warunkowe i proszą o dodanie dowodu tylko wtedy, gdy kandydat faktycznie go posiada.
 
 Udane wywołania zużyły 23 639 tokenów wejścia i 17 788 tokenów wyjścia. Szacunek według oficjalnych stawek modelu wyniósł około 0,49 zł; z buforem `2.5×` około 1,22 zł. Uwzględniając maksymalny koszt trzech przerwanych prób zakończonych timeoutem, konserwatywna górna granica całej regresji to **2,35 zł**, poniżej zatwierdzonego limitu 30 zł. Dashboard OpenAI pozostaje autorytatywnym źródłem rozliczenia.
 

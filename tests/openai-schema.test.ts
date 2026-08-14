@@ -25,6 +25,7 @@ describe("OpenAI report schema", () => {
 
   it("uses the selected discipline instead of frontend defaults", () => {
     expect(SYSTEM_PROMPT).toContain("roleProfile");
+    expect(SYSTEM_PROMPT).toContain("experimental_general");
     expect(SYSTEM_PROMPT).toContain("nie oceniaj tej osoby jak developera funkcji");
     expect(SYSTEM_PROMPT).toContain("nie oceniaj tej osoby jak developera aplikacji");
   });

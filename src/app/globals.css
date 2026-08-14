@@ -509,6 +509,10 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .role-field { position: relative; z-index: 8; margin-top: 18px; }
 .role-label { display: block; font-size: 12px; font-weight: 750; }
 .role-helper { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; font-weight: 500; }
+.role-helper.experimental {
+  padding: 12px 14px; border: 1px solid #e5c36d; border-radius: 12px; background: #fff9e8;
+  color: #704f00; line-height: 1.5;
+}
 .role-select { position: relative; margin-top: 7px; }
 .role-select-trigger {
   width: 100%; min-height: 65px; display: flex; align-items: center; gap: 13px; padding: 9px 13px;
@@ -554,6 +558,7 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .role-option-check { width: 17px; height: 17px; fill: none; stroke: #5f7800; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
 .analysis-shell fieldset { margin: 17px 0 0; padding: 0; border: 0; }
 .analysis-shell legend { margin-bottom: 7px; font-size: 12px; font-weight: 750; }
+.level-helper { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; font-weight: 500; line-height: 1.45; }
 .segmented { display: flex; }
 .segmented label { flex: 1; }
 .segmented label:first-child { flex: 1.75; }
@@ -1081,7 +1086,7 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .article-page .site-header nav { gap: 26px; }
 .language-switch { margin-left: 4px; padding: 4px 7px; border: 1px solid rgba(255,255,255,.28); border-radius: 4px; font-size: 12px; font-weight: 800; letter-spacing: .08em; }
 .launch-hero { min-height: 690px; display: grid; grid-template-columns: minmax(0,.96fr) minmax(500px,1.04fr); gap: 68px; align-items: center; padding-block: 70px 78px; }
-.launch-eyebrow, .launch-section-head > span { display: block; margin-bottom: 16px; color: #5d7300; font-size: 12px; font-weight: 850; letter-spacing: .12em; }
+.launch-section-head > span { display: block; margin-bottom: 16px; color: #5d7300; font-size: 12px; font-weight: 850; letter-spacing: .12em; }
 .launch-hero h1 { max-width: 680px; margin: 0; font: 600 clamp(53px,5.1vw,76px)/.97 var(--serif); letter-spacing: -.052em; }
 .launch-hero h1 em { color: var(--accent-deep); font-style: normal; }
 .launch-hero .hero-copy > p { max-width: 620px; margin: 25px 0 0; color: #3d4960; font-size: 17px; line-height: 1.65; }
@@ -1093,7 +1098,7 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .launch-trust { display: flex !important; align-items: flex-start; gap: 9px; margin-top: 11px !important; color: var(--muted) !important; font-size: 12px !important; }
 .launch-trust svg { width: 15px; flex: none; margin-top: 2px; }
 .launch-specialty { max-width: 620px; display: block; margin-top: 13px; color: #566277; font-size: 12px; line-height: 1.55; }
-.level-demo { position: relative; align-self: start; margin-top: 39px; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: #fff; box-shadow: var(--shadow-paper); }
+.level-demo { position: relative; align-self: start; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: #fff; box-shadow: var(--shadow-paper); }
 .level-demo::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--accent); }
 .level-demo > header { display: flex; justify-content: space-between; padding: 19px 23px 14px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 .level-demo-main { display: grid; grid-template-columns: 1.15fr 1fr .65fr; gap: 0; }

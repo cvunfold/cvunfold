@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { POST as createAnalysis } from "@/app/api/analyses/route";
 import { getAnalysis } from "@/lib/data/store";
 
-function analysisRequest(seniority: string, attribution: Record<string, string> = {}, options: { plan?: string; jobDescription?: string } = {}) {
+function analysisRequest(seniority: string, attribution: Record<string, string> = {}, options: { plan?: string; jobDescription?: string; role?: string } = {}) {
   const form = new FormData();
   form.set("file", new File(["%PDF-1.7\nsynthetic"], "synthetic-cv.pdf", { type: "application/pdf" }));
-  form.set("role", "frontend_developer");
+  form.set("role", options.role || "frontend_developer");
   form.set("seniority", seniority);
   form.set("locale", "pl");
   form.set("jobDescription", options.jobDescription || "");
@@ -13,7 +13,7 @@ function analysisRequest(seniority: string, attribution: Record<string, string> 
   form.set("attribution", JSON.stringify(attribution));
   return new Request("http://localhost/api/analyses", {
     method: "POST",
-    headers: { "x-forwarded-for": `127.0.0.${seniority === "invalid" ? "21" : "22"}` },
+    headers: { "x-forwarded-for": `127.0.0.${seniority === "invalid" ? "21" : options.role === "other" ? "23" : "22"}` },
     body: form,
   });
 }
@@ -63,5 +63,16 @@ describe("analysis attribution boundary", () => {
       landing_variant: "developer",
     });
     expect(analysis?.attribution).not.toHaveProperty("filename");
+  });
+
+  it("accepts Other while storing only the closed role enum", async () => {
+    process.env.MOCK_MODE = "true";
+    delete process.env.TURNSTILE_SECRET_KEY;
+    const response = await createAnalysis(analysisRequest("auto", { broad_role_enum: "frontend_developer" }, { role: "other" }));
+    expect(response.status).toBe(200);
+    const result = await response.json() as { accessToken: string };
+    const analysis = await getAnalysis(result.accessToken);
+    expect(analysis?.report.document.targetRole).toBe("Pozostałe");
+    expect(analysis?.attribution?.broad_role_enum).toBe("other");
   });
 });

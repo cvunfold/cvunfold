@@ -1,6 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import type { CVReport } from "@/lib/ai/schemas/report";
 import type { Attribution } from "@/lib/analytics/attribution";
+import {
+  classifyAnonymousRole,
+  classifyAnonymousSource,
+  summarizeAnonymousRoleStatistics,
+  type AnonymousRoleAggregateRow,
+} from "@/lib/analytics/anonymous-role-statistics";
 import type { Locale } from "@/lib/i18n";
 import type { Market, Plan } from "@/lib/plans";
 import { hashToken } from "@/lib/security/tokens";
@@ -20,7 +26,12 @@ export type StripePayment = PendingPayment & {
   eventId: string; paymentIntentId: string | null; customerId: string | null;
 };
 
-type Store = { analyses: Map<string, Analysis>; events: Array<{ name: string; at: Date }>; eventDedupeKeys: Set<string> };
+type Store = {
+  analyses: Map<string, Analysis>;
+  events: Array<{ name: string; at: Date }>;
+  eventDedupeKeys: Set<string>;
+  anonymousRoleCounts: Map<string, number>;
+};
 type StoredAnalysisRow = {
   id: string; created_at: string; expires_at: string; access_token_hash: string; status: "complete" | "deleted";
   paid_at: string | null; job_description_present: boolean; locale: Locale; market: Market; attribution: Attribution | null; duration_ms: number | null;
@@ -30,8 +41,9 @@ type StoredAnalysisRow = {
 };
 
 const globalStore = globalThis as typeof globalThis & { __cvunfold?: Store };
-const store: Store = globalStore.__cvunfold ?? { analyses: new Map(), events: [], eventDedupeKeys: new Set() };
+const store: Store = globalStore.__cvunfold ?? { analyses: new Map(), events: [], eventDedupeKeys: new Set(), anonymousRoleCounts: new Map() };
 store.eventDedupeKeys ??= new Set();
+store.anonymousRoleCounts ??= new Map();
 globalStore.__cvunfold = store;
 
 function supabaseClient() {
@@ -51,7 +63,15 @@ function memoryGet(token: string): Analysis | undefined {
 export async function saveAnalysis(token: string, analysis: Omit<Analysis, "tokenHash">): Promise<void> {
   const client = supabaseClient();
   const tokenHash = hashToken(token);
-  if (!client) { store.analyses.set(tokenHash, { ...analysis, tokenHash }); return; }
+  if (!client) {
+    const isNewAnalysis = !store.analyses.has(tokenHash);
+    store.analyses.set(tokenHash, { ...analysis, tokenHash });
+    if (isNewAnalysis) {
+      const key = `${classifyAnonymousSource(analysis.attribution)}:${classifyAnonymousRole(analysis.report.document.perceivedRole)}`;
+      store.anonymousRoleCounts.set(key, (store.anonymousRoleCounts.get(key) || 0) + 1);
+    }
+    return;
+  }
   const { error: analysisError } = await client.from("analyses").insert({
     id: analysis.id, created_at: analysis.createdAt.toISOString(), updated_at: analysis.createdAt.toISOString(), status: analysis.status,
     locale: analysis.locale, market: analysis.market, attribution: analysis.attribution, target_role: analysis.report.document.targetRole, target_seniority: analysis.report.document.targetSeniority, job_description_present: analysis.plan === "job_match",
@@ -212,7 +232,7 @@ const safePropertyKeys = new Set([
 const safePropertyEnums: Record<string, readonly string[]> = {
   plan: ["full_review", "job_match"],
   landing_variant: ["developer"],
-  broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform"],
+  broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
   handoff_origin: ["google_cpc", "other"],
   currency: ["PLN", "EUR"],
@@ -273,14 +293,15 @@ export async function diagnostics() {
   const client = supabaseClient();
   if (client) {
     const since = new Date(Date.now() - 86_400_000).toISOString();
-    const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }] = await Promise.all([
+    const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }, { data: anonymousRoleRows, error: anonymousRoleError }] = await Promise.all([
       client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,attribution,job_description_present").gte("created_at", since),
       client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since),
       client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market").gte("created_at", since),
       client.from("feedback").select("rating,accurate").gte("created_at", since),
       client.from("feedback_quality_aggregates").select("rating,accurate,response_count"),
+      client.from("anonymous_role_aggregates").select("role_category,source_bucket,analysis_count"),
     ]);
-    if (analysesError || eventsError || paymentsError || feedbackError || feedbackAggregateError) throw new Error("SUPABASE_DIAGNOSTICS_FAILED");
+    if (analysesError || eventsError || paymentsError || feedbackError || feedbackAggregateError || anonymousRoleError) throw new Error("SUPABASE_DIAGNOSTICS_FAILED");
     const eventCounts = Object.fromEntries([...new Set((events || []).map((event) => event.event_name))]
       .map((name) => [name, (events || []).filter((event) => event.event_name === name).length]));
     const count = (name: string) => Number(eventCounts[name] || 0);
@@ -343,12 +364,18 @@ export async function diagnostics() {
           accuracy: Object.fromEntries(["yes", "partly", "no"].map((value) => [value, (feedbackRows || []).filter((item) => item.accurate === value).length])) },
         retainedAggregate: summarizeFeedbackCounts(feedbackAggregateRows || []),
       },
+      anonymousAudienceRoles: summarizeAnonymousRoleStatistics((anonymousRoleRows || []) as AnonymousRoleAggregateRow[]),
       topErrorCategories: Object.fromEntries([...new Set(errorCategories)].map((category) => [category, errorCategories.filter((item) => item === category).length])),
       events: eventCounts,
     };
   }
   const values = [...store.analyses.values()];
+  const anonymousRoleRows = [...store.anonymousRoleCounts.entries()].map(([key, analysis_count]) => {
+    const [source_bucket, role_category] = key.split(":");
+    return { source_bucket, role_category, analysis_count } as AnonymousRoleAggregateRow;
+  });
   return { analyses: values.length, completed: values.filter((v) => v.status === "complete").length, paid: values.filter((v) => v.paid).length,
     deleted: values.filter((v) => v.status === "deleted").length, feedback: values.reduce((sum, v) => sum + v.feedback.length, 0),
+    anonymousAudienceRoles: summarizeAnonymousRoleStatistics(anonymousRoleRows),
     events: Object.fromEntries([...new Set(store.events.map((e) => e.name))].map((name) => [name, store.events.filter((e) => e.name === name).length])) };
 }

@@ -45,7 +45,7 @@ const allowed: Record<AnalyticsEvent, readonly string[]> = {
 
 const enumValues: Record<string, readonly string[]> = {
   locale: ["pl", "en"], market: ["pl", "en"], plan: ["full_review", "job_match"],
-  broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform"],
+  broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
   landing_variant: ["developer"], handoff_origin: ["google_cpc", "other"],
   upload_entrypoint: ["picker", "drop"], handoff_method: ["web_share", "clipboard"],

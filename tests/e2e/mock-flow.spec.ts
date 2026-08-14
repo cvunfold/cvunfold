@@ -1,9 +1,20 @@
 import { test, expect } from "@playwright/test";
 
+test("Other is clearly disclosed as an experimental role before upload", async ({ page }) => {
+  await page.goto("/analiza");
+  const role = page.getByRole("combobox", { name: "Rola docelowa" });
+  await role.click();
+  await page.getByRole("option", { name: /Pozostałe/ }).click();
+  const note = page.getByRole("note");
+  await expect(note).toContainText("zoptymalizowaliśmy i przetestowaliśmy dla wymienionych ról IT");
+  await expect(note).toContainText("wynik może być mniej precyzyjny");
+  await expect(note).toContainText("przed zakupem");
+});
+
 test("mock vertical slice keeps paid details server-side", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Masz doświadczenie/ })).toBeVisible();
-  await page.getByRole("link", { name: /Sprawdź, jaki poziom pokazuje/ }).first().click();
+  await expect(page.getByRole("heading", { name: /Twoje CV ma kilka sekund/ })).toBeVisible();
+  await page.getByRole("link", { name: /Sprawdź, co pokazuje moje CV/ }).first().click();
   const role = page.getByRole("combobox", { name: "Rola docelowa" });
   await role.click();
   await page.getByRole("option", { name: /QA \/ Test Automation/ }).click();
@@ -26,7 +37,7 @@ test("mock vertical slice keeps paid details server-side", async ({ page }) => {
 
 test("English mock flow returns an English teaser and full report", async ({ page }) => {
   await page.goto("/en");
-  await page.getByRole("link", { name: /See what level my CV communicates/ }).first().click();
+  await page.getByRole("link", { name: /See what my CV communicates/ }).first().click();
   await page.locator(".consent input").check();
   await page.getByRole("button", { name: "Analyse my CV" }).click();
   await expect(page).toHaveURL(/\/en\/report$/);

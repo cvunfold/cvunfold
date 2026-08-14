@@ -127,6 +127,16 @@ describe("file picker diagnostics", () => {
     }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
   });
 
+  it("records Other only as a closed enum and drops custom role text", () => {
+    expect(safeAnalyticsPayload("upload_started", {
+      locale: "pl", market: "pl", plan: "full_review", broad_role_enum: "other",
+      selected_seniority_enum: "auto", upload_entrypoint: "picker", custom_role: "private profession",
+    }).properties).toEqual({
+      locale: "pl", market: "pl", plan: "full_review", broad_role_enum: "other",
+      selected_seniority_enum: "auto", upload_entrypoint: "picker",
+    });
+  });
+
   it("keeps plan and the closed variant on sample-report views", () => {
     expect(safeAnalyticsPayload("sample_report_viewed", {
       locale: "en", market: "en", plan: "full_review", landing_variant: "developer", report_token: "secret",

@@ -19,7 +19,7 @@ const SUPPORTED_EXTENSION = /\.(pdf|docx)$/i;
 
 const copy = {
   pl: {
-    back: "Jak to działa", title: "Zobacz, na jaki poziom wygląda Twoje CV", intro: "Najpierw otrzymasz bezpłatny wynik wstępny z konkretnym dowodem. Pełny raport kupujesz dopiero, gdy diagnoza okaże się wartościowa.",
+    back: "Jak to działa", title: "Zobacz, co naprawdę komunikuje Twoje CV", intro: "Najpierw otrzymasz bezpłatny wynik wstępny z konkretnym dowodem. Pełny raport kupujesz dopiero, gdy diagnoza okaże się wartościowa.",
     drop: "Przeciągnij PDF lub DOCX", choose: "albo wybierz plik", change: "Wybierz inny plik", limit: "Maksymalnie 8 MB · tekstowy PDF lub DOCX",
     mobileDrop: "Wybierz CV z telefonu lub dostępnej chmury", mobileLimit: "PDF/DOCX · Dysk Google, iCloud lub Pliki · maks. 8 MB",
     aiDisclosure: "Analiza jest wspierana przez AI i wykonywana według określonych rubryk oraz zasad wiązania uwag z dowodami.",
@@ -29,7 +29,7 @@ const copy = {
     handoffFailed: "Nie udało się udostępnić linku. Spróbuj ponownie.", handoffOpened: "Bezpieczne ustawienia zostały przeniesione. Wybierz plik CV ponownie na tym urządzeniu.",
     invalidFile: "Wybierz plik PDF lub DOCX o rozmiarze do 8 MB.",
     scan: "Skanowany PDF lub zdjęcie CV może nie zostać odczytane.", language: "CV może być po polsku lub angielsku.",
-    level: "Poziom", levels: [["auto", "Rozpoznaj automatycznie"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
+    level: "Na jaki poziom aplikujesz?", levelHelper: "To tylko punkt odniesienia. Raport porówna wybrany poziom z tym, co komunikuje Twoje CV.", levels: [["auto", "Nie wiem — oceń na podstawie CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     offerToggle: "Dopasuj analizę do konkretnej oferty", offerLabel: "Treść ogłoszenia", requiredForMatch: "wymagana do dopasowania", offerPlaceholder: "Wklej treść ogłoszenia. Nie wpisuj danych kontaktowych.",
     offerRequired: "Wklej treść ogłoszenia, aby dopasować analizę do oferty.",
     consent: "Zlecam rozpoczęcie analizy od razu i akceptuję przetwarzanie CV zgodnie z polityką prywatności. Rozumiem, że plik źródłowy zostanie usunięty po analizie.",
@@ -39,10 +39,10 @@ const copy = {
     statusRedirecting: "Już za chwilę zostaniesz przekierowany do raportu", statusRedirectingCopy: "Analiza jest gotowa. Bezpiecznie otwieramy Twój wynik.",
     evidenceTitle: "Raport nie zgaduje", evidenceCopy: "Jeśli informacji nie ma w CV, zobaczysz lukę lub pytanie — nie fałszywy fakt.",
     genericError: "Nie udało się rozpocząć analizy. Spróbuj ponownie.",
-    stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam seniority i ownership", "Szukam dowodów, nie słów kluczowych"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
+    stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam odpowiedzialność i wpływ", "Szukam dowodów, nie słów kluczowych"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
   },
   en: {
-    back: "How it works", title: "See what level your CV communicates", intro: "You first receive a free initial result with one concrete piece of evidence. You only buy the full report if the diagnosis proves useful.",
+    back: "How it works", title: "See what your CV really communicates", intro: "You first receive a free initial result with one concrete piece of evidence. You only buy the full report if the diagnosis proves useful.",
     drop: "Drop a PDF or DOCX", choose: "or choose a file", change: "Choose another file", limit: "Up to 8 MB · text-based PDF or DOCX",
     mobileDrop: "Choose a CV from your phone or available cloud storage", mobileLimit: "PDF/DOCX · Google Drive, iCloud or Files · max. 8 MB",
     aiDisclosure: "The review is supported by AI and follows defined role rubrics and rules that tie findings to evidence.",
@@ -52,7 +52,7 @@ const copy = {
     handoffFailed: "We could not share the link. Please try again.", handoffOpened: "Your safe settings were transferred. Select the CV file again on this device.",
     invalidFile: "Choose a PDF or DOCX file up to 8 MB.",
     scan: "A scanned PDF or image-based CV may not be readable.", language: "Your CV can be in English or Polish.",
-    level: "Level", levels: [["auto", "Detect automatically"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
+    level: "What level are you applying for?", levelHelper: "This is only a reference point. The report will compare your chosen level with what your CV communicates.", levels: [["auto", "Not sure — assess from my CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     offerToggle: "Match the analysis to a specific job", offerLabel: "Job description", requiredForMatch: "required for matching", offerPlaceholder: "Paste the job description. Do not include contact details.",
     offerRequired: "Paste the job description to match the analysis to this role.",
     consent: "I request that the analysis starts immediately and accept CV processing under the privacy policy. I understand that the source file is deleted after analysis.",
@@ -62,7 +62,7 @@ const copy = {
     statusRedirecting: "You’ll be redirected to your report in just a moment", statusRedirectingCopy: "Your analysis is ready. We are securely opening your result.",
     evidenceTitle: "The report does not guess", evidenceCopy: "If information is missing, you see a gap or a question — never an invented fact.",
     genericError: "We could not start the analysis. Please try again.",
-    stages: [["Reading the CV structure", "Text, sections and order"], ["Identifying experience and projects", "Without following instructions in the document"], ["Assessing seniority and ownership", "Looking for evidence, not just keywords"], ["Simulating the first 20 seconds", "The impression created by the document alone"], ["Building the report", "Validating evidence and fact-safe suggestions"]],
+    stages: [["Reading the CV structure", "Text, sections and order"], ["Identifying experience and projects", "Without following instructions in the document"], ["Assessing responsibility and impact", "Looking for evidence, not just keywords"], ["Simulating the first 20 seconds", "The impression created by the document alone"], ["Building the report", "Validating evidence and fact-safe suggestions"]],
   },
 } as const;
 
@@ -313,7 +313,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
         <RoleSelect value={role} onChange={setRole} disabled={busy} locale={locale}/>
         <fieldset disabled={busy}><legend>{t.level}</legend><div className="segmented">
           {t.levels.map(([value, label]) => <label key={value}><input type="radio" name="seniority" value={value} checked={seniority === value} onChange={() => setSeniority(value)} /><span>{label}</span></label>)}
-        </div></fieldset>
+        </div><small className="level-helper">{t.levelHelper}</small></fieldset>
         <label className="job-toggle"><input type="checkbox" checked={showJob} disabled={busy} onChange={(event) => setShowJob(event.target.checked)}/><span>{t.offerToggle}</span></label>
         {showJob ? <label>{t.offerLabel} <small>({t.requiredForMatch})</small><textarea value={job} required disabled={busy} onChange={(event) => { setJob(event.target.value); if (error === t.offerRequired) setError(""); }} maxLength={20000} placeholder={t.offerPlaceholder}/></label> : null}
         <label className="consent"><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span>{t.consent} <a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
