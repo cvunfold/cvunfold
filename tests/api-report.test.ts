@@ -6,6 +6,8 @@ import { createAccessToken } from "@/lib/security/tokens";
 import { POST as createSession } from "@/app/api/report-session/route";
 import { GET as getReport, DELETE as deleteReport } from "@/app/api/report/route";
 import { POST as checkout } from "@/app/api/report/checkout/route";
+import { POST as googlePayCheckout } from "@/app/api/report/checkout/google-pay/route";
+import { POST as googlePayStarted } from "@/app/api/report/checkout/google-pay/started/route";
 
 describe("private report API boundary", () => {
   let token = "";
@@ -50,6 +52,22 @@ describe("private report API boundary", () => {
     const payload = await response.json();
     expect(payload.paid).toBe(true);
     expect(payload.report.issues.length).toBeGreaterThan(0);
+  });
+
+  it("does not fake a Google Pay payment in mock mode", async () => {
+    const payment = await googlePayCheckout(new Request("http://localhost/api/report/checkout/google-pay", { method: "POST", headers: { cookie } }));
+    expect(payment.status).toBe(404);
+    const response = await getReport(new Request("http://localhost/api/report", { headers: { cookie } }));
+    expect((await response.json()).paid).toBe(false);
+  });
+
+  it("rejects malformed Google Pay session identifiers before contacting Stripe", async () => {
+    const response = await googlePayStarted(new Request("http://localhost/api/report/checkout/google-pay/started", {
+      method: "POST",
+      headers: { cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId: "not-a-checkout-session" }),
+    }));
+    expect(response.status).toBe(400);
   });
 
   it("deletes the report and rejects subsequent access", async () => {

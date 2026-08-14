@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { priceForPlan } from "@/lib/payments/stripe";
+import { buildCheckoutSessionParams, priceForPlan, shouldRecordCheckoutExpired } from "@/lib/payments/stripe";
 import { readFileSync } from "node:fs";
 
 const originalFullPrice = process.env.STRIPE_PRICE_FULL_REVIEW;
@@ -17,6 +17,8 @@ afterEach(() => {
 });
 
 describe("Stripe price boundary", () => {
+  const analysis = { id: "analysis_123", plan: "full_review" as const, locale: "pl" as const, market: "pl" as const };
+
   it("maps each report plan to its own server-side price", () => {
     process.env.STRIPE_PRICE_FULL_REVIEW = "price_full";
     process.env.STRIPE_PRICE_JOB_MATCH = "price_match";
@@ -48,5 +50,29 @@ describe("Stripe price boundary", () => {
     expect(webhook).toContain('"checkout_expired"');
     expect(webhook).toContain('"payment_failed"');
     expect(webhook).toContain("stripe-${name}:${session.id}");
+  });
+
+  it("keeps hosted Checkout as the fallback and builds a separate Checkout Elements session for Google Pay", () => {
+    const hosted = buildCheckoutSessionParams(analysis, "price_full", "https://cvunfold.com/raport", "hosted");
+    const googlePay = buildCheckoutSessionParams(analysis, "price_full", "https://cvunfold.com/raport", "google_pay");
+
+    expect(hosted.success_url).toContain("checkout=success");
+    expect(hosted.cancel_url).toContain("checkout=cancelled");
+    expect(hosted.integration_identifier).toMatch(/^cvunfold_hosted_[a-z]{8}$/);
+    expect(hosted.metadata).toMatchObject({ analysis_id: analysis.id, checkout_surface: "hosted", buyer_confirmed: "true" });
+
+    expect(googlePay.ui_mode).toBe("elements");
+    expect(googlePay.return_url).toContain("session_id={CHECKOUT_SESSION_ID}");
+    expect(googlePay).not.toHaveProperty("success_url");
+    expect(googlePay).not.toHaveProperty("cancel_url");
+    expect(googlePay).not.toHaveProperty("payment_method_types");
+    expect(googlePay.integration_identifier).toMatch(/^cvunfold_gpay_[a-z]{8}$/);
+    expect(googlePay.metadata).toMatchObject({ analysis_id: analysis.id, checkout_surface: "google_pay", buyer_confirmed: "false" });
+  });
+
+  it("does not count an eligibility-only Google Pay session as an abandoned checkout", () => {
+    expect(shouldRecordCheckoutExpired({ metadata: { checkout_surface: "google_pay", buyer_confirmed: "false" } })).toBe(false);
+    expect(shouldRecordCheckoutExpired({ metadata: { checkout_surface: "google_pay", buyer_confirmed: "true" } })).toBe(true);
+    expect(shouldRecordCheckoutExpired({ metadata: { checkout_surface: "hosted", buyer_confirmed: "true" } })).toBe(true);
   });
 });

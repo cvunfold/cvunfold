@@ -6,6 +6,14 @@ import { getPlanDefinition, isPlan, type Plan } from "@/lib/plans";
 
 let stripeClient: Stripe | undefined;
 
+type CheckoutSurface = "hosted" | "google_pay";
+type CheckoutAnalysis = Pick<Analysis, "id" | "plan" | "locale" | "market">;
+
+const CHECKOUT_INTEGRATION_IDENTIFIERS = {
+  hosted: "cvunfold_hosted_kjtrmvnq",
+  google_pay: "cvunfold_gpay_gpsxwzke",
+} as const;
+
 export function getStripe(): Stripe {
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) throw new Error("STRIPE_NOT_CONFIGURED");
@@ -28,7 +36,47 @@ function appUrl(): string {
   return url.origin;
 }
 
-export async function createCheckout(analysis: Analysis): Promise<string> {
+export function buildCheckoutSessionParams(
+  analysis: CheckoutAnalysis,
+  price: string,
+  reportUrl: string,
+  surface: CheckoutSurface,
+): Stripe.Checkout.SessionCreateParams {
+  const metadata = {
+    analysis_id: analysis.id,
+    plan: analysis.plan,
+    locale: analysis.locale,
+    market: analysis.market,
+    checkout_surface: surface,
+    buyer_confirmed: surface === "hosted" ? "true" : "false",
+  };
+  const common = {
+    mode: "payment" as const,
+    line_items: [{ price, quantity: 1 }],
+    client_reference_id: analysis.id,
+    locale: analysis.locale === "pl" ? "pl" as const : "en" as const,
+    metadata,
+    payment_intent_data: { metadata },
+    integration_identifier: CHECKOUT_INTEGRATION_IDENTIFIERS[surface],
+  };
+
+  if (surface === "google_pay") {
+    return {
+      ...common,
+      // The 2026-07-29 API names the custom Checkout Elements surface `elements`.
+      ui_mode: "elements",
+      return_url: `${reportUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    };
+  }
+
+  return {
+    ...common,
+    success_url: `${reportUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${reportUrl}?checkout=cancelled`,
+  };
+}
+
+async function createValidatedCheckoutSession(analysis: Analysis, surface: CheckoutSurface): Promise<Stripe.Checkout.Session> {
   const stripe = getStripe();
   const definition = getPlanDefinition(analysis.plan, analysis.locale);
   const price = priceForPlan(analysis.plan, analysis.locale);
@@ -36,17 +84,11 @@ export async function createCheckout(analysis: Analysis): Promise<string> {
   if (!stripePrice.active || stripePrice.recurring || stripePrice.unit_amount !== definition.amountMinor
     || stripePrice.currency.toUpperCase() !== definition.currency) throw new Error("STRIPE_PRICE_MISMATCH");
   const reportUrl = `${appUrl()}${reportPath(analysis.locale)}`;
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    line_items: [{ price: stripePrice.id, quantity: 1 }],
-    client_reference_id: analysis.id,
-    locale: analysis.locale === "pl" ? "pl" : "en",
-    metadata: { analysis_id: analysis.id, plan: analysis.plan, locale: analysis.locale, market: analysis.market },
-    payment_intent_data: { metadata: { analysis_id: analysis.id, plan: analysis.plan, locale: analysis.locale, market: analysis.market } },
-    success_url: `${reportUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${reportUrl}?checkout=cancelled`,
-  }, { idempotencyKey: `analysis:${analysis.id}:${price}` });
-  if (!session.url || session.amount_total == null || !session.currency) throw new Error("STRIPE_CHECKOUT_FAILED");
+  const session = await stripe.checkout.sessions.create(
+    buildCheckoutSessionParams(analysis, stripePrice.id, reportUrl, surface),
+    { idempotencyKey: `analysis:${analysis.id}:${price}:${surface}:v1` },
+  );
+  if (session.amount_total == null || !session.currency) throw new Error("STRIPE_CHECKOUT_FAILED");
   await savePendingPayment({
     analysisId: analysis.id,
     checkoutSessionId: session.id,
@@ -56,7 +98,32 @@ export async function createCheckout(analysis: Analysis): Promise<string> {
     amountGross: session.amount_total,
     currency: session.currency,
   });
+  return session;
+}
+
+export async function createCheckout(analysis: Analysis): Promise<string> {
+  const session = await createValidatedCheckoutSession(analysis, "hosted");
+  if (!session.url) throw new Error("STRIPE_CHECKOUT_FAILED");
   return session.url;
+}
+
+export async function createGooglePayCheckout(analysis: Analysis): Promise<string> {
+  const session = await createValidatedCheckoutSession(analysis, "google_pay");
+  if (!session.client_secret) throw new Error("STRIPE_CHECKOUT_FAILED");
+  return session.client_secret;
+}
+
+export async function markGooglePayCheckoutStarted(sessionId: string, expectedAnalysisId: string): Promise<void> {
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (session.metadata?.analysis_id !== expectedAnalysisId || session.metadata?.checkout_surface !== "google_pay") {
+    throw new Error("STRIPE_ANALYSIS_MISMATCH");
+  }
+  await stripe.checkout.sessions.update(session.id, { metadata: { buyer_confirmed: "true" } });
+}
+
+export function shouldRecordCheckoutExpired(session: Pick<Stripe.Checkout.Session, "metadata">): boolean {
+  return session.metadata?.checkout_surface !== "google_pay" || session.metadata?.buyer_confirmed === "true";
 }
 
 export async function fulfillCheckoutSession(sessionId: string, eventId: string, expectedAnalysisId?: string): Promise<boolean> {

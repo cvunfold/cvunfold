@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { fulfillCheckoutSession, getStripe } from "@/lib/payments/stripe";
+import { fulfillCheckoutSession, getStripe, shouldRecordCheckoutExpired } from "@/lib/payments/stripe";
 import { markStripePaymentTerminal, recordFunnelEvent, track } from "@/lib/data/store";
 import { isPlan } from "@/lib/plans";
 
@@ -27,7 +27,8 @@ export async function POST(request: Request) {
       const plan = session.metadata?.plan;
       const locale = session.metadata?.locale;
       const market = session.metadata?.market;
-      if (analysisId && isPlan(plan) && (locale === "pl" || locale === "en") && (market === "pl" || market === "en")) {
+      const shouldRecord = event.type !== "checkout.session.expired" || shouldRecordCheckoutExpired(session);
+      if (shouldRecord && analysisId && isPlan(plan) && (locale === "pl" || locale === "en") && (market === "pl" || market === "en")) {
         const name = event.type === "checkout.session.expired" ? "checkout_expired" : "payment_failed";
         await recordFunnelEvent({
           name,

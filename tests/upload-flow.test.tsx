@@ -36,6 +36,14 @@ const props = {
 };
 
 describe("mobile upload measurement", () => {
+  it("requires the job description when job matching is selected", () => {
+    render(<UploadFlow {...props} mockMode initialJobMatch/>);
+    const description = screen.getByRole("textbox", { name: /Treść ogłoszenia/ }) as HTMLTextAreaElement;
+    expect(description.required).toBe(true);
+    expect(screen.getByText(/wymagana do dopasowania/)).toBeTruthy();
+    expect(screen.getByText("39 zł")).toBeTruthy();
+  });
+
   it("distinguishes picker open, native cancel, picker selection and drop", () => {
     const { container } = render(<UploadFlow {...props}/>);
     const dropzone = screen.getByRole("button", { name: /Przeciągnij PDF lub DOCX/ });

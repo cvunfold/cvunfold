@@ -20,6 +20,8 @@
     "qa:lighthouse": "node scripts/lighthouse-qa.mjs"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.8.1",
+    "@stripe/stripe-js": "^9.13.0",
     "@supabase/supabase-js": "^2.55.0",
     "lucide-react": "^0.468.0",
     "mammoth": "^1.10.0",

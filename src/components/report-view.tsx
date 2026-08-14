@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { CVReport, TeaserReport } from "@/lib/ai/schemas/report";
@@ -14,6 +15,11 @@ import { Logo } from "@/components/logo";
 import { ScoreRing } from "@/components/score-ring";
 import { normalizeIssueAction } from "@/lib/ai/issue-action";
 import { DEFAULT_MEASUREMENT_CONTEXT, type MeasurementContext } from "@/lib/audience";
+
+const GooglePayCheckout = dynamic(
+  () => import("@/components/google-pay-checkout").then((module) => module.GooglePayCheckout),
+  { ssr: false },
+);
 
 type SampleProfile = { name: string; note: string; evidence: Record<string, string> };
 type Props = {
@@ -97,6 +103,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [linkState, setLinkState] = useState<"idle" | "copied" | "error">("idle");
+  const [googlePayAvailable, setGooglePayAvailable] = useState(false);
   const trackedViews = useRef(new Set<string>());
   const full = paid ? data as CVReport : null;
   const teaser = !paid ? data as TeaserReport : null;
@@ -212,7 +219,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
           <section className="report-section"><div className="section-heading"><span>04</span><h2>{t.fullIssues}</h2></div><div className="issues">{full.issues.map((issue, index) => <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{issue.severity}</span><span>{issue.suggestion?.type.toUpperCase()}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.evidence}</small>{issue.evidenceRefs.length ? issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>) : <p>{locale === "pl" ? "Brak bezpośredniego dowodu — luka lub pytanie." : "No direct evidence — this is a gap or question."}</p>}</div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: issue.action, suggestionType: issue.suggestion?.type, title: issue.title, locale, factualityNote: issue.suggestion?.factualityNote })}</p>{issue.suggestion?.proposed ? <blockquote>{issue.suggestion.proposed}</blockquote> : null}</div></div><footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>)}</div></section>
           <section className="report-section report-summary-grid"><div><h2>{t.strengths}</h2>{full.strengths.map((item) => <article key={item.id}><CheckIcon/><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h2>{t.nextSteps}</h2>{full.nextSteps.toSorted((a, b) => a.priority - b.priority).map((item) => <article key={item.priority}><span>{item.priority}</span><div><b>{item.title}</b><p>{item.action}</p></div></article>)}</div></section>
           {demo ? <section className="report-section sample-cta"><div><h2>{locale === "pl" ? "Co mówi Twoje CV?" : "What does your CV communicate?"}</h2><p>{locale === "pl" ? "Zobacz bezpłatny wynik i najważniejszy dowód." : "See your free result and most important evidence."}</p></div><Link className="button" href={analysisPath(locale)}>{t.analyze}<ArrowIcon/></Link></section> : <section className="report-section feedback"><h2>{t.feedback}</h2>{sent ? <p>{t.thanks}</p> : <form onSubmit={feedback}><label>{t.rating}<select name="rating" defaultValue="5">{[5,4,3,2,1].map((value) => <option key={value} value={value}>{value}</option>)}</select></label><label>{t.accuracy}<select name="accurate" defaultValue="yes"><option value="yes">{t.accurate[0]}</option><option value="partly">{t.accurate[1]}</option><option value="no">{t.accurate[2]}</option></select></label><label>{t.comment}<textarea name="comment" maxLength={1000}/></label><small>{t.feedbackPrivacy}</small><button className="button">{t.send}</button></form>}</section>}
-        </> : <section className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div><span>{counts.issues} {locale === "pl" ? "problemów" : "issues"}</span><span>{counts.strengths} {locale === "pl" ? "mocnych stron" : "strengths"}</span><span>{counts.nextSteps} {locale === "pl" ? "priorytetów" : "priorities"}</span></div><button onClick={unlock} disabled={busy} className="button"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><small>{t.oneTime}</small></section>}
+        </> : <section className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div className="locked-counts"><span>{counts.issues} {locale === "pl" ? "problemów" : "issues"}</span><span>{counts.strengths} {locale === "pl" ? "mocnych stron" : "strengths"}</span><span>{counts.nextSteps} {locale === "pl" ? "priorytetów" : "priorities"}</span></div><div className={`locked-payment-actions${googlePayAvailable ? " google-pay-ready" : ""}`}><button onClick={unlock} disabled={busy} className="button"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><GooglePayCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} onAvailabilityChange={setGooglePayAvailable}/></div><small>{t.oneTime}</small></section>}
 
         <nav className="report-knowledge"><span>{t.viewArticles}</span><div>{topicKeys.map((key) => { const [label, slug] = reportTopics[locale][key]; return <Link key={key} href={`${articlesPath(locale)}/${slug}`}>{label}<ArrowIcon/></Link>; })}<Link href={articlesPath(locale)}>{locale === "pl" ? "Wszystkie" : "All"}<ArrowIcon/></Link></div></nav>
       </div>

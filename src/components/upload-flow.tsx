@@ -30,7 +30,8 @@ const copy = {
     invalidFile: "Wybierz plik PDF lub DOCX o rozmiarze do 8 MB.",
     scan: "Skanowany PDF lub zdjęcie CV może nie zostać odczytane.", language: "CV może być po polsku lub angielsku.",
     level: "Poziom", levels: [["auto", "Rozpoznaj automatycznie"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
-    offerToggle: "Dopasuj analizę do konkretnej oferty", offerLabel: "Treść ogłoszenia", optional: "opcjonalnie", offerPlaceholder: "Wklej treść ogłoszenia. Nie wpisuj danych kontaktowych.",
+    offerToggle: "Dopasuj analizę do konkretnej oferty", offerLabel: "Treść ogłoszenia", requiredForMatch: "wymagana do dopasowania", offerPlaceholder: "Wklej treść ogłoszenia. Nie wpisuj danych kontaktowych.",
+    offerRequired: "Wklej treść ogłoszenia, aby dopasować analizę do oferty.",
     consent: "Zlecam rozpoczęcie analizy od razu i akceptuję przetwarzanie CV zgodnie z polityką prywatności. Rozumiem, że plik źródłowy zostanie usunięty po analizie.",
     privacy: "Polityka prywatności", terms: "Regulamin", submit: "Analizuj CV", loading: "Analizujemy…", private: "Bez konta. CV nie trafia do pracodawców ani analytics.",
     plan: { full_review: "Pełny raport", job_match: "Raport + dopasowanie do oferty" }, free: "Wynik wstępny", freePrice: "Darmowe", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
@@ -51,7 +52,8 @@ const copy = {
     invalidFile: "Choose a PDF or DOCX file up to 8 MB.",
     scan: "A scanned PDF or image-based CV may not be readable.", language: "Your CV can be in English or Polish.",
     level: "Level", levels: [["auto", "Detect automatically"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
-    offerToggle: "Match the analysis to a specific job", offerLabel: "Job description", optional: "optional", offerPlaceholder: "Paste the job description. Do not include contact details.",
+    offerToggle: "Match the analysis to a specific job", offerLabel: "Job description", requiredForMatch: "required for matching", offerPlaceholder: "Paste the job description. Do not include contact details.",
+    offerRequired: "Paste the job description to match the analysis to this role.",
     consent: "I request that the analysis starts immediately and accept CV processing under the privacy policy. I understand that the source file is deleted after analysis.",
     privacy: "Privacy policy", terms: "Terms", submit: "Analyse my CV", loading: "Analysing…", private: "No account. Your CV is never sent to employers or analytics.",
     plan: { full_review: "Full report", job_match: "Report + job matching" }, free: "Initial result", freePrice: "Free", full: "Full report", oneTime: "one-time payment · no subscription",
@@ -89,7 +91,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
   const [turnstileEpoch, setTurnstileEpoch] = useState(0);
   const [handoffStatus, setHandoffStatus] = useState("");
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  const plan: Plan = showJob && job.trim() ? "job_match" : "full_review";
+  const plan: Plan = showJob ? "job_match" : "full_review";
   const effectiveHandoffOrigin = handoffFromMobile ? initialHandoffOrigin || "other" : initialHandoffOrigin;
   const handleTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
   const handoffOpenTracked = useRef(false);
@@ -208,15 +210,21 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!file || !consent) return;
+    const jobDescription = job.trim();
+    if (showJob && !jobDescription) {
+      setError(t.offerRequired);
+      return;
+    }
     setLoading(true);
     setError("");
-    const selectedPlan: Plan = showJob && job.trim() ? "job_match" : "full_review";
+    const selectedPlan: Plan = showJob ? "job_match" : "full_review";
     trackAnalyticsEvent("analysis_started", analyticsBase(selectedPlan));
     const form = new FormData();
     form.set("file", file);
     form.set("role", role);
     form.set("seniority", seniority);
-    form.set("jobDescription", showJob ? job : "");
+    form.set("plan", selectedPlan);
+    form.set("jobDescription", showJob ? jobDescription : "");
     form.set("locale", locale);
     form.set("attribution", JSON.stringify({
       ...readSafeAttribution(),
@@ -278,7 +286,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
           {t.levels.map(([value, label]) => <label key={value}><input type="radio" name="seniority" value={value} checked={seniority === value} onChange={() => setSeniority(value)} /><span>{label}</span></label>)}
         </div></fieldset>
         <label className="job-toggle"><input type="checkbox" checked={showJob} disabled={loading} onChange={(event) => setShowJob(event.target.checked)}/><span>{t.offerToggle}</span></label>
-        {showJob ? <label>{t.offerLabel} <small>({t.optional})</small><textarea value={job} disabled={loading} onChange={(event) => setJob(event.target.value)} maxLength={20000} placeholder={t.offerPlaceholder}/></label> : null}
+        {showJob ? <label>{t.offerLabel} <small>({t.requiredForMatch})</small><textarea value={job} required disabled={loading} onChange={(event) => { setJob(event.target.value); if (error === t.offerRequired) setError(""); }} maxLength={20000} placeholder={t.offerPlaceholder}/></label> : null}
         <label className="consent"><input type="checkbox" checked={consent} disabled={loading} onChange={(event) => setConsent(event.target.checked)}/><span>{t.consent} <a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
