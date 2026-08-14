@@ -140,6 +140,18 @@ describe("checkout diagnostic events", () => {
       locale: "pl", market: "pl", plan: "full_review", filename: "private-cv.pdf",
     }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
   });
+
+  it("allows only closed purchase CTA surface and payment method values", () => {
+    expect(safeAnalyticsPayload("unlock_cta_clicked", {
+      locale: "pl", market: "pl", plan: "full_review", purchase_surface: "mobile_sticky", payment_method: "standard",
+      filename: "private-cv.pdf", report_token: "secret", card_last4: "4242",
+    }).properties).toEqual({
+      locale: "pl", market: "pl", plan: "full_review", purchase_surface: "mobile_sticky", payment_method: "standard",
+    });
+    expect(safeAnalyticsPayload("unlock_cta_viewed", {
+      locale: "pl", market: "pl", plan: "full_review", purchase_surface: "floating_unknown", payment_method: "wallet_unknown",
+    }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
+  });
 });
 
 describe("analysis configuration alert event", () => {

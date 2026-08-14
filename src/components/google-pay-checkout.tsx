@@ -1,10 +1,11 @@
 "use client";
 
-import { Component, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CheckoutElementsProvider, ExpressCheckoutElement, useCheckoutElements } from "@stripe/react-stripe-js/checkout";
 import { loadStripe, type StripeExpressCheckoutElementConfirmEvent, type StripeExpressCheckoutElementReadyEvent } from "@stripe/stripe-js";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import type { MeasurementContext } from "@/lib/audience";
+import type { PurchaseSurface } from "@/lib/analytics/events";
 import { reportPath, type Locale } from "@/lib/i18n";
 import type { Plan } from "@/lib/plans";
 
@@ -32,6 +33,7 @@ type Props = {
   locale: Locale;
   plan: Plan;
   measurementContext: MeasurementContext;
+  purchaseSurface: PurchaseSurface;
   onAvailabilityChange: (available: boolean) => void;
 };
 
@@ -54,10 +56,12 @@ class GooglePayErrorBoundary extends Component<
   }
 }
 
-function GooglePayElement({ locale, plan, measurementContext, onAvailabilityChange }: Omit<Props, "enabled">) {
+function GooglePayElement({ locale, plan, measurementContext, purchaseSurface, onAvailabilityChange }: Omit<Props, "enabled">) {
   const checkoutState = useCheckoutElements();
   const [available, setAvailable] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const container = useRef<HTMLDivElement>(null);
+  const viewTracked = useRef(false);
   const genericError = locale === "pl"
     ? "Nie udało się uruchomić Google Pay. Użyj zwykłego przycisku płatności."
     : "We could not start Google Pay. Use the standard payment button.";
@@ -65,6 +69,20 @@ function GooglePayElement({ locale, plan, measurementContext, onAvailabilityChan
   useEffect(() => {
     if (checkoutState.type === "error") onAvailabilityChange(false);
   }, [checkoutState.type, onAvailabilityChange]);
+
+  useEffect(() => {
+    if (!available || viewTracked.current || !container.current || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting || viewTracked.current) return;
+      viewTracked.current = true;
+      trackAnalyticsEvent("unlock_cta_viewed", {
+        plan, locale, market: locale, purchase_surface: purchaseSurface, payment_method: "google_pay", ...measurementContext,
+      });
+      observer.disconnect();
+    }, { threshold: .5 });
+    observer.observe(container.current);
+    return () => observer.disconnect();
+  }, [available, locale, measurementContext, plan, purchaseSurface]);
 
   if (checkoutState.type !== "success") return null;
   const { checkout } = checkoutState;
@@ -77,6 +95,9 @@ function GooglePayElement({ locale, plan, measurementContext, onAvailabilityChan
 
   async function handleConfirm(event: StripeExpressCheckoutElementConfirmEvent) {
     setPaymentError(null);
+    trackAnalyticsEvent("unlock_cta_clicked", {
+      plan, locale, market: locale, purchase_surface: purchaseSurface, payment_method: "google_pay", ...measurementContext,
+    });
     const started = await fetch("/api/report/checkout/google-pay/started", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -96,7 +117,7 @@ function GooglePayElement({ locale, plan, measurementContext, onAvailabilityChan
     window.location.assign(`${reportPath(locale)}?checkout=success&session_id=${encodeURIComponent(result.session.id)}`);
   }
 
-  return <div className={`google-pay-cta${available ? " is-ready" : ""}`} aria-hidden={!available}>
+  return <div ref={container} className={`google-pay-cta${available ? " is-ready" : ""}`} aria-hidden={!available}>
     <ExpressCheckoutElement
       options={expressCheckoutOptions}
       onReady={handleReady}
@@ -108,7 +129,7 @@ function GooglePayElement({ locale, plan, measurementContext, onAvailabilityChan
   </div>;
 }
 
-export function GooglePayCheckout({ enabled, locale, plan, measurementContext, onAvailabilityChange }: Props) {
+export function GooglePayCheckout({ enabled, locale, plan, measurementContext, purchaseSurface, onAvailabilityChange }: Props) {
   const clientSecret = useMemo(() => {
     if (!enabled || !stripePromise) return null;
     return fetch("/api/report/checkout/google-pay", { method: "POST" })
@@ -130,6 +151,7 @@ export function GooglePayCheckout({ enabled, locale, plan, measurementContext, o
         locale={locale}
         plan={plan}
         measurementContext={measurementContext}
+        purchaseSurface={purchaseSurface}
         onAvailabilityChange={onAvailabilityChange}
       />
     </CheckoutElementsProvider>
