@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => {
   return {
     analytics: vi.fn(),
     confirm: vi.fn().mockResolvedValue({ type: "error", error: { message: "Payment declined" } }),
+    expressCheckoutOptions: null as Record<string, unknown> | null,
+    expressCheckoutShouldThrow: false,
     googlePayAvailable: true,
   };
 });
@@ -20,10 +22,14 @@ vi.mock("@stripe/react-stripe-js/checkout", async () => {
   return {
     CheckoutElementsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     useCheckoutElements: () => ({ type: "success", checkout: { id: "cs_test_google_pay", confirm: mocks.confirm } }),
-    ExpressCheckoutElement: ({ onReady, onConfirm }: { onReady: (event: unknown) => void; onConfirm: (event: unknown) => void }) => {
+    ExpressCheckoutElement: ({ options, onReady, onConfirm }: { options: Record<string, unknown>; onReady: (event: unknown) => void; onConfirm: (event: unknown) => void }) => {
+      mocks.expressCheckoutOptions = options;
       ReactModule.useEffect(() => {
-        onReady({ elementType: "expressCheckout", availablePaymentMethods: { googlePay: mocks.googlePayAvailable } });
+        if (!mocks.expressCheckoutShouldThrow) {
+          onReady({ elementType: "expressCheckout", availablePaymentMethods: { googlePay: mocks.googlePayAvailable } });
+        }
       }, []);
+      if (mocks.expressCheckoutShouldThrow) throw new Error("invalid express checkout options");
       return <button onClick={() => onConfirm({ elementType: "expressCheckout" })}>Google Pay test button</button>;
     },
   };
@@ -41,8 +47,11 @@ afterEach(() => {
   fetchMock.mockClear();
   mocks.analytics.mockClear();
   mocks.confirm.mockClear();
+  mocks.expressCheckoutOptions = null;
+  mocks.expressCheckoutShouldThrow = false;
   mocks.googlePayAvailable = true;
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe("Google Pay checkout CTA", () => {
@@ -52,6 +61,7 @@ describe("Google Pay checkout CTA", () => {
     render(<GooglePayCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} onAvailabilityChange={onAvailabilityChange}/>);
 
     const button = await screen.findByRole("button", { name: "Google Pay test button" });
+    expect(mocks.expressCheckoutOptions).toMatchObject({ buttonHeight: 55 });
     expect(onAvailabilityChange).toHaveBeenCalledWith(true);
     fireEvent.click(button);
 
@@ -69,5 +79,19 @@ describe("Google Pay checkout CTA", () => {
 
     await waitFor(() => expect(onAvailabilityChange).toHaveBeenCalledWith(false));
     expect(screen.queryByRole("button", { name: "Google Pay test button" })).toBeNull();
+  });
+
+  it("keeps the standard checkout surface alive when Stripe rejects the wallet element", async () => {
+    vi.stubGlobal("fetch", fetchMock);
+    mocks.expressCheckoutShouldThrow = true;
+    const onAvailabilityChange = vi.fn();
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    render(<><span>Standard checkout remains</span><GooglePayCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} onAvailabilityChange={onAvailabilityChange}/></>);
+
+    await waitFor(() => expect(onAvailabilityChange).toHaveBeenCalledWith(false));
+    expect(screen.getByText("Standard checkout remains")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Google Pay test button" })).toBeNull();
+    consoleError.mockRestore();
   });
 });

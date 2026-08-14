@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Component, useEffect, useMemo, useState, type ReactNode } from "react";
 import { CheckoutElementsProvider, ExpressCheckoutElement, useCheckoutElements } from "@stripe/react-stripe-js/checkout";
 import { loadStripe, type StripeExpressCheckoutElementConfirmEvent, type StripeExpressCheckoutElementReadyEvent } from "@stripe/stripe-js";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
@@ -12,7 +12,7 @@ const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = publishableKey && /^pk_(test|live)_/.test(publishableKey) ? loadStripe(publishableKey) : null;
 
 const expressCheckoutOptions = {
-  buttonHeight: 62,
+  buttonHeight: 55,
   buttonTheme: { googlePay: "black" as const },
   buttonType: { googlePay: "buy" as const },
   layout: { maxColumns: 1, maxRows: 1, overflow: "never" as const },
@@ -34,6 +34,25 @@ type Props = {
   measurementContext: MeasurementContext;
   onAvailabilityChange: (available: boolean) => void;
 };
+
+class GooglePayErrorBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onError();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 function GooglePayElement({ locale, plan, measurementContext, onAvailabilityChange }: Omit<Props, "enabled">) {
   const checkoutState = useCheckoutElements();
@@ -105,12 +124,14 @@ export function GooglePayCheckout({ enabled, locale, plan, measurementContext, o
   }, [clientSecret, onAvailabilityChange]);
 
   if (!stripePromise || !clientSecret) return null;
-  return <CheckoutElementsProvider stripe={stripePromise} options={{ clientSecret }}>
-    <GooglePayElement
-      locale={locale}
-      plan={plan}
-      measurementContext={measurementContext}
-      onAvailabilityChange={onAvailabilityChange}
-    />
-  </CheckoutElementsProvider>;
+  return <GooglePayErrorBoundary onError={() => onAvailabilityChange(false)}>
+    <CheckoutElementsProvider stripe={stripePromise} options={{ clientSecret }}>
+      <GooglePayElement
+        locale={locale}
+        plan={plan}
+        measurementContext={measurementContext}
+        onAvailabilityChange={onAvailabilityChange}
+      />
+    </CheckoutElementsProvider>
+  </GooglePayErrorBoundary>;
 }
