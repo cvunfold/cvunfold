@@ -64,7 +64,7 @@ describe("free report purchase hierarchy", () => {
     const teaser = toTeaser(createMockReport());
     const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
 
-    const hook = screen.getByRole("heading", { name: "Wykryliśmy problem, który może osłabiać odbiór Twojego CV." }).closest("section");
+    const hook = screen.getByRole("heading", { name: "Wykryliśmy 3 problemy, które mogą osłabiać odbiór Twojego CV." }).closest("section");
     const paywall = container.querySelector<HTMLElement>(".locked");
     expect(container.querySelector(".teaser-profile")?.textContent).toContain(teaser.profileSummary);
     expect(hook?.textContent).toContain(teaser.hook);
@@ -77,6 +77,12 @@ describe("free report purchase hierarchy", () => {
     const paymentMethods = container.querySelector(".payment-methods-list");
     expect(paymentMethods?.textContent).toContain("Obsługiwane płatności");
     for (const method of ["Karta", "BLIK", "Apple Pay", "Google Pay"]) expect(paymentMethods?.textContent).toContain(method);
+  });
+
+  it("uses the correct Polish inflection for four issues", () => {
+    const teaser = { ...toTeaser(createMockReport()), issueCount: 4 };
+    render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
+    expect(screen.getByRole("heading", { name: "Wykryliśmy 4 problemy, które mogą osłabiać odbiór Twojego CV." })).toBeTruthy();
   });
 
   it("tracks the paywall CTA after the hook", () => {
