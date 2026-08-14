@@ -9,10 +9,9 @@ export const contentType = "image/png";
 
 export default async function EnglishOpenGraphImage() {
   return new ImageResponse(<OgImageCanvas
-    title="You have experience. Does your CV show it?"
-    description="See how your seniority, ownership, impact and technical credibility come across to a hiring manager."
+    title="Your CV has a few seconds. Does it show what you can do?"
+    description="See how your responsibility, impact and technical credibility come across to a hiring manager."
     label="EVIDENCE-BASED CV REVIEW"
-    footer="Seniority · Ownership · Impact · Credibility"
+    footer="First impression · Evidence · Impact · Priorities"
   />, { ...size, fonts: await ogFonts() });
 }
-

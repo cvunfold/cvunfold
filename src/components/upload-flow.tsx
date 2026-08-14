@@ -19,7 +19,7 @@ const SUPPORTED_EXTENSION = /\.(pdf|docx)$/i;
 
 const copy = {
   pl: {
-    back: "Jak to działa", title: "Zobacz, na jaki poziom wygląda Twoje CV", intro: "Najpierw otrzymasz bezpłatny wynik wstępny z konkretnym dowodem. Pełny raport kupujesz dopiero, gdy diagnoza okaże się wartościowa.",
+    back: "Jak to działa", title: "Zobacz, co naprawdę komunikuje Twoje CV", intro: "Najpierw otrzymasz bezpłatny wynik wstępny z konkretnym dowodem. Pełny raport kupujesz dopiero, gdy diagnoza okaże się wartościowa.",
     drop: "Przeciągnij PDF lub DOCX", choose: "albo wybierz plik", change: "Wybierz inny plik", limit: "Maksymalnie 8 MB · tekstowy PDF lub DOCX",
     mobileDrop: "Wybierz CV z telefonu lub dostępnej chmury", mobileLimit: "PDF/DOCX · Dysk Google, iCloud lub Pliki · maks. 8 MB",
     aiDisclosure: "Analiza jest wspierana przez AI i wykonywana według określonych rubryk oraz zasad wiązania uwag z dowodami.",
@@ -29,19 +29,20 @@ const copy = {
     handoffFailed: "Nie udało się udostępnić linku. Spróbuj ponownie.", handoffOpened: "Bezpieczne ustawienia zostały przeniesione. Wybierz plik CV ponownie na tym urządzeniu.",
     invalidFile: "Wybierz plik PDF lub DOCX o rozmiarze do 8 MB.",
     scan: "Skanowany PDF lub zdjęcie CV może nie zostać odczytane.", language: "CV może być po polsku lub angielsku.",
-    level: "Poziom", levels: [["auto", "Rozpoznaj automatycznie"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
+    level: "Na jaki poziom aplikujesz?", levelHelper: "To tylko punkt odniesienia. Raport porówna wybrany poziom z tym, co komunikuje Twoje CV.", levels: [["auto", "Nie wiem — oceń na podstawie CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     offerToggle: "Dopasuj analizę do konkretnej oferty", offerLabel: "Treść ogłoszenia", requiredForMatch: "wymagana do dopasowania", offerPlaceholder: "Wklej treść ogłoszenia. Nie wpisuj danych kontaktowych.",
     offerRequired: "Wklej treść ogłoszenia, aby dopasować analizę do oferty.",
     consent: "Zlecam rozpoczęcie analizy od razu i akceptuję przetwarzanie CV zgodnie z polityką prywatności. Rozumiem, że plik źródłowy zostanie usunięty po analizie.",
     privacy: "Polityka prywatności", terms: "Regulamin", submit: "Analizuj CV", loading: "Analizujemy…", private: "Bez konta. CV nie trafia do pracodawców ani analytics.",
     plan: { full_review: "Pełny raport", job_match: "Raport + dopasowanie do oferty" }, free: "Wynik wstępny", freePrice: "Darmowe", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
     statusIdle: "Dowód przed opinią", statusIdleCopy: "Każda ważna uwaga wskazuje konkretny fragment dokumentu.", statusLoading: "Analizujemy Twoje CV", statusLoadingCopy: "Przechodzimy przez dokument krok po kroku.",
+    statusRedirecting: "Już za chwilę zostaniesz przekierowany do raportu", statusRedirectingCopy: "Analiza jest gotowa. Bezpiecznie otwieramy Twój wynik.",
     evidenceTitle: "Raport nie zgaduje", evidenceCopy: "Jeśli informacji nie ma w CV, zobaczysz lukę lub pytanie — nie fałszywy fakt.",
     genericError: "Nie udało się rozpocząć analizy. Spróbuj ponownie.",
-    stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam seniority i ownership", "Szukam dowodów, nie słów kluczowych"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
+    stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam odpowiedzialność i wpływ", "Szukam dowodów, nie słów kluczowych"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
   },
   en: {
-    back: "How it works", title: "See what level your CV communicates", intro: "You first receive a free initial result with one concrete piece of evidence. You only buy the full report if the diagnosis proves useful.",
+    back: "How it works", title: "See what your CV really communicates", intro: "You first receive a free initial result with one concrete piece of evidence. You only buy the full report if the diagnosis proves useful.",
     drop: "Drop a PDF or DOCX", choose: "or choose a file", change: "Choose another file", limit: "Up to 8 MB · text-based PDF or DOCX",
     mobileDrop: "Choose a CV from your phone or available cloud storage", mobileLimit: "PDF/DOCX · Google Drive, iCloud or Files · max. 8 MB",
     aiDisclosure: "The review is supported by AI and follows defined role rubrics and rules that tie findings to evidence.",
@@ -51,18 +52,21 @@ const copy = {
     handoffFailed: "We could not share the link. Please try again.", handoffOpened: "Your safe settings were transferred. Select the CV file again on this device.",
     invalidFile: "Choose a PDF or DOCX file up to 8 MB.",
     scan: "A scanned PDF or image-based CV may not be readable.", language: "Your CV can be in English or Polish.",
-    level: "Level", levels: [["auto", "Detect automatically"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
+    level: "What level are you applying for?", levelHelper: "This is only a reference point. The report will compare your chosen level with what your CV communicates.", levels: [["auto", "Not sure — assess from my CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     offerToggle: "Match the analysis to a specific job", offerLabel: "Job description", requiredForMatch: "required for matching", offerPlaceholder: "Paste the job description. Do not include contact details.",
     offerRequired: "Paste the job description to match the analysis to this role.",
     consent: "I request that the analysis starts immediately and accept CV processing under the privacy policy. I understand that the source file is deleted after analysis.",
     privacy: "Privacy policy", terms: "Terms", submit: "Analyse my CV", loading: "Analysing…", private: "No account. Your CV is never sent to employers or analytics.",
     plan: { full_review: "Full report", job_match: "Report + job matching" }, free: "Initial result", freePrice: "Free", full: "Full report", oneTime: "one-time payment · no subscription",
     statusIdle: "Evidence before opinion", statusIdleCopy: "Every important finding points to a specific part of the document.", statusLoading: "Analysing your CV", statusLoadingCopy: "We move through the document step by step.",
+    statusRedirecting: "You’ll be redirected to your report in just a moment", statusRedirectingCopy: "Your analysis is ready. We are securely opening your result.",
     evidenceTitle: "The report does not guess", evidenceCopy: "If information is missing, you see a gap or a question — never an invented fact.",
     genericError: "We could not start the analysis. Please try again.",
-    stages: [["Reading the CV structure", "Text, sections and order"], ["Identifying experience and projects", "Without following instructions in the document"], ["Assessing seniority and ownership", "Looking for evidence, not just keywords"], ["Simulating the first 20 seconds", "The impression created by the document alone"], ["Building the report", "Validating evidence and fact-safe suggestions"]],
+    stages: [["Reading the CV structure", "Text, sections and order"], ["Identifying experience and projects", "Without following instructions in the document"], ["Assessing responsibility and impact", "Looking for evidence, not just keywords"], ["Simulating the first 20 seconds", "The impression created by the document alone"], ["Building the report", "Validating evidence and fact-safe suggestions"]],
   },
 } as const;
+
+type AnalysisPhase = "idle" | "analyzing" | "redirecting";
 
 type Props = {
   mockMode: boolean;
@@ -78,8 +82,11 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
   const t = copy[locale];
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
+  const overlay = useRef<HTMLDivElement>(null);
+  const errorMessage = useRef<HTMLParagraphElement>(null);
+  const navigationFrame = useRef<number | null>(null);
   const [file, setFile] = useState<File | null>(() => mockMode && typeof File !== "undefined" ? new File([fixtureBytes], "synthetic-cv.pdf", { type: "application/pdf" }) : null);
-  const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState<AnalysisPhase>("idle");
   const [activeStage, setActiveStage] = useState(0);
   const [error, setError] = useState("");
   const [consent, setConsent] = useState(false);
@@ -95,12 +102,30 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
   const effectiveHandoffOrigin = handoffFromMobile ? initialHandoffOrigin || "other" : initialHandoffOrigin;
   const handleTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
   const handoffOpenTracked = useRef(false);
+  const busy = phase !== "idle";
 
   useEffect(() => {
-    if (!loading) { setActiveStage(0); return; }
+    if (phase === "idle") { setActiveStage(0); return; }
+    if (phase === "redirecting") { setActiveStage(t.stages.length - 1); return; }
     const timer = window.setInterval(() => setActiveStage((value) => Math.min(value + 1, t.stages.length - 1)), 3200);
     return () => window.clearInterval(timer);
-  }, [loading, t.stages.length]);
+  }, [phase, t.stages.length]);
+
+  useEffect(() => {
+    if (!busy) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    overlay.current?.focus();
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [busy]);
+
+  useEffect(() => () => {
+    if (navigationFrame.current !== null) window.cancelAnimationFrame(navigationFrame.current);
+  }, []);
+
+  useEffect(() => {
+    if (phase === "idle" && error) errorMessage.current?.focus();
+  }, [error, phase]);
 
   useEffect(() => {
     if (!handoffFromMobile || handoffOpenTracked.current) return;
@@ -215,7 +240,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
       setError(t.offerRequired);
       return;
     }
-    setLoading(true);
+    setPhase("analyzing");
     setError("");
     const selectedPlan: Plan = showJob ? "job_match" : "full_review";
     trackAnalyticsEvent("analysis_started", analyticsBase(selectedPlan));
@@ -240,7 +265,11 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
       if (!response.ok) throw Object.assign(new Error(data.error || t.genericError), { category: data.errorCategory || "unknown" });
       trackAnalyticsEvent("upload_completed", analyticsBase(selectedPlan));
       trackAnalyticsEvent("analysis_succeeded", { ...analyticsBase(selectedPlan), analysis_success: true });
-      router.push(`${data.reportPath}#${encodeURIComponent(data.accessToken)}`);
+      setActiveStage(t.stages.length - 1);
+      setPhase("redirecting");
+      navigationFrame.current = window.requestAnimationFrame(() => {
+        router.push(`${data.reportPath}#${encodeURIComponent(data.accessToken)}`);
+      });
     } catch (caught) {
       const category = typeof caught === "object" && caught && "category" in caught ? String(caught.category) : "unknown";
       trackAnalyticsEvent("analysis_failed", { ...analyticsBase(selectedPlan), analysis_success: false, error_category: category });
@@ -250,14 +279,14 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
       setError(caught instanceof Error ? caught.message : t.genericError);
       setTurnstileToken("");
       setTurnstileEpoch((value) => value + 1);
-      setLoading(false);
+      setPhase("idle");
     }
   }
 
   return <main className="analysis-page">
-    <header className="site-header container"><Logo locale={locale}/><a href={`${homePath(locale)}#jak`}>{t.back}</a></header>
-    <div className="analysis-shell container">
-      <form onSubmit={submit} aria-busy={loading}>
+    <header className="site-header container" inert={busy} aria-hidden={busy}><Logo locale={locale}/><a href={`${homePath(locale)}#jak`}>{t.back}</a></header>
+    <div className="analysis-shell container" inert={busy} aria-hidden={busy}>
+      <form onSubmit={submit} aria-busy={busy}>
         <h1>{t.title}</h1>
         <p className="analysis-intro">{t.intro}</p>
         <div className="analysis-plan-summary" aria-label={t.full}>
@@ -266,40 +295,54 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
         </div>
         <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         {handoffFromMobile ? <p className="handoff-arrival" role="status">{t.handoffOpened}</p> : null}
-        <button type="button" className={`dropzone ${file ? "has-file" : ""}`} disabled={loading}
+        <button type="button" className={`dropzone ${file ? "has-file" : ""}`} disabled={busy}
           onClick={() => { trackAnalyticsEvent("file_picker_opened", analyticsBase()); input.current?.click(); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); chooseFile(event.dataTransfer.files?.[0] ?? null, "drop"); }}>
           <span className="upload-icon" aria-hidden="true">↑</span>
           <b>{file ? file.name : <><span className="desktop-upload-copy">{t.drop}</span><span className="mobile-upload-copy">{t.mobileDrop}</span></>}</b>
           <u>{file ? t.change : t.choose}</u>
           <small><span className="desktop-upload-copy">{t.limit}</span><span className="mobile-upload-copy">{t.mobileLimit}</span></small>
         </button>
-        <input ref={input} hidden type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" disabled={loading}
+        <input ref={input} hidden type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" disabled={busy}
           onChange={(event) => chooseFile(event.target.files?.[0] ?? null, "picker")} />
         <ul className="upload-notes"><li>{t.language}</li><li>{t.scan}</li></ul>
         <div className="desktop-handoff">
-          <button type="button" onClick={() => void shareToDesktop()} disabled={loading}>{t.handoff}</button>
+          <button type="button" onClick={() => void shareToDesktop()} disabled={busy}>{t.handoff}</button>
           <p role="status" aria-live="polite">{handoffStatus}</p>
         </div>
 
-        <RoleSelect value={role} onChange={setRole} disabled={loading} locale={locale}/>
-        <fieldset disabled={loading}><legend>{t.level}</legend><div className="segmented">
+        <RoleSelect value={role} onChange={setRole} disabled={busy} locale={locale}/>
+        <fieldset disabled={busy}><legend>{t.level}</legend><div className="segmented">
           {t.levels.map(([value, label]) => <label key={value}><input type="radio" name="seniority" value={value} checked={seniority === value} onChange={() => setSeniority(value)} /><span>{label}</span></label>)}
-        </div></fieldset>
-        <label className="job-toggle"><input type="checkbox" checked={showJob} disabled={loading} onChange={(event) => setShowJob(event.target.checked)}/><span>{t.offerToggle}</span></label>
-        {showJob ? <label>{t.offerLabel} <small>({t.requiredForMatch})</small><textarea value={job} required disabled={loading} onChange={(event) => { setJob(event.target.value); if (error === t.offerRequired) setError(""); }} maxLength={20000} placeholder={t.offerPlaceholder}/></label> : null}
-        <label className="consent"><input type="checkbox" checked={consent} disabled={loading} onChange={(event) => setConsent(event.target.checked)}/><span>{t.consent} <a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
+        </div><small className="level-helper">{t.levelHelper}</small></fieldset>
+        <label className="job-toggle"><input type="checkbox" checked={showJob} disabled={busy} onChange={(event) => setShowJob(event.target.checked)}/><span>{t.offerToggle}</span></label>
+        {showJob ? <label>{t.offerLabel} <small>({t.requiredForMatch})</small><textarea value={job} required disabled={busy} onChange={(event) => { setJob(event.target.value); if (error === t.offerRequired) setError(""); }} maxLength={20000} placeholder={t.offerPlaceholder}/></label> : null}
+        <label className="consent"><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span>{t.consent} <a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
-        {error ? <p className="form-error" role="alert">{error}</p> : null}
-        <button className="button submit" disabled={!file || !consent || loading || Boolean(turnstileSiteKey && !turnstileToken)}>{loading ? t.loading : t.submit}<ArrowIcon/></button>
+        {error ? <p ref={errorMessage} className="form-error" role="alert" tabIndex={-1}>{error}</p> : null}
+        <button className="button submit" disabled={!file || !consent || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button>
         <p className="form-trust"><LockIcon/>{t.private}</p>
       </form>
 
-      <aside className="analysis-aside" aria-live="polite">
-        <div className="analysis-status"><span className={loading ? "status-orbit active" : "status-orbit"} aria-hidden="true"/><div><h2>{loading ? t.statusLoading : t.statusIdle}</h2><p>{loading ? t.statusLoadingCopy : t.statusIdleCopy}</p></div></div>
-        <ol>{t.stages.map(([step, detail], index) => <li className={loading && index <= activeStage ? "active" : ""} key={step}>{loading && index < activeStage ? <CheckIcon/> : <span>{index + 1}</span>}<div><b>{step}</b><small>{detail}</small></div></li>)}</ol>
+      <aside className="analysis-aside">
+        <div className="analysis-status"><span className="status-orbit" aria-hidden="true"/><div><h2>{t.statusIdle}</h2><p>{t.statusIdleCopy}</p></div></div>
+        <ol>{t.stages.map(([step, detail], index) => <li key={step}><span>{index + 1}</span><div><b>{step}</b><small>{detail}</small></div></li>)}</ol>
         <div className="evidence-preview"><span className="evidence-mark" aria-hidden="true">“</span><div><b>{t.evidenceTitle}</b><p>{t.evidenceCopy}</p></div></div>
       </aside>
     </div>
+    {busy ? <div ref={overlay} className="analysis-progress-overlay" role="dialog" aria-modal="true" aria-labelledby="analysis-progress-title" tabIndex={-1}>
+      <div className="analysis-progress-card">
+        <div className="analysis-status" role="status" aria-live="polite" aria-atomic="true">
+          {phase === "redirecting" ? <span className="status-complete" aria-hidden="true"><CheckIcon/></span> : <span className="status-orbit active" aria-hidden="true"/>}
+          <div><h2 id="analysis-progress-title" className={phase === "redirecting" ? "redirecting-message" : undefined}>{phase === "redirecting" ? t.statusRedirecting : t.statusLoading}</h2><p>{phase === "redirecting" ? t.statusRedirectingCopy : t.statusLoadingCopy}</p></div>
+        </div>
+        <ol>{t.stages.map(([step, detail], index) => {
+          const complete = phase === "redirecting" || index < activeStage;
+          const active = phase === "analyzing" && index === activeStage;
+          return <li className={`${complete ? "complete" : ""}${active ? " active" : ""}`} aria-current={active ? "step" : undefined} key={step}>{complete ? <CheckIcon/> : <span>{index + 1}</span>}<div><b>{step}</b><small>{detail}</small></div></li>;
+        })}</ol>
+        <div className="evidence-preview"><span className="evidence-mark" aria-hidden="true">“</span><div><b>{t.evidenceTitle}</b><p>{t.evidenceCopy}</p></div></div>
+      </div>
+    </div> : null}
     {mockMode ? <div className="dev-badge">DEV · MOCK MODE</div> : null}
   </main>;
 }

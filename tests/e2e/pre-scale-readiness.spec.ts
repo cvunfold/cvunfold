@@ -3,8 +3,8 @@ import { expect, test } from "@playwright/test";
 test("Polish and English landing pages explain the diagnostic method", async ({ page }) => {
   await page.goto("/");
   const agent = page.locator(".ai-agent-section");
-  await expect(page.getByRole("link", { name: "Sprawdź, jaki poziom pokazuje moje CV" }).first()).toBeVisible();
-  await expect(page.getByText("Oceniamy dokument, nie Ciebie jako osobę")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sprawdź, co pokazuje moje CV" }).first()).toBeVisible();
+  await expect(page.getByText(/Oceniamy dokument, nie Ciebie/)).toBeVisible();
   await expect(page.getByText("Ogólna jakość komunikacji CV")).toBeVisible();
   await expect(agent.getByRole("heading", { name: "Masz już własnego agenta AI? Świetnie." })).toBeVisible();
   await expect(agent.getByRole("heading", { name: "Użyj go do redakcji. CV Unfold służy do diagnozy." })).toBeVisible();
@@ -26,7 +26,7 @@ test("Polish and English landing pages explain the diagnostic method", async ({ 
 
   await page.goto("/en");
   const agentEn = page.locator(".ai-agent-section");
-  await expect(page.getByText("We assess the document, not you as a person")).toBeVisible();
+  await expect(page.getByText(/We assess the document, not you/)).toBeVisible();
   await expect(page.getByText("Overall CV communication quality")).toBeVisible();
   await expect(agentEn.getByRole("heading", { name: "Already have your own AI agent? Great." })).toBeVisible();
   await expect(agentEn.locator("dt")).toHaveText(["REWRITE", "EXPOSE", "GAP", "QUESTION"]);

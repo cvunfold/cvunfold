@@ -2,7 +2,9 @@
 
 ## Zasada
 
-Google dostaje wyłącznie parametry z zamkniętej allowlisty. Treść CV, ogłoszenia, raportu, promptu, błędu modelu, nazwa pliku, dane kontaktowe, token i prywatny URL są zabronione. Na stronie raportu tag może zostać załadowany dopiero po zgodzie, ale otrzymuje wyłącznie zanonimizowaną lokalizację `/raport` lub `/en/report`, bez automatycznego `page_view`. Pozwala to wysłać potwierdzony `purchase` bez ujawniania prywatnego URL-a. W formularzu i teaserze nie instalujemy session replay ani heatmap.
+Google dostaje wyłącznie parametry z zamkniętej allowlisty. Treść CV, ogłoszenia, raportu, promptu, błędu modelu, nazwa pliku, dane kontaktowe, token i prywatny URL są zabronione. Wybrana opcja `Pozostałe` trafia do pomiaru wyłącznie jako zamknięte `broad_role_enum=other`; nie zbieramy tekstowej nazwy zawodu. Na stronie raportu tag może zostać załadowany dopiero po zgodzie, ale otrzymuje wyłącznie zanonimizowaną lokalizację `/raport` lub `/en/report`, bez automatycznego `page_view`. Pozwala to wysłać potwierdzony `purchase` bez ujawniania prywatnego URL-a. W formularzu i teaserze nie instalujemy session replay ani heatmap.
+
+Rola rozpoznana z CV przez model nie jest parametrem analytics i nigdy nie trafia do GA4 ani Google Ads. Po stronie serwera służy jednorazowo do zwiększenia anonimowego licznika w jednej z czterech szerokich kategorii (`supported_it`, `other_it`, `non_it`, `unclear`) i jednym z dwóch ogólnych źródeł (`google_cpc`, `other`). Licznik nie przechowuje identyfikatora analizy, dokładnej roli, daty, UTM, click ID ani treści dokumentu lub raportu. Komórki z mniej niż pięcioma analizami są ukrywane w diagnostics.
 
 Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero po świadomej zgodzie. Użytkownik ma równorzędne opcje akceptacji, odrzucenia i późniejszej zmiany ustawień. Implementacja odpowiada [aktualnej instrukcji Google](https://developers.google.com/tag-platform/security/guides/consent).
 
@@ -26,6 +28,8 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 | `analysis_failed` | Bezpieczna kategoria błędu | locale, market, plan, error_category | Supabase + GA4 | diagnostic | bez raw exception; runtime może dostać tylko techniczne liczniki ekstrakcji z zamkniętej allowlisty opisanej w `PRIVACY_AND_RETENTION.md` |
 | `analysis_configuration_failed` | Analiza kończy się błędem konfiguracji dostawcy AI | locale, market, plan, analysis_success | GA4 | diagnostic alert | bez CV, PII, nazwy pliku, promptu i komunikatu dostawcy; alert już przy 1 zdarzeniu |
 | `teaser_viewed` | Render nieopłaconego teasera | locale, market, plan | GA4 + Supabase | secondary | raz na mount |
+| `unlock_cta_viewed` | CTA zakupu rzeczywiście wchodzi w viewport | locale, market, plan, `purchase_surface`, `payment_method` + zamknięty kontekst | GA4 | diagnostic | raz na kombinację surface/method w danym renderze; Google Pay dopiero po `onReady` i wejściu w viewport |
+| `unlock_cta_clicked` | Rzeczywista próba użycia CTA zakupu | locale, market, plan, `purchase_surface`, `payment_method` + zamknięty kontekst | GA4 | diagnostic | przy kliknięciu standardowego CTA albo potwierdzeniu oficjalnego przycisku Google Pay |
 | `checkout_started` | Utworzona sesja Checkout | locale, market, plan + zamknięty kontekst | Supabase + GA4 | secondary | wyłącznie po udanym `createCheckout`; nie przy samym kliknięciu |
 | `checkout_cancelled` | Powrót użytkownika z anulowanego Checkout | locale, market, plan | GA4 + Supabase | diagnostic | raz na analizę; cookie raportu + dedupe key |
 | `checkout_expired` | Podpisany webhook `checkout.session.expired` | locale, market, plan | Stripe/Supabase | diagnostic | session ID w dedupe key |
@@ -58,6 +62,14 @@ Jeżeli skonfigurowano `NEXT_PUBLIC_GOOGLE_ADS_ID` oraz `NEXT_PUBLIC_GOOGLE_ADS_
 - Link handoffu nie kopiuje bieżącego query stringa. Zachowuje wyłącznie rolę, seniority, plan i `handoff=mobile`; nie zawiera źródła kampanii, CV, ogłoszenia, nazwy pliku, tokenu, click ID ani szczegółowych UTM.
 - Diagnostics agreguje analizy i zakupy według wariantu, roli, seniority i planu; wartości historyczne bez kontekstu są oznaczone jako `legacy_unknown`.
 
+## Anonimowe dopasowanie odbiorców
+
+- Źródło prawdy: trigger `anonymous_role_aggregate_after_insert` na zapisanym, zwalidowanym raporcie.
+- Klasyfikacja korzysta przejściowo wyłącznie z `report.document.perceivedRole`; surowa wartość nie jest kopiowana do statystyk.
+- Migracja agreguje również raporty pozostające jeszcze w 30-dniowej retencji, bez utrwalenia ich identyfikatorów.
+- Usunięcie lub wygaśnięcie raportu nie zmniejsza skumulowanego anonimowego licznika.
+- Admin diagnostics pokazuje kategorie dopiero od pięciu analiz; małe komórki zwraca wyłącznie jako sumę ukrytą.
+
 ## QA
 
 1. GA4 DebugView: zgoda denied — brak tagu/requestów; accepted — eventy bez PII.
@@ -65,3 +77,4 @@ Jeżeli skonfigurowano `NEXT_PUBLIC_GOOGLE_ADS_ID` oraz `NEXT_PUBLIC_GOOGLE_ADS_
 3. Network: żadnego tokenu raportu w `page_location`, refererze ani payloadzie.
 4. Stripe sandbox: jeden Checkout, retry webhooka i trzy powroty do raportu dają jeden purchase transaction_id.
 5. Google Ads: direct conversion ma realną wartość/walutę; purchase jest jedyną primary.
+6. Report CTA: desktop sidebar, mobile summary, mobile sticky i końcowy paywall raportują wyłącznie allowlistowane `purchase_surface`; Google Pay jest odróżniony przez `payment_method=google_pay` bez danych walleta lub karty.

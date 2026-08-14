@@ -9,7 +9,7 @@ export const contentType = "image/png";
 
 export default async function OpenGraphImage() {
   return new ImageResponse(<OgImageCanvas
-    title="Masz doświadczenie. Czy widać je w Twoim CV?"
+    title="Twoje CV ma kilka sekund. Czy pokazuje to, co potrafisz?"
     description="Zobacz, jak rekruter może odczytać Twój poziom, ownership, wpływ i techniczną wiarygodność."
   />, { ...size, fonts: await ogFonts() });
 }

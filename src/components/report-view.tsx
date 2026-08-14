@@ -10,6 +10,7 @@ import type { Plan } from "@/lib/plans";
 import { formatPlanPrice } from "@/lib/plans";
 import { analysisPath, articlesPath, homePath, type Locale } from "@/lib/i18n";
 import { trackAnalyticsEvent, trackPurchaseConversion } from "@/lib/analytics/client";
+import type { PurchaseSurface } from "@/lib/analytics/events";
 import { ArrowIcon, CheckIcon, LockIcon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { ScoreRing } from "@/components/score-ring";
@@ -52,6 +53,7 @@ const copy = {
     accurate: ["Tak", "Częściowo", "Nie"], copied: "Link skopiowany", copyFailed: "Nie udało się skopiować linku.",
     deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
     samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV", backHome: "Wróć do strony głównej",
+    mobileSummary: "Twój bezpłatny wynik", fullIncludes: "Pełny raport zawiera",
   },
   en: {
     sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
@@ -70,6 +72,7 @@ const copy = {
     accurate: ["Yes", "Partly", "No"], copied: "Link copied", copyFailed: "We could not copy the link.",
     deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
     samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV", backHome: "Back to homepage",
+    mobileSummary: "Your free result", fullIncludes: "The full report includes",
   },
 } as const;
 
@@ -104,7 +107,12 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
   const [sent, setSent] = useState(false);
   const [linkState, setLinkState] = useState<"idle" | "copied" | "error">("idle");
   const [googlePayAvailable, setGooglePayAvailable] = useState(false);
+  const [mobileStickyVisible, setMobileStickyVisible] = useState(false);
+  const reportRoot = useRef<HTMLElement>(null);
+  const mobileSummaryCta = useRef<HTMLButtonElement>(null);
+  const paywall = useRef<HTMLElement>(null);
   const trackedViews = useRef(new Set<string>());
+  const trackedPurchaseViews = useRef(new Set<string>());
   const full = paid ? data as CVReport : null;
   const teaser = !paid ? data as TeaserReport : null;
   const price = formatPlanPrice(plan, locale);
@@ -118,16 +126,85 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
     if (paid && purchase) trackPurchaseConversion({ ...purchase, locale, market: locale, ...measurementContext });
   }, [demo, locale, measurementContext, paid, plan, purchase]);
 
-  async function unlock() {
+  useEffect(() => {
+    if (paid || demo || !reportRoot.current || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const element = entry.target as HTMLElement;
+        const purchaseSurface = element.dataset.purchaseSurface;
+        const paymentMethod = element.dataset.paymentMethod;
+        if (!purchaseSurface || !paymentMethod) continue;
+        const key = `${purchaseSurface}:${paymentMethod}`;
+        if (trackedPurchaseViews.current.has(key)) continue;
+        trackedPurchaseViews.current.add(key);
+        trackAnalyticsEvent("unlock_cta_viewed", {
+          plan, locale, market: locale, purchase_surface: purchaseSurface, payment_method: paymentMethod, ...measurementContext,
+        });
+      }
+    }, { threshold: .5 });
+    const targets = reportRoot.current.querySelectorAll<HTMLElement>("[data-purchase-surface][data-payment-method]:not(.report-mobile-sticky-cta)");
+    targets.forEach((target) => observer.observe(target));
+    return () => observer.disconnect();
+  }, [demo, locale, measurementContext, paid, plan]);
+
+  useEffect(() => {
+    if (paid || demo || !mobileSummaryCta.current || !paywall.current || !("IntersectionObserver" in window)) return;
+    const summaryAction = mobileSummaryCta.current;
+    const paywallSection = paywall.current;
+    const mobileQuery = window.matchMedia("(max-width: 720px)");
+    const updateVisibility = () => {
+      const summaryPassed = summaryAction.getBoundingClientRect().bottom <= 0;
+      const beforePaywall = paywallSection.getBoundingClientRect().top > window.innerHeight;
+      setMobileStickyVisible(mobileQuery.matches && summaryPassed && beforePaywall);
+    };
+    const observer = new IntersectionObserver(updateVisibility, { threshold: [0, .01] });
+    observer.observe(summaryAction);
+    observer.observe(paywallSection);
+    mobileQuery.addEventListener("change", updateVisibility);
+    window.addEventListener("resize", updateVisibility);
+    updateVisibility();
+    return () => {
+      observer.disconnect();
+      mobileQuery.removeEventListener("change", updateVisibility);
+      window.removeEventListener("resize", updateVisibility);
+    };
+  }, [demo, paid]);
+
+  useEffect(() => {
+    if (mobileStickyVisible) document.documentElement.dataset.mobileCtaVisible = "true";
+    else delete document.documentElement.dataset.mobileCtaVisible;
+    return () => { delete document.documentElement.dataset.mobileCtaVisible; };
+  }, [mobileStickyVisible]);
+
+  useEffect(() => {
+    if (!mobileStickyVisible) return;
+    const key = "mobile_sticky:standard";
+    if (trackedPurchaseViews.current.has(key)) return;
+    trackedPurchaseViews.current.add(key);
+    trackAnalyticsEvent("unlock_cta_viewed", {
+      plan, locale, market: locale, purchase_surface: "mobile_sticky", payment_method: "standard", ...measurementContext,
+    });
+  }, [locale, measurementContext, mobileStickyVisible, plan]);
+
+  async function unlock(surface: PurchaseSurface) {
+    if (busy) return;
+    trackAnalyticsEvent("unlock_cta_clicked", {
+      plan, locale, market: locale, purchase_surface: surface, payment_method: "standard", ...measurementContext,
+    });
     setBusy(true);
-    const response = await fetch("/api/report/checkout", { method: "POST" });
-    const result = await response.json().catch(() => ({}));
-    if (response.ok && result.url) {
-      trackAnalyticsEvent("checkout_started", { plan, locale, market: locale, ...measurementContext });
-      window.location.assign(result.url);
-      return;
+    try {
+      const response = await fetch("/api/report/checkout", { method: "POST" });
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && result.url) {
+        trackAnalyticsEvent("checkout_started", { plan, locale, market: locale, ...measurementContext });
+        window.location.assign(result.url);
+        return;
+      }
+      if (response.ok) { router.refresh(); window.location.reload(); return; }
+    } catch {
+      // The visible fallback below intentionally avoids exposing provider details.
     }
-    if (response.ok) { router.refresh(); window.location.reload(); return; }
     window.alert(locale === "pl" ? "Nie udało się rozpocząć płatności. Spróbuj ponownie." : "We could not start checkout. Please try again.");
     setBusy(false);
   }
@@ -167,7 +244,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
   const topicKeys = [...new Set([...(full?.issues.map((issue) => issue.category) || []), "seniority", "ownership"])]
     .filter((key): key is keyof typeof reportTopics.pl => key in reportTopics[locale]).slice(0, 3);
 
-  return <main className={`report-page report-v2${demo ? " sample-report-page" : ""}`}>
+  return <main ref={reportRoot} className={`report-page report-v2${demo ? " sample-report-page" : ""}`}>
     <header className="report-mobile-header"><Logo locale={locale}/><Link href={homePath(locale)}>{locale === "pl" ? "Wróć" : "Back"}</Link></header>
     <div className="report-layout">
       <aside className="report-sidebar">
@@ -180,7 +257,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
         <hr/>
         <p className="verdict">{data.summary.oneSentenceVerdict}</p>
         <ul className="report-includes"><li><span>{t.fullIssues}</span><b>{counts.issues}</b></li><li><span>{t.strengths}</span><b>{counts.strengths}</b></li><li><span>{t.nextSteps}</span><b>{counts.nextSteps}</b></li></ul>
-        {demo ? <Link className="button sidebar-buy" href={analysisPath(locale)}>{t.analyze}</Link> : !paid ? <button onClick={unlock} disabled={busy} className="button sidebar-buy"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button> : null}
+        {demo ? <Link className="button sidebar-buy" href={analysisPath(locale)}>{t.analyze}</Link> : !paid ? <button onClick={() => void unlock("desktop_sidebar")} disabled={busy} className="button sidebar-buy" data-purchase-surface="desktop_sidebar" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button> : null}
         <small className="safe-note"><LockIcon/> {demo ? t.samplePrivate : t.private}</small>
       </aside>
 
@@ -194,6 +271,20 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
             {!demo ? <button className="delete-link" onClick={remove}><LockIcon/>{t.delete}</button> : null}
           </div>
         </header>
+        <section className="report-mobile-summary" aria-label={!paid && !demo ? t.mobileSummary : t.overall}>
+          <div className="report-mobile-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} statusLabel={locale === "pl" ? "Dobry kierunek" : "Good direction"}/></div>
+          <div className="report-mobile-summary-copy">
+            <span className="report-mobile-summary-title">{!paid && !demo ? t.mobileSummary : t.overall}</span>
+            <div className="report-mobile-signals"><div><span>{t.perceivedLevel}</span><strong>{data.document.perceivedRole} · {seniorityLabel(data.document.perceivedSeniority)}</strong></div><div><span>{t.first20}</span><strong className={data.recruiterSimulation.simulatedDecision}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong></div></div>
+            <p className="verdict">{data.summary.oneSentenceVerdict}</p>
+          </div>
+          {!paid && !demo ? <div className="report-mobile-offer">
+            <span>{t.fullIncludes}</span>
+            <ul><li><b>{counts.issues}</b> {locale === "pl" ? "problemów" : "issues"}</li><li><b>{counts.strengths}</b> {locale === "pl" ? "mocnych stron" : "strengths"}</li><li><b>{counts.nextSteps}</b> {locale === "pl" ? "priorytetów" : "priorities"}</li></ul>
+            <button ref={mobileSummaryCta} onClick={() => void unlock("mobile_summary")} disabled={busy} className="button" data-purchase-surface="mobile_summary" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button>
+            <small>{t.oneTime}</small>
+          </div> : null}
+        </section>
         {expiresAt ? <p className="report-expiry">{t.expires}: <time dateTime={expiresAt}>{new Intl.DateTimeFormat(locale === "pl" ? "pl-PL" : "en-GB", { dateStyle: "long" }).format(new Date(expiresAt))}</time></p> : null}
 
         <section className="report-section recruiter-perspective">
@@ -208,22 +299,23 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
           <p className="disclaimer">{t.disclaimer}</p><div className="improve"><b>{t.improve}</b><ul>{data.recruiterSimulation.whatCouldImproveDecision.map((item) => <li key={item}>{item}</li>)}</ul></div>
         </section>
 
+        {teaser?.featuredFinding ? <section className="report-section featured-finding"><div className="section-heading"><span>03</span><h2>{t.featured}</h2></div><article><header><span className={`severity ${teaser.featuredFinding.severity}`}>{teaser.featuredFinding.severity}</span><b>{teaser.featuredFinding.suggestionType?.toUpperCase()}</b></header><h3>{teaser.featuredFinding.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{teaser.featuredFinding.explanation}</p></div><div><small>{t.evidence}</small>{teaser.featuredFinding.evidence ? <blockquote className="evidence-quote">{teaser.featuredFinding.evidence}</blockquote> : <p>{locale === "pl" ? "Brak widocznego dowodu w dokumencie." : "No visible evidence in the document."}</p>}</div><div><small>{t.matters}</small><p>{teaser.featuredFinding.whyItMatters}</p></div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: teaser.featuredFinding.action, suggestionType: teaser.featuredFinding.suggestionType, title: teaser.featuredFinding.title, locale })}</p></div></div><footer>{t.confidence}: <b>{confidenceLabel[locale][teaser.featuredFinding.confidence]}</b></footer></article></section> : null}
+
         <section className="report-section">
-          <div className="section-heading"><span>03</span><h2>{t.categories}</h2></div>
+          <div className="section-heading"><span>{teaser ? "04" : "03"}</span><h2>{t.categories}</h2></div>
           <div className="score-rows">{data.categoryScores.map((category) => <div key={category.key}><b>{category.label}</b><p>{category.rationale}</p><strong>{category.score}<small>/100</small></strong><i><span style={{ width: `${category.score}%` }}/></i></div>)}</div>
         </section>
-
-        {teaser?.featuredFinding ? <section className="report-section featured-finding"><div className="section-heading"><span>04</span><h2>{t.featured}</h2></div><article><header><span className={`severity ${teaser.featuredFinding.severity}`}>{teaser.featuredFinding.severity}</span><b>{teaser.featuredFinding.suggestionType?.toUpperCase()}</b></header><h3>{teaser.featuredFinding.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{teaser.featuredFinding.explanation}</p></div><div><small>{t.evidence}</small>{teaser.featuredFinding.evidence ? <blockquote className="evidence-quote">{teaser.featuredFinding.evidence}</blockquote> : <p>{locale === "pl" ? "Brak widocznego dowodu w dokumencie." : "No visible evidence in the document."}</p>}</div><div><small>{t.matters}</small><p>{teaser.featuredFinding.whyItMatters}</p></div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: teaser.featuredFinding.action, suggestionType: teaser.featuredFinding.suggestionType, title: teaser.featuredFinding.title, locale })}</p></div></div><footer>{t.confidence}: <b>{confidenceLabel[locale][teaser.featuredFinding.confidence]}</b></footer></article></section> : null}
 
         {full ? <>
           <section className="report-section"><div className="section-heading"><span>04</span><h2>{t.fullIssues}</h2></div><div className="issues">{full.issues.map((issue, index) => <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{issue.severity}</span><span>{issue.suggestion?.type.toUpperCase()}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.evidence}</small>{issue.evidenceRefs.length ? issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>) : <p>{locale === "pl" ? "Brak bezpośredniego dowodu — luka lub pytanie." : "No direct evidence — this is a gap or question."}</p>}</div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: issue.action, suggestionType: issue.suggestion?.type, title: issue.title, locale, factualityNote: issue.suggestion?.factualityNote })}</p>{issue.suggestion?.proposed ? <blockquote>{issue.suggestion.proposed}</blockquote> : null}</div></div><footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>)}</div></section>
           <section className="report-section report-summary-grid"><div><h2>{t.strengths}</h2>{full.strengths.map((item) => <article key={item.id}><CheckIcon/><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h2>{t.nextSteps}</h2>{full.nextSteps.toSorted((a, b) => a.priority - b.priority).map((item) => <article key={item.priority}><span>{item.priority}</span><div><b>{item.title}</b><p>{item.action}</p></div></article>)}</div></section>
           {demo ? <section className="report-section sample-cta"><div><h2>{locale === "pl" ? "Co mówi Twoje CV?" : "What does your CV communicate?"}</h2><p>{locale === "pl" ? "Zobacz bezpłatny wynik i najważniejszy dowód." : "See your free result and most important evidence."}</p></div><Link className="button" href={analysisPath(locale)}>{t.analyze}<ArrowIcon/></Link></section> : <section className="report-section feedback"><h2>{t.feedback}</h2>{sent ? <p>{t.thanks}</p> : <form onSubmit={feedback}><label>{t.rating}<select name="rating" defaultValue="5">{[5,4,3,2,1].map((value) => <option key={value} value={value}>{value}</option>)}</select></label><label>{t.accuracy}<select name="accurate" defaultValue="yes"><option value="yes">{t.accurate[0]}</option><option value="partly">{t.accurate[1]}</option><option value="no">{t.accurate[2]}</option></select></label><label>{t.comment}<textarea name="comment" maxLength={1000}/></label><small>{t.feedbackPrivacy}</small><button className="button">{t.send}</button></form>}</section>}
-        </> : <section className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div className="locked-counts"><span>{counts.issues} {locale === "pl" ? "problemów" : "issues"}</span><span>{counts.strengths} {locale === "pl" ? "mocnych stron" : "strengths"}</span><span>{counts.nextSteps} {locale === "pl" ? "priorytetów" : "priorities"}</span></div><div className={`locked-payment-actions${googlePayAvailable ? " google-pay-ready" : ""}`}><button onClick={unlock} disabled={busy} className="button"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><GooglePayCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} onAvailabilityChange={setGooglePayAvailable}/></div><small>{t.oneTime}</small></section>}
+        </> : <section ref={paywall} className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div className="locked-counts"><span>{counts.issues} {locale === "pl" ? "problemów" : "issues"}</span><span>{counts.strengths} {locale === "pl" ? "mocnych stron" : "strengths"}</span><span>{counts.nextSteps} {locale === "pl" ? "priorytetów" : "priorities"}</span></div><div className={`locked-payment-actions${googlePayAvailable ? " google-pay-ready" : ""}`}><button onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><GooglePayCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setGooglePayAvailable}/></div><small>{t.oneTime}</small></section>}
 
         <nav className="report-knowledge"><span>{t.viewArticles}</span><div>{topicKeys.map((key) => { const [label, slug] = reportTopics[locale][key]; return <Link key={key} href={`${articlesPath(locale)}/${slug}`}>{label}<ArrowIcon/></Link>; })}<Link href={articlesPath(locale)}>{locale === "pl" ? "Wszystkie" : "All"}<ArrowIcon/></Link></div></nav>
       </div>
     </div>
+    {!paid && !demo ? <button className="report-mobile-sticky-cta" data-visible={mobileStickyVisible ? "true" : "false"} data-purchase-surface="mobile_sticky" data-payment-method="standard" aria-hidden={!mobileStickyVisible} tabIndex={mobileStickyVisible ? 0 : -1} disabled={busy} onClick={() => void unlock("mobile_sticky")}><span><LockIcon/>{busy ? "…" : t.unlock}</span><strong>{price}</strong></button> : null}
     {mockMode ? <span className="dev-badge">DEV MOCK</span> : null}
   </main>;
 }

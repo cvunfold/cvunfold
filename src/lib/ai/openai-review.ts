@@ -63,6 +63,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     locale: input.locale,
     targetRole: roleProfile.label,
     roleProfile: {
+      analysisMode: roleProfile.experimental ? "experimental_general" : "role_specific",
       specialization: roleProfile.description,
       evaluationFocus: roleProfile.evaluationFocus,
       credibilityCategory: roleProfile.credibilityLabel,

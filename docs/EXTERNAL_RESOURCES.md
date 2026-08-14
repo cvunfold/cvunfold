@@ -1,6 +1,6 @@
 # CVUnfold external resource registry
 
-Last verified: 2026-08-13 (Europe/Warsaw).
+Last verified: 2026-08-14 (Europe/Warsaw).
 
 This registry is the preflight source of truth for external writes. A shared
 email address is not an ownership signal. NeoPadel and all other client or
@@ -18,6 +18,13 @@ employer resources remain forbidden.
 | OpenAI Platform | private business account | Personal organization | `CVUnfold` (`proj_SL3YR6PScXe3vj52C31b1FyJ`) | Vercel Production / Preview | Project and restricted backend key approved; Usage Tier 1 and funded auto-reload verified; capped PL/EN live eval passed 2026-08-09 and its temporary key was revoked |
 | Google Ads | `pawelmaczkaczarnecki@gmail.com` | private business Google account | customer `461-172-5021`; campaign `24116869899` | Production / active learning | Search campaign is active with an 80 PLN daily budget and direct final URL `https://cvunfold.com/`; campaign final URL suffix `utm_source=google&utm_medium=cpc&utm_campaign=cv_developer_pl_search&utm_content={adgroupid}-{creative}&utm_term={keyword}` passed the Google landing-page test and was saved 2026-08-13; the sole primary `Zakup` conversion remains unverified and must be confirmed before scaling spend |
 | Google Search Console | `pawelmaczkaczarnecki@gmail.com` | private business Google account | URL-prefix property `https://cvunfold.com/`; Domain property `cvunfold.com` | Production | URL-prefix property verified by HTML meta tag; Domain property verified through the OVH DNS TXT record on 2026-08-10; `/sitemap.xml` has status **Success** with 30 discovered URLs in the domain view |
+
+## Deployment preflight — 2026-08-14
+
+| Service | Account | Organization / team | Project | Environment | Verification |
+| --- | --- | --- | --- | --- | --- |
+| GitHub | `pawelmaczkaczarnecki` | `cvunfold` | `cvunfold/cvunfold` | feature branch `feat/mobile-report-progress` → `main` | Live CLI auth and repository metadata verified before push; remote is `https://github.com/cvunfold/cvunfold.git` |
+| Vercel | `pawelmaczkaczarnecki` | `pawelmaczkaczarnecki's projects` | `cvunfold` (`prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A`) | Preview, then Production at `cvunfold.com` | Live CLI identity, owner, project ID, Git link and production domain verified before deployment; Vercel Preview is protected by Vercel authentication and has Turnstile disabled, while Production retains its hostname-bound live credentials |
 
 Before any write, revalidate the service, account, organization/team, project,
 and environment in the destination. If any field differs or is missing, stop

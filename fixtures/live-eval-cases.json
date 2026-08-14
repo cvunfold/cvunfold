@@ -236,5 +236,25 @@
       "pl": "SYNTETYCZNE CV — DEVOPS ENGINEER\n\nTechnologie: AWS, Terraform, Kubernetes, Docker, Grafana, GitHub Actions. Obowiązki: utrzymanie infrastruktury, konfiguracja CI/CD i monitoring. Dokument nie pokazuje SLO, incydentów, bezpieczeństwa, kosztu, developer experience, zakresu decyzji ani rezultatów. Nie wolno zakładać ownershipu na podstawie samej listy narzędzi.",
       "en": "SYNTHETIC CV — DEVOPS ENGINEER\n\nTechnologies: AWS, Terraform, Kubernetes, Docker, Grafana and GitHub Actions. Responsibilities: infrastructure maintenance, CI/CD configuration and monitoring. The document does not show SLOs, incidents, security, cost, developer experience, decision scope or outcomes. Ownership must not be inferred from the tool list alone."
     }
+  },
+  {
+    "id": "24-other-marketing-strong-evidence",
+    "title": "Pozostałe: marketing z mierzalnym wpływem",
+    "targetRole": "other",
+    "targetSeniority": "mid",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — SPECJALISTKA MARKETINGU\n\nZaplanowałam i przeprowadziłam kampanię reaktywacyjną dla nieaktywnych klientów. Na podstawie testów trzech wariantów komunikacji współczynnik powrotu wzrósł z 4,1% do 6,8% w ciągu sześciu tygodni; wynik potwierdzono w dashboardzie CRM. Koordynowałam harmonogram z zespołami sprzedaży i obsługi klienta oraz opisałam wnioski do kolejnej iteracji.",
+      "en": "SYNTHETIC CV — MARKETING SPECIALIST\n\nPlanned and delivered a reactivation campaign for inactive customers. Testing three messaging variants increased the return rate from 4.1% to 6.8% over six weeks, verified in the CRM dashboard. Coordinated the schedule with sales and customer service and documented findings for the next iteration."
+    }
+  },
+  {
+    "id": "25-other-operations-evidence-gap",
+    "title": "Pozostałe: operacje bez dowodu rezultatu",
+    "targetRole": "other",
+    "targetSeniority": "auto",
+    "cv": {
+      "pl": "SYNTETYCZNE CV — SPECJALISTA DS. OPERACJI\n\nObowiązki: przygotowywanie raportów, kontakt z dostawcami, obsługa zamówień i aktualizacja procedur. Dokument nie pokazuje zakresu odpowiedzialności, skali, decyzji, mierzalnych rezultatów ani sposobu współpracy. Nie wolno zakładać branżowych KPI, wymaganych licencji ani poziomu stanowiska.",
+      "en": "SYNTHETIC CV — OPERATIONS SPECIALIST\n\nResponsibilities: preparing reports, contacting suppliers, processing orders and updating procedures. The document does not show scope of responsibility, scale, decisions, measurable outcomes or collaboration. Industry KPIs, required licences and job level must not be assumed."
+    }
   }
 ]

@@ -127,6 +127,16 @@ describe("file picker diagnostics", () => {
     }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
   });
 
+  it("records Other only as a closed enum and drops custom role text", () => {
+    expect(safeAnalyticsPayload("upload_started", {
+      locale: "pl", market: "pl", plan: "full_review", broad_role_enum: "other",
+      selected_seniority_enum: "auto", upload_entrypoint: "picker", custom_role: "private profession",
+    }).properties).toEqual({
+      locale: "pl", market: "pl", plan: "full_review", broad_role_enum: "other",
+      selected_seniority_enum: "auto", upload_entrypoint: "picker",
+    });
+  });
+
   it("keeps plan and the closed variant on sample-report views", () => {
     expect(safeAnalyticsPayload("sample_report_viewed", {
       locale: "en", market: "en", plan: "full_review", landing_variant: "developer", report_token: "secret",
@@ -138,6 +148,18 @@ describe("checkout diagnostic events", () => {
   it("allows only privacy-safe cancellation fields", () => {
     expect(safeAnalyticsPayload("checkout_cancelled", {
       locale: "pl", market: "pl", plan: "full_review", filename: "private-cv.pdf",
+    }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
+  });
+
+  it("allows only closed purchase CTA surface and payment method values", () => {
+    expect(safeAnalyticsPayload("unlock_cta_clicked", {
+      locale: "pl", market: "pl", plan: "full_review", purchase_surface: "mobile_sticky", payment_method: "standard",
+      filename: "private-cv.pdf", report_token: "secret", card_last4: "4242",
+    }).properties).toEqual({
+      locale: "pl", market: "pl", plan: "full_review", purchase_surface: "mobile_sticky", payment_method: "standard",
+    });
+    expect(safeAnalyticsPayload("unlock_cta_viewed", {
+      locale: "pl", market: "pl", plan: "full_review", purchase_surface: "floating_unknown", payment_method: "wallet_unknown",
     }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
   });
 });

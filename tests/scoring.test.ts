@@ -11,6 +11,13 @@ describe("deterministic scoring",()=>{
     expect(getRubric("senior","qa_test_automation").find(x=>x.key==="architecture")?.label).toContain("ryzyku");
     expect(getRubric("senior","devops_platform").find(x=>x.key==="credibility")?.label).toContain("operacyjna");
   });
+  it("uses balanced general criteria for an automatically inferred experimental role",()=>{
+    const rubric=getRubric("auto","other");
+    expect(rubric.find(x=>x.key==="ownership")?.weight).toBe(.18);
+    expect(rubric.find(x=>x.key==="credibility")?.label).toBe("Wiarygodność zawodowa");
+    expect(rubric.find(x=>x.key==="architecture")?.label).toContain("Zakres");
+    expect(rubric.reduce((sum,item)=>sum+item.weight,0)).toBeCloseTo(1);
+  });
   it("replaces model-provided labels and weights with the server rubric",()=>{
     const report=createMockReport("senior");
     report.categoryScores=report.categoryScores.map(category=>({...category,label:"Model label",weight:.14}));

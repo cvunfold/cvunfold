@@ -27,7 +27,17 @@ const weights: Record<Exclude<Seniority, "auto">, Record<string, number>> = {
   lead: { impact: .20, ownership: .22, credibility: .12, architecture: .22, collaboration: .17, clarity: .05, ats: .02 },
 };
 
-export const RUBRIC_VERSION = "technical-v1.0.0";
+const genericAutoWeights: Record<string, number> = {
+  impact: .20,
+  ownership: .18,
+  credibility: .18,
+  architecture: .12,
+  collaboration: .12,
+  clarity: .13,
+  ats: .07,
+};
+
+export const RUBRIC_VERSION = "technical-v1.1.0";
 
 export function parseSeniority(value: unknown): Seniority | null {
   return SENIORITIES.includes(value as Seniority) ? value as Seniority : null;
@@ -37,5 +47,6 @@ export function getRubric(seniority: Seniority, targetRole: TargetRoleId = "fron
   const resolved = seniority === "auto" ? "senior" : seniority;
   const role = getTargetRoleProfile(targetRole, locale);
   const labels: Record<string, string> = { ...(locale === "en" ? commonLabelsEn : commonLabels), credibility: role.credibilityLabel, architecture: role.systemsLabel };
-  return Object.entries(weights[resolved]).map(([key, weight]) => ({ key, weight, label: labels[key] }));
+  const selectedWeights = seniority === "auto" && role.experimental ? genericAutoWeights : weights[resolved];
+  return Object.entries(selectedWeights).map(([key, weight]) => ({ key, weight, label: labels[key] }));
 }

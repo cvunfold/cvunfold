@@ -9,6 +9,7 @@ export const TARGET_ROLES = [
     credibilityLabel: "Wiarygodność frontendowa",
     systemsLabel: "Architektura frontendowa i myślenie systemowe",
     evaluationFocus: ["jakość i architektura interfejsów", "wydajność i dostępność", "design systemy i wpływ na produkt"],
+    experimental: false,
   },
   {
     id: "backend_developer",
@@ -18,6 +19,7 @@ export const TARGET_ROLES = [
     credibilityLabel: "Wiarygodność backendowa",
     systemsLabel: "Architektura i myślenie systemowe",
     evaluationFocus: ["projektowanie API i modeli danych", "niezawodność i skalowalność", "bezpieczeństwo i operowanie systemem"],
+    experimental: false,
   },
   {
     id: "fullstack_developer",
@@ -27,6 +29,7 @@ export const TARGET_ROLES = [
     credibilityLabel: "Wiarygodność techniczna end-to-end",
     systemsLabel: "Architektura end-to-end",
     evaluationFocus: ["odpowiedzialność za pełny przepływ rozwiązania", "granice między frontendem, backendem i danymi", "szerokość kompetencji poparta techniczną głębią"],
+    experimental: false,
   },
   {
     id: "mobile_developer",
@@ -36,6 +39,7 @@ export const TARGET_ROLES = [
     credibilityLabel: "Wiarygodność mobile",
     systemsLabel: "Architektura i ograniczenia platform mobilnych",
     evaluationFocus: ["ograniczenia i wzorce platform mobilnych", "wydajność, stabilność i cykl życia aplikacji", "release, monitoring i doświadczenie użytkownika"],
+    experimental: false,
   },
   {
     id: "qa_test_automation",
@@ -45,6 +49,7 @@ export const TARGET_ROLES = [
     credibilityLabel: "Wiarygodność w jakości i automatyzacji",
     systemsLabel: "Strategia jakości i myślenie o ryzyku",
     evaluationFocus: ["strategia jakości i priorytetyzacja ryzyka", "automatyzacja oraz jakość sygnału z testów", "testowalność i wpływ na proces dostarczania"],
+    experimental: false,
   },
   {
     id: "devops_platform",
@@ -54,6 +59,17 @@ export const TARGET_ROLES = [
     credibilityLabel: "Wiarygodność operacyjna i platformowa",
     systemsLabel: "Niezawodność i myślenie platformowe",
     evaluationFocus: ["niezawodność i observability", "automatyzacja infrastruktury oraz delivery", "bezpieczeństwo, koszt i developer experience"],
+    experimental: false,
+  },
+  {
+    id: "other",
+    label: "Pozostałe",
+    shortLabel: "IN",
+    description: "Eksperymentalna analiza oparta na ogólnych kryteriach CV.",
+    credibilityLabel: "Wiarygodność zawodowa",
+    systemsLabel: "Zakres i złożoność odpowiedzialności",
+    evaluationFocus: ["wpływ i rezultaty", "zakres odpowiedzialności i wiarygodność dowodów", "jasność profilu oraz współpraca"],
+    experimental: true,
   },
 ] as const;
 
@@ -66,6 +82,7 @@ export type TargetRoleProfile = {
   credibilityLabel: string;
   systemsLabel: string;
   evaluationFocus: readonly string[];
+  experimental: boolean;
 };
 
 const EN_ROLE_COPY: Record<TargetRoleId, Pick<TargetRoleProfile, "description" | "credibilityLabel" | "systemsLabel" | "evaluationFocus">> = {
@@ -105,7 +122,15 @@ const EN_ROLE_COPY: Record<TargetRoleId, Pick<TargetRoleProfile, "description" |
     systemsLabel: "Reliability and platform thinking",
     evaluationFocus: ["reliability and observability", "infrastructure and delivery automation", "security, cost and developer experience"],
   },
+  other: {
+    description: "Experimental analysis based on general CV criteria.",
+    credibilityLabel: "Professional credibility",
+    systemsLabel: "Scope and complexity of responsibility",
+    evaluationFocus: ["impact and outcomes", "scope of responsibility and evidence credibility", "profile clarity and collaboration"],
+  },
 };
+
+const EN_ROLE_LABELS: Partial<Record<TargetRoleId, string>> = { other: "Other" };
 
 const roleIds = new Set<string>(TARGET_ROLES.map((role) => role.id));
 
@@ -116,7 +141,8 @@ export function parseTargetRoleId(value: unknown): TargetRoleId | null {
 
 export function getTargetRoleProfile(roleId: TargetRoleId, locale: Locale = "pl"): TargetRoleProfile {
   const role = TARGET_ROLES.find((item) => item.id === roleId) ?? TARGET_ROLES[0];
-  return locale === "en" ? { ...role, ...EN_ROLE_COPY[role.id] } : role;
+  const localizedLabel = EN_ROLE_LABELS[role.id];
+  return locale === "en" ? { ...role, ...EN_ROLE_COPY[role.id], ...(localizedLabel ? { label: localizedLabel } : {}) } : role;
 }
 
 export function getTargetRoleOptions(locale: Locale): readonly TargetRoleProfile[] {

@@ -80,7 +80,9 @@ export function buildCheckoutSessionParams(
 }
 
 export function checkoutIdempotencyKey(analysisId: string, price: string, surface: CheckoutSurface): string {
-  const version = surface === "google_pay" ? "v2" : "v1";
+  // Google Pay eligibility is captured when Checkout creates the session.
+  // v3 replaces sessions created before the wallet was enabled in Stripe Live.
+  const version = surface === "google_pay" ? "v3" : "v1";
   return `analysis:${analysisId}:${price}:${surface}:${version}`;
 }
 

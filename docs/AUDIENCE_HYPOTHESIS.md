@@ -2,7 +2,7 @@
 
 ## Wariant aktywny
 
-Aktywny wariant jest zamkniętym enumem `landing_variant="developer"`. Landing komunikuje diagnozę CV dla ról technicznych: Frontend, Backend, Full-stack, Mobile, QA / Test Automation i DevOps / Platform. Frontend ma najgłębszą dotychczasową walidację semantyczną; pozostałe role mają rubryki i syntetyczne przypadki przekrojowe, ale nie równoważny materiał live-model.
+Aktywny wariant jest zamkniętym enumem `landing_variant="developer"`. Landing komunikuje diagnozę CV zoptymalizowaną dla ról technicznych: Frontend, Backend, Full-stack, Mobile, QA / Test Automation i DevOps / Platform. Frontend ma najgłębszą dotychczasową walidację semantyczną; pozostałe role mają rubryki i syntetyczne przypadki przekrojowe, ale nie równoważny materiał live-model. Formularz udostępnia dodatkowo zamkniętą opcję `other` jako wyraźnie eksperymentalną analizę według kryteriów ogólnych. Nie zbieramy tekstowej nazwy innego zawodu i nie przedstawiamy tego trybu jako równoważnego wsparcia.
 
 Wariant „specjaliści IT” pozostaje poza sprintem. Nie zmieniamy jednocześnie odbiorcy, reklam, ceny i modelu analizy.
 

@@ -18,11 +18,7 @@ Nie zwiększać budżetu przed działającym purchase trackingiem, Stripe live s
 
 `[cv programisty]`, `[analiza cv programisty]`, `[ocena cv programisty]`, `"jak poprawić cv developera"`, `"cv frontend developer"`.
 
-### B. Seniority
-
-`"cv senior developer"`, `"cv senior frontend"`, `"jak pokazać seniority w cv"`, `"cv na seniora"`, `"czy moje cv wygląda na seniora"`.
-
-### C. Generyczna analiza CV
+### B. Generyczna analiza CV
 
 `[sprawdź moje cv]`, `[analiza cv]`, `[ocena cv]`. Mniejszy początkowy budżet; ta intencja silnie konkuruje z darmowymi checkerami.
 
@@ -34,19 +30,19 @@ Na start jako phrase/exact po sprawdzeniu dopasowań: `darmowe`, `za darmo`, `wz
 
 Nagłówki mieszczące się w typowym limicie 30 znaków:
 
-- Czy CV wygląda na Seniora?
+- Co Pokazuje Twoje CV?
 - Analiza CV dla Developerów
 - Pierwsze 20 Sekund CV
 - Nie Kolejny ATS Checker
 - Każda Uwaga z Dowodem
 - Pokaż Ownership i Wpływ
 - Bez Konta i Abonamentu
-- Pełna Analiza od 29 zł
+- Pełna analiza CV za 29 zł
 - Masz Doświadczenie. Widać?
 
 Opisy mieszczące się w typowym limicie 90 znaków:
 
-- Zobacz seniority, ownership i pierwsze wrażenie. Każda ważna uwaga ma dowód.
+- Zobacz odpowiedzialność, wpływ i pierwsze wrażenie. Każda ważna uwaga ma dowód.
 - ATS sprawdza format. My pokazujemy, co hiring manager zrozumie z Twojego CV.
 - Darmowy wynik wstępny. Pełny raport od 29 zł. Bez konta i bez subskrypcji.
 - Nie dopisujemy osiągnięć. Pokazujemy, które doświadczenia są źle wyeksponowane.
