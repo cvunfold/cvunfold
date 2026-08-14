@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { buildCheckoutSessionParams, priceForPlan, shouldRecordCheckoutExpired } from "@/lib/payments/stripe";
+import { buildCheckoutSessionParams, checkoutIdempotencyKey, priceForPlan, shouldRecordCheckoutExpired } from "@/lib/payments/stripe";
 import { readFileSync } from "node:fs";
 
 const originalFullPrice = process.env.STRIPE_PRICE_FULL_REVIEW;
@@ -60,14 +60,21 @@ describe("Stripe price boundary", () => {
     expect(hosted.cancel_url).toContain("checkout=cancelled");
     expect(hosted.integration_identifier).toMatch(/^cvunfold_hosted_[a-z]{8}$/);
     expect(hosted.metadata).toMatchObject({ analysis_id: analysis.id, checkout_surface: "hosted", buyer_confirmed: "true" });
+    expect(hosted).not.toHaveProperty("managed_payments");
 
     expect(googlePay.ui_mode).toBe("elements");
+    expect(googlePay.managed_payments).toEqual({ enabled: false });
     expect(googlePay.return_url).toContain("session_id={CHECKOUT_SESSION_ID}");
     expect(googlePay).not.toHaveProperty("success_url");
     expect(googlePay).not.toHaveProperty("cancel_url");
     expect(googlePay).not.toHaveProperty("payment_method_types");
     expect(googlePay.integration_identifier).toMatch(/^cvunfold_gpay_[a-z]{8}$/);
     expect(googlePay.metadata).toMatchObject({ analysis_id: analysis.id, checkout_surface: "google_pay", buyer_confirmed: "false" });
+  });
+
+  it("uses a new idempotency version after changing the Google Pay session parameters", () => {
+    expect(checkoutIdempotencyKey(analysis.id, "price_full", "hosted")).toContain(":hosted:v1");
+    expect(checkoutIdempotencyKey(analysis.id, "price_full", "google_pay")).toContain(":google_pay:v2");
   });
 
   it("does not count an eligibility-only Google Pay session as an abandoned checkout", () => {
