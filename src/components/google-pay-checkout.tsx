@@ -2,7 +2,12 @@
 
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CheckoutElementsProvider, ExpressCheckoutElement, useCheckoutElements } from "@stripe/react-stripe-js/checkout";
-import { loadStripe, type StripeExpressCheckoutElementConfirmEvent, type StripeExpressCheckoutElementReadyEvent } from "@stripe/stripe-js";
+import {
+  loadStripe,
+  type StripeExpressCheckoutElementAvailablePaymentMethodsChangeEvent,
+  type StripeExpressCheckoutElementConfirmEvent,
+  type StripeExpressCheckoutElementReadyEvent,
+} from "@stripe/stripe-js";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import type { MeasurementContext } from "@/lib/audience";
 import type { PurchaseSurface } from "@/lib/analytics/events";
@@ -87,10 +92,17 @@ function GooglePayElement({ locale, plan, measurementContext, purchaseSurface, o
   if (checkoutState.type !== "success") return null;
   const { checkout } = checkoutState;
 
-  function handleReady(event: StripeExpressCheckoutElementReadyEvent) {
-    const googlePayAvailable = event.availablePaymentMethods?.googlePay === true;
+  function updateGooglePayAvailability(googlePayAvailable: boolean) {
     setAvailable(googlePayAvailable);
     onAvailabilityChange(googlePayAvailable);
+  }
+
+  function handleReady(event: StripeExpressCheckoutElementReadyEvent) {
+    updateGooglePayAvailability(event.availablePaymentMethods?.googlePay === true);
+  }
+
+  function handleAvailablePaymentMethodsChange(event: StripeExpressCheckoutElementAvailablePaymentMethodsChangeEvent) {
+    updateGooglePayAvailability(event.paymentMethods?.googlePay?.available === true);
   }
 
   async function handleConfirm(event: StripeExpressCheckoutElementConfirmEvent) {
@@ -121,6 +133,7 @@ function GooglePayElement({ locale, plan, measurementContext, purchaseSurface, o
     <ExpressCheckoutElement
       options={expressCheckoutOptions}
       onReady={handleReady}
+      onAvailablePaymentMethodsChange={handleAvailablePaymentMethodsChange}
       onConfirm={handleConfirm}
       onCancel={() => setPaymentError(null)}
       onLoadError={() => { setAvailable(false); onAvailabilityChange(false); }}

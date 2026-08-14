@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => {
     expressCheckoutOptions: null as Record<string, unknown> | null,
     expressCheckoutShouldThrow: false,
     googlePayAvailable: true,
+    googlePayAvailableAfterReady: null as boolean | null,
   };
 });
 
@@ -22,11 +23,17 @@ vi.mock("@stripe/react-stripe-js/checkout", async () => {
   return {
     CheckoutElementsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     useCheckoutElements: () => ({ type: "success", checkout: { id: "cs_test_google_pay", confirm: mocks.confirm } }),
-    ExpressCheckoutElement: ({ options, onReady, onConfirm, onCancel }: { options: Record<string, unknown>; onReady: (event: unknown) => void; onConfirm: (event: unknown) => void; onCancel?: (event: unknown) => void }) => {
+    ExpressCheckoutElement: ({ options, onReady, onAvailablePaymentMethodsChange, onConfirm, onCancel }: { options: Record<string, unknown>; onReady: (event: unknown) => void; onAvailablePaymentMethodsChange?: (event: unknown) => void; onConfirm: (event: unknown) => void; onCancel?: (event: unknown) => void }) => {
       mocks.expressCheckoutOptions = options;
       ReactModule.useEffect(() => {
         if (!mocks.expressCheckoutShouldThrow) {
           onReady({ elementType: "expressCheckout", availablePaymentMethods: { googlePay: mocks.googlePayAvailable } });
+          if (mocks.googlePayAvailableAfterReady !== null) {
+            onAvailablePaymentMethodsChange?.({
+              elementType: "expressCheckout",
+              paymentMethods: { googlePay: { available: mocks.googlePayAvailableAfterReady } },
+            });
+          }
         }
       }, []);
       if (mocks.expressCheckoutShouldThrow) throw new Error("invalid express checkout options");
@@ -64,14 +71,17 @@ afterEach(() => {
   mocks.expressCheckoutOptions = null;
   mocks.expressCheckoutShouldThrow = false;
   mocks.googlePayAvailable = true;
+  mocks.googlePayAvailableAfterReady = null;
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
 describe("Google Pay checkout CTA", () => {
-  it("reveals the official wallet slot only when Google Pay is available and keeps server-side start tracking", async () => {
+  it("reveals the official wallet slot when Stripe reports Google Pay after the initial ready event", async () => {
     vi.stubGlobal("fetch", fetchMock);
     exposeVisibleIntersectionObserver();
+    mocks.googlePayAvailable = false;
+    mocks.googlePayAvailableAfterReady = true;
     const onAvailabilityChange = vi.fn();
     render(<GooglePayCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/>);
 
