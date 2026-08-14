@@ -11,8 +11,8 @@ const { analytics } = vi.hoisted(() => ({ analytics: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }));
 vi.mock("@/lib/analytics/client", () => ({ trackAnalyticsEvent: analytics, trackPurchaseConversion: vi.fn() }));
 vi.mock("next/dynamic", () => ({
-  default: () => function GooglePayStub({ purchaseSurface }: { purchaseSurface: string }) {
-    return <div data-testid="google-pay-stub" data-surface={purchaseSurface}/>;
+  default: () => function ExpressWalletStub({ purchaseSurface }: { purchaseSurface: string }) {
+    return <div data-testid="express-wallet-stub" data-surface={purchaseSurface}/>;
   },
 }));
 
@@ -65,7 +65,7 @@ afterEach(() => {
 });
 
 describe("free report purchase hierarchy", () => {
-  it("shows one mobile summary, promotes the full finding before scores and mounts Google Pay once", () => {
+  it("shows one mobile summary, promotes the full finding before scores and mounts the wallet once", () => {
     const teaser = toTeaser(createMockReport());
     const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
 
@@ -79,7 +79,10 @@ describe("free report purchase hierarchy", () => {
     expect(finding).not.toBeNull();
     expect(categories).not.toBeNull();
     expect(Boolean(finding!.compareDocumentPosition(categories!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
-    expect(screen.getAllByTestId("google-pay-stub")).toHaveLength(1);
+    expect(screen.getAllByTestId("express-wallet-stub")).toHaveLength(1);
+    const paymentMethods = container.querySelector(".payment-methods-list");
+    expect(paymentMethods?.textContent).toContain("Obsługiwane płatności");
+    for (const method of ["Karta", "BLIK", "Apple Pay", "Google Pay"]) expect(paymentMethods?.textContent).toContain(method);
   });
 
   it("shows the sticky CTA only between the mobile summary and the final paywall", () => {

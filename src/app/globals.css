@@ -825,11 +825,15 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .locked p { max-width: 650px; margin: 0 auto 15px; color: var(--muted); font-size: var(--report-small); }
 .locked-counts { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; font-size: 12px; font-weight: 700; }
 .locked-payment-actions { position: relative; width: min(100%, 680px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 0 auto; }
-.locked-payment-actions.google-pay-ready { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.locked-payment-actions.wallet-ready { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .locked-payment-actions > .button { width: 100%; min-height: 62px; margin: 0; }
-.google-pay-cta { position: absolute; width: 100%; visibility: hidden; pointer-events: none; }
-.google-pay-cta.is-ready { position: relative; visibility: visible; pointer-events: auto; }
-.locked .google-pay-error { margin: 7px 0 0; color: var(--danger); font-size: 12px; line-height: 1.4; text-align: left; }
+.express-wallet-cta { position: absolute; width: 100%; visibility: hidden; pointer-events: none; }
+.express-wallet-cta.is-ready { position: relative; visibility: visible; pointer-events: auto; }
+.locked .express-wallet-error { margin: 7px 0 0; color: var(--danger); font-size: 12px; line-height: 1.4; text-align: left; }
+.payment-methods-list { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px 10px; margin-top: 14px; color: var(--muted); font-size: 11px; }
+.payment-methods-list > span { font-weight: 700; }
+.payment-methods-list ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.payment-methods-list li { padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-weight: 700; line-height: 1.2; white-space: nowrap; }
 .locked > small { display: block; margin-top: 12px; color: var(--muted); font-size: var(--report-small); }
 
 @media (max-width: 1050px) {
@@ -1035,7 +1039,8 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   .locked { padding-inline: 20px; }
   .locked-columns { display: none !important; }
   .locked-counts { flex-direction: column; gap: 4px; }
-  .locked-payment-actions.google-pay-ready { grid-template-columns: 1fr; }
+  .locked-payment-actions.wallet-ready { grid-template-columns: 1fr; }
+  .payment-methods-list { align-items: stretch; flex-direction: column; gap: 7px; }
   .report-title h1 { font-size: 42px; }
   .report-title h2 { font-size: 17px; }
   .report-title { display: block; }

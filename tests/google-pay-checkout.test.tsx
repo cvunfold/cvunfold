@@ -2,7 +2,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GooglePayCheckout } from "@/components/google-pay-checkout";
+import { ExpressWalletCheckout } from "@/components/google-pay-checkout";
 import { DEFAULT_MEASUREMENT_CONTEXT } from "@/lib/audience";
 
 const mocks = vi.hoisted(() => {
@@ -12,8 +12,10 @@ const mocks = vi.hoisted(() => {
     confirm: vi.fn().mockResolvedValue({ type: "error", error: { message: "Payment declined" } }),
     expressCheckoutOptions: null as Record<string, unknown> | null,
     expressCheckoutShouldThrow: false,
+    applePayAvailable: false,
     googlePayAvailable: true,
-    googlePayAvailableAfterReady: null as boolean | null,
+    walletAvailabilityAfterReady: null as { applePay: boolean; googlePay: boolean } | null,
+    selectedWallet: "google_pay" as "apple_pay" | "google_pay",
   };
 });
 
@@ -27,17 +29,20 @@ vi.mock("@stripe/react-stripe-js/checkout", async () => {
       mocks.expressCheckoutOptions = options;
       ReactModule.useEffect(() => {
         if (!mocks.expressCheckoutShouldThrow) {
-          onReady({ elementType: "expressCheckout", availablePaymentMethods: { googlePay: mocks.googlePayAvailable } });
-          if (mocks.googlePayAvailableAfterReady !== null) {
+          onReady({ elementType: "expressCheckout", availablePaymentMethods: { applePay: mocks.applePayAvailable, googlePay: mocks.googlePayAvailable } });
+          if (mocks.walletAvailabilityAfterReady !== null) {
             onAvailablePaymentMethodsChange?.({
               elementType: "expressCheckout",
-              paymentMethods: { googlePay: { available: mocks.googlePayAvailableAfterReady } },
+              paymentMethods: {
+                applePay: { available: mocks.walletAvailabilityAfterReady.applePay },
+                googlePay: { available: mocks.walletAvailabilityAfterReady.googlePay },
+              },
             });
           }
         }
       }, []);
       if (mocks.expressCheckoutShouldThrow) throw new Error("invalid express checkout options");
-      return <><button onClick={() => onConfirm({ elementType: "expressCheckout" })}>Google Pay test button</button><button onClick={() => onCancel?.({ elementType: "expressCheckout" })}>Cancel Google Pay test</button></>;
+      return <><button onClick={() => onConfirm({ elementType: "expressCheckout", expressPaymentType: mocks.selectedWallet, paymentFailed: vi.fn() })}>Wallet test button</button><button onClick={() => onCancel?.({ elementType: "expressCheckout" })}>Cancel wallet test</button></>;
     },
   };
 });
@@ -67,31 +72,34 @@ afterEach(() => {
   cleanup();
   fetchMock.mockClear();
   mocks.analytics.mockClear();
-  mocks.confirm.mockClear();
   mocks.expressCheckoutOptions = null;
   mocks.expressCheckoutShouldThrow = false;
+  mocks.applePayAvailable = false;
   mocks.googlePayAvailable = true;
-  mocks.googlePayAvailableAfterReady = null;
+  mocks.walletAvailabilityAfterReady = null;
+  mocks.selectedWallet = "google_pay";
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  mocks.confirm.mockReset().mockResolvedValue({ type: "error", error: { message: "Payment declined" } });
 });
 
-describe("Google Pay checkout CTA", () => {
+describe("Express wallet checkout CTA", () => {
   it("reveals the official wallet slot when Stripe reports Google Pay after the initial ready event", async () => {
     vi.stubGlobal("fetch", fetchMock);
     exposeVisibleIntersectionObserver();
     mocks.googlePayAvailable = false;
-    mocks.googlePayAvailableAfterReady = true;
+    mocks.walletAvailabilityAfterReady = { applePay: false, googlePay: true };
     const onAvailabilityChange = vi.fn();
-    render(<GooglePayCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/>);
+    render(<ExpressWalletCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/>);
 
-    const button = await screen.findByRole("button", { name: "Google Pay test button" });
+    const button = await screen.findByRole("button", { name: "Wallet test button" });
     expect(mocks.expressCheckoutOptions).toMatchObject({
       buttonHeight: 55,
-      paymentMethods: { googlePay: "always" },
+      paymentMethodOrder: ["applePay", "googlePay"],
+      paymentMethods: { applePay: "always", googlePay: "always" },
     });
     expect(onAvailabilityChange).toHaveBeenCalledWith(true);
-    await waitFor(() => expect(mocks.analytics).toHaveBeenCalledWith("unlock_cta_viewed", expect.objectContaining({ purchase_surface: "report_paywall", payment_method: "google_pay" })));
+    await waitFor(() => expect(mocks.analytics).toHaveBeenCalledWith("unlock_cta_viewed", expect.objectContaining({ purchase_surface: "report_paywall", payment_method: "express_wallet" })));
     fireEvent.click(button);
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/report/checkout/google-pay/started", expect.objectContaining({ method: "POST" })));
@@ -101,22 +109,37 @@ describe("Google Pay checkout CTA", () => {
     expect((await screen.findByRole("alert")).textContent).toContain("Payment declined");
   });
 
+  it("tracks Apple Pay when Stripe selects Apple Pay for the wallet slot", async () => {
+    vi.stubGlobal("fetch", fetchMock);
+    mocks.applePayAvailable = true;
+    mocks.googlePayAvailable = false;
+    mocks.selectedWallet = "apple_pay";
+    const onAvailabilityChange = vi.fn();
+    render(<ExpressWalletCheckout enabled locale="en" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/>);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Wallet test button" }));
+
+    await waitFor(() => expect(mocks.analytics).toHaveBeenCalledWith("unlock_cta_clicked", expect.objectContaining({ payment_method: "apple_pay" })));
+    expect(mocks.confirm).toHaveBeenCalledOnce();
+  });
+
   it("does not expose a fake Google Pay button when Stripe reports no eligible wallet", async () => {
     vi.stubGlobal("fetch", fetchMock);
     mocks.googlePayAvailable = false;
     const onAvailabilityChange = vi.fn();
-    render(<GooglePayCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/>);
+    mocks.applePayAvailable = false;
+    render(<ExpressWalletCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/>);
 
     await waitFor(() => expect(onAvailabilityChange).toHaveBeenCalledWith(false));
-    expect(screen.queryByRole("button", { name: "Google Pay test button" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Wallet test button" })).toBeNull();
   });
 
   it("keeps the fallback usable and does not start checkout when the wallet is cancelled", async () => {
     vi.stubGlobal("fetch", fetchMock);
     const onAvailabilityChange = vi.fn();
-    render(<><span>Standard checkout remains</span><GooglePayCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/></>);
+    render(<><span>Standard checkout remains</span><ExpressWalletCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/></>);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Cancel Google Pay test" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel wallet test" }));
 
     expect(screen.getByText("Standard checkout remains")).toBeTruthy();
     expect(mocks.confirm).not.toHaveBeenCalled();
@@ -131,11 +154,11 @@ describe("Google Pay checkout CTA", () => {
     const onAvailabilityChange = vi.fn();
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    render(<><span>Standard checkout remains</span><GooglePayCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/></>);
+    render(<><span>Standard checkout remains</span><ExpressWalletCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} purchaseSurface="report_paywall" onAvailabilityChange={onAvailabilityChange}/></>);
 
     await waitFor(() => expect(onAvailabilityChange).toHaveBeenCalledWith(false));
     expect(screen.getByText("Standard checkout remains")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Google Pay test button" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Wallet test button" })).toBeNull();
     consoleError.mockRestore();
   });
 });

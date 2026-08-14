@@ -9,7 +9,7 @@ export const analyticsEvents = [
 export type AnalyticsEvent = (typeof analyticsEvents)[number];
 export const purchaseSurfaces = ["desktop_sidebar", "mobile_summary", "mobile_sticky", "report_paywall"] as const;
 export type PurchaseSurface = (typeof purchaseSurfaces)[number];
-export const purchasePaymentMethods = ["standard", "google_pay"] as const;
+export const purchasePaymentMethods = ["standard", "express_wallet", "apple_pay", "google_pay"] as const;
 
 const attributionKeys = ["source", "medium", "campaign", "content", "term"] as const;
 const measurementKeys = ["landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin"] as const;

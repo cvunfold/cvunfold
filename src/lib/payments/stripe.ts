@@ -6,12 +6,12 @@ import { getPlanDefinition, isPlan, type Plan } from "@/lib/plans";
 
 let stripeClient: Stripe | undefined;
 
-type CheckoutSurface = "hosted" | "google_pay";
+type CheckoutSurface = "hosted" | "express_wallet";
 type CheckoutAnalysis = Pick<Analysis, "id" | "plan" | "locale" | "market">;
 
 const CHECKOUT_INTEGRATION_IDENTIFIERS = {
   hosted: "cvunfold_hosted_kjtrmvnq",
-  google_pay: "cvunfold_gpay_gpsxwzke",
+  express_wallet: "cvunfold_wallet_gpsxwzke",
 } as const;
 
 export function getStripe(): Stripe {
@@ -60,7 +60,7 @@ export function buildCheckoutSessionParams(
     integration_identifier: CHECKOUT_INTEGRATION_IDENTIFIERS[surface],
   };
 
-  if (surface === "google_pay") {
+  if (surface === "express_wallet") {
     return {
       ...common,
       // Managed Payments only supports hosted or embedded Checkout surfaces.
@@ -80,9 +80,7 @@ export function buildCheckoutSessionParams(
 }
 
 export function checkoutIdempotencyKey(analysisId: string, price: string, surface: CheckoutSurface): string {
-  // Google Pay eligibility is captured when Checkout creates the session.
-  // v3 replaces sessions created before the wallet was enabled in Stripe Live.
-  const version = surface === "google_pay" ? "v3" : "v1";
+  const version = "v1";
   return `analysis:${analysisId}:${price}:${surface}:${version}`;
 }
 
@@ -117,23 +115,23 @@ export async function createCheckout(analysis: Analysis): Promise<string> {
   return session.url;
 }
 
-export async function createGooglePayCheckout(analysis: Analysis): Promise<string> {
-  const session = await createValidatedCheckoutSession(analysis, "google_pay");
+export async function createExpressWalletCheckout(analysis: Analysis): Promise<string> {
+  const session = await createValidatedCheckoutSession(analysis, "express_wallet");
   if (!session.client_secret) throw new Error("STRIPE_CHECKOUT_FAILED");
   return session.client_secret;
 }
 
-export async function markGooglePayCheckoutStarted(sessionId: string, expectedAnalysisId: string): Promise<void> {
+export async function markExpressWalletCheckoutStarted(sessionId: string, expectedAnalysisId: string): Promise<void> {
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
-  if (session.metadata?.analysis_id !== expectedAnalysisId || session.metadata?.checkout_surface !== "google_pay") {
+  if (session.metadata?.analysis_id !== expectedAnalysisId || session.metadata?.checkout_surface !== "express_wallet") {
     throw new Error("STRIPE_ANALYSIS_MISMATCH");
   }
   await stripe.checkout.sessions.update(session.id, { metadata: { buyer_confirmed: "true" } });
 }
 
 export function shouldRecordCheckoutExpired(session: Pick<Stripe.Checkout.Session, "metadata">): boolean {
-  return session.metadata?.checkout_surface !== "google_pay" || session.metadata?.buyer_confirmed === "true";
+  return session.metadata?.checkout_surface !== "express_wallet" || session.metadata?.buyer_confirmed === "true";
 }
 
 export async function fulfillCheckoutSession(sessionId: string, eventId: string, expectedAnalysisId?: string): Promise<boolean> {

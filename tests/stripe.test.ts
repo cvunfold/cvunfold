@@ -52,9 +52,9 @@ describe("Stripe price boundary", () => {
     expect(webhook).toContain("stripe-${name}:${session.id}");
   });
 
-  it("keeps hosted Checkout as the fallback and builds a separate Checkout Elements session for Google Pay", () => {
+  it("keeps hosted Checkout as the fallback and builds a separate Checkout Elements session for wallets", () => {
     const hosted = buildCheckoutSessionParams(analysis, "price_full", "https://cvunfold.com/raport", "hosted");
-    const googlePay = buildCheckoutSessionParams(analysis, "price_full", "https://cvunfold.com/raport", "google_pay");
+    const wallet = buildCheckoutSessionParams(analysis, "price_full", "https://cvunfold.com/raport", "express_wallet");
 
     expect(hosted.success_url).toContain("checkout=success");
     expect(hosted.cancel_url).toContain("checkout=cancelled");
@@ -62,24 +62,24 @@ describe("Stripe price boundary", () => {
     expect(hosted.metadata).toMatchObject({ analysis_id: analysis.id, checkout_surface: "hosted", buyer_confirmed: "true" });
     expect(hosted).not.toHaveProperty("managed_payments");
 
-    expect(googlePay.ui_mode).toBe("elements");
-    expect(googlePay.managed_payments).toEqual({ enabled: false });
-    expect(googlePay.return_url).toContain("session_id={CHECKOUT_SESSION_ID}");
-    expect(googlePay).not.toHaveProperty("success_url");
-    expect(googlePay).not.toHaveProperty("cancel_url");
-    expect(googlePay).not.toHaveProperty("payment_method_types");
-    expect(googlePay.integration_identifier).toMatch(/^cvunfold_gpay_[a-z]{8}$/);
-    expect(googlePay.metadata).toMatchObject({ analysis_id: analysis.id, checkout_surface: "google_pay", buyer_confirmed: "false" });
+    expect(wallet.ui_mode).toBe("elements");
+    expect(wallet.managed_payments).toEqual({ enabled: false });
+    expect(wallet.return_url).toContain("session_id={CHECKOUT_SESSION_ID}");
+    expect(wallet).not.toHaveProperty("success_url");
+    expect(wallet).not.toHaveProperty("cancel_url");
+    expect(wallet).not.toHaveProperty("payment_method_types");
+    expect(wallet.integration_identifier).toMatch(/^cvunfold_wallet_[a-z]{8}$/);
+    expect(wallet.metadata).toMatchObject({ analysis_id: analysis.id, checkout_surface: "express_wallet", buyer_confirmed: "false" });
   });
 
-  it("uses a new idempotency version after changing the Google Pay session parameters", () => {
+  it("uses a surface-specific idempotency key for the wallet session", () => {
     expect(checkoutIdempotencyKey(analysis.id, "price_full", "hosted")).toContain(":hosted:v1");
-    expect(checkoutIdempotencyKey(analysis.id, "price_full", "google_pay")).toContain(":google_pay:v3");
+    expect(checkoutIdempotencyKey(analysis.id, "price_full", "express_wallet")).toContain(":express_wallet:v1");
   });
 
-  it("does not count an eligibility-only Google Pay session as an abandoned checkout", () => {
-    expect(shouldRecordCheckoutExpired({ metadata: { checkout_surface: "google_pay", buyer_confirmed: "false" } })).toBe(false);
-    expect(shouldRecordCheckoutExpired({ metadata: { checkout_surface: "google_pay", buyer_confirmed: "true" } })).toBe(true);
+  it("does not count an eligibility-only wallet session as an abandoned checkout", () => {
+    expect(shouldRecordCheckoutExpired({ metadata: { checkout_surface: "express_wallet", buyer_confirmed: "false" } })).toBe(false);
+    expect(shouldRecordCheckoutExpired({ metadata: { checkout_surface: "express_wallet", buyer_confirmed: "true" } })).toBe(true);
     expect(shouldRecordCheckoutExpired({ metadata: { checkout_surface: "hosted", buyer_confirmed: "true" } })).toBe(true);
   });
 });

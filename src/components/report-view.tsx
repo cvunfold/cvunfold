@@ -17,8 +17,8 @@ import { ScoreRing } from "@/components/score-ring";
 import { normalizeIssueAction } from "@/lib/ai/issue-action";
 import { DEFAULT_MEASUREMENT_CONTEXT, type MeasurementContext } from "@/lib/audience";
 
-const GooglePayCheckout = dynamic(
-  () => import("@/components/google-pay-checkout").then((module) => module.GooglePayCheckout),
+const ExpressWalletCheckout = dynamic(
+  () => import("@/components/google-pay-checkout").then((module) => module.ExpressWalletCheckout),
   { ssr: false },
 );
 
@@ -48,7 +48,7 @@ const copy = {
     evidence: "DOWÓD Z CV", matters: "DLACZEGO TO WAŻNE", action: "CO ZROBIĆ", confidence: "Pewność",
     fullIssues: "Co osłabia odbiór — dowód przed opinią", strengths: "Mocne sygnały", nextSteps: "Plan działania",
     lockedTitle: "Pełna anatomia problemów jest w raporcie", lockedCopy: "Odblokuj wszystkie dowody, priorytety i bezpieczne sugestie bez dopisywania faktów.",
-    unlock: "Odblokuj pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji", feedback: "Czy analiza była trafna?",
+    unlock: "Odblokuj pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji", paymentMethodsLabel: "Obsługiwane płatności", paymentMethods: ["Karta", "BLIK", "Apple Pay", "Google Pay"], feedback: "Czy analiza była trafna?",
     rating: "Ocena", accuracy: "Trafność", comment: "Komentarz", send: "Wyślij feedback", thanks: "Dziękujemy — ta informacja pomaga poprawiać kolejne wersje.", feedbackPrivacy: "Komentarz zniknie razem z raportem. Zachowamy wyłącznie zbiorcze statystyki oceny bez identyfikatora analizy i treści dokumentu.",
     accurate: ["Tak", "Częściowo", "Nie"], copied: "Link skopiowany", copyFailed: "Nie udało się skopiować linku.",
     deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
@@ -67,7 +67,7 @@ const copy = {
     evidence: "EVIDENCE FROM YOUR CV", matters: "WHY IT MATTERS", action: "WHAT TO DO", confidence: "Confidence",
     fullIssues: "What weakens the document — evidence before opinion", strengths: "Strong signals", nextSteps: "Action plan",
     lockedTitle: "The full anatomy of the issues is in your report", lockedCopy: "Unlock every evidence reference, priority and fact-safe suggestion.",
-    unlock: "Unlock the full report", oneTime: "one-time payment · no subscription", feedback: "Was the analysis accurate?",
+    unlock: "Unlock the full report", oneTime: "one-time payment · no subscription", paymentMethodsLabel: "Supported payments", paymentMethods: ["Cards", "Apple Pay", "Google Pay"], feedback: "Was the analysis accurate?",
     rating: "Rating", accuracy: "Accuracy", comment: "Comment", send: "Send feedback", thanks: "Thank you — this helps us improve the next version.", feedbackPrivacy: "The comment is deleted with the report. We retain only cumulative rating statistics without an analysis identifier or document content.",
     accurate: ["Yes", "Partly", "No"], copied: "Link copied", copyFailed: "We could not copy the link.",
     deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
@@ -106,7 +106,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [linkState, setLinkState] = useState<"idle" | "copied" | "error">("idle");
-  const [googlePayAvailable, setGooglePayAvailable] = useState(false);
+  const [expressWalletAvailable, setExpressWalletAvailable] = useState(false);
   const [mobileStickyVisible, setMobileStickyVisible] = useState(false);
   const reportRoot = useRef<HTMLElement>(null);
   const mobileSummaryCta = useRef<HTMLButtonElement>(null);
@@ -310,7 +310,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
           <section className="report-section"><div className="section-heading"><span>04</span><h2>{t.fullIssues}</h2></div><div className="issues">{full.issues.map((issue, index) => <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{issue.severity}</span><span>{issue.suggestion?.type.toUpperCase()}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.evidence}</small>{issue.evidenceRefs.length ? issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>) : <p>{locale === "pl" ? "Brak bezpośredniego dowodu — luka lub pytanie." : "No direct evidence — this is a gap or question."}</p>}</div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: issue.action, suggestionType: issue.suggestion?.type, title: issue.title, locale, factualityNote: issue.suggestion?.factualityNote })}</p>{issue.suggestion?.proposed ? <blockquote>{issue.suggestion.proposed}</blockquote> : null}</div></div><footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>)}</div></section>
           <section className="report-section report-summary-grid"><div><h2>{t.strengths}</h2>{full.strengths.map((item) => <article key={item.id}><CheckIcon/><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h2>{t.nextSteps}</h2>{full.nextSteps.toSorted((a, b) => a.priority - b.priority).map((item) => <article key={item.priority}><span>{item.priority}</span><div><b>{item.title}</b><p>{item.action}</p></div></article>)}</div></section>
           {demo ? <section className="report-section sample-cta"><div><h2>{locale === "pl" ? "Co mówi Twoje CV?" : "What does your CV communicate?"}</h2><p>{locale === "pl" ? "Zobacz bezpłatny wynik i najważniejszy dowód." : "See your free result and most important evidence."}</p></div><Link className="button" href={analysisPath(locale)}>{t.analyze}<ArrowIcon/></Link></section> : <section className="report-section feedback"><h2>{t.feedback}</h2>{sent ? <p>{t.thanks}</p> : <form onSubmit={feedback}><label>{t.rating}<select name="rating" defaultValue="5">{[5,4,3,2,1].map((value) => <option key={value} value={value}>{value}</option>)}</select></label><label>{t.accuracy}<select name="accurate" defaultValue="yes"><option value="yes">{t.accurate[0]}</option><option value="partly">{t.accurate[1]}</option><option value="no">{t.accurate[2]}</option></select></label><label>{t.comment}<textarea name="comment" maxLength={1000}/></label><small>{t.feedbackPrivacy}</small><button className="button">{t.send}</button></form>}</section>}
-        </> : <section ref={paywall} className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div className="locked-counts"><span>{counts.issues} {locale === "pl" ? "problemów" : "issues"}</span><span>{counts.strengths} {locale === "pl" ? "mocnych stron" : "strengths"}</span><span>{counts.nextSteps} {locale === "pl" ? "priorytetów" : "priorities"}</span></div><div className={`locked-payment-actions${googlePayAvailable ? " google-pay-ready" : ""}`}><button onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><GooglePayCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setGooglePayAvailable}/></div><small>{t.oneTime}</small></section>}
+        </> : <section ref={paywall} className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div className="locked-counts"><span>{counts.issues} {locale === "pl" ? "problemów" : "issues"}</span><span>{counts.strengths} {locale === "pl" ? "mocnych stron" : "strengths"}</span><span>{counts.nextSteps} {locale === "pl" ? "priorytetów" : "priorities"}</span></div><div className={`locked-payment-actions${expressWalletAvailable ? " wallet-ready" : ""}`}><button onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setExpressWalletAvailable}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>}
 
         <nav className="report-knowledge"><span>{t.viewArticles}</span><div>{topicKeys.map((key) => { const [label, slug] = reportTopics[locale][key]; return <Link key={key} href={`${articlesPath(locale)}/${slug}`}>{label}<ArrowIcon/></Link>; })}<Link href={articlesPath(locale)}>{locale === "pl" ? "Wszystkie" : "All"}<ArrowIcon/></Link></div></nav>
       </div>
