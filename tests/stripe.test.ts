@@ -74,7 +74,7 @@ describe("Stripe price boundary", () => {
 
   it("uses a new idempotency version after changing the Google Pay session parameters", () => {
     expect(checkoutIdempotencyKey(analysis.id, "price_full", "hosted")).toContain(":hosted:v1");
-    expect(checkoutIdempotencyKey(analysis.id, "price_full", "google_pay")).toContain(":google_pay:v2");
+    expect(checkoutIdempotencyKey(analysis.id, "price_full", "google_pay")).toContain(":google_pay:v3");
   });
 
   it("does not count an eligibility-only Google Pay session as an abandoned checkout", () => {
