@@ -24,7 +24,7 @@ employer resources remain forbidden.
 | Service | Account | Organization / team | Project | Environment | Verification |
 | --- | --- | --- | --- | --- | --- |
 | GitHub | `pawelmaczkaczarnecki` | `cvunfold` | `cvunfold/cvunfold` | feature branch `feat/mobile-report-progress` → `main` | Live CLI auth and repository metadata verified before push; remote is `https://github.com/cvunfold/cvunfold.git` |
-| Vercel | `pawelmaczkaczarnecki` | `pawelmaczkaczarnecki's projects` | `cvunfold` (`prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A`) | Preview, then Production at `cvunfold.com` | Live CLI identity, owner, project ID, Git link and production domain verified before deployment |
+| Vercel | `pawelmaczkaczarnecki` | `pawelmaczkaczarnecki's projects` | `cvunfold` (`prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A`) | Preview, then Production at `cvunfold.com` | Live CLI identity, owner, project ID, Git link and production domain verified before deployment; Vercel Preview is protected by Vercel authentication and has Turnstile disabled, while Production retains its hostname-bound live credentials |
 
 Before any write, revalidate the service, account, organization/team, project,
 and environment in the destination. If any field differs or is missing, stop
