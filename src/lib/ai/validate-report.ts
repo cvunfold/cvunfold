@@ -179,6 +179,7 @@ function teaserHook(category: string | undefined, locale: CVReport["locale"]): s
 }
 
 export function toTeaser(report: CVReport): TeaserReport {
-  const featured = report.issues.find((issue) => issue.severity === "critical") || report.issues[0];
-  return { version: report.version, locale: report.locale, hook: teaserHook(featured?.category, report.locale) };
+  const normalized = withRecruiterPerspective(report);
+  const featured = normalized.issues.find((issue) => issue.severity === "critical") || normalized.issues[0];
+  return { version: normalized.version, locale: normalized.locale, profileSummary: normalized.recruiterPerspective.profileSummary, hook: teaserHook(featured?.category, normalized.locale), findingTitle: featured?.title || null };
 }

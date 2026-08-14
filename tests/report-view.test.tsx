@@ -66,11 +66,12 @@ describe("free report purchase hierarchy", () => {
 
     const hook = screen.getByRole("heading", { name: "Wykryliśmy problem, który może osłabiać odbiór Twojego CV." }).closest("section");
     const paywall = container.querySelector<HTMLElement>(".locked");
+    expect(container.querySelector(".teaser-profile")?.textContent).toContain(teaser.profileSummary);
     expect(hook?.textContent).toContain(teaser.hook);
+    expect(hook?.textContent).toContain(teaser.findingTitle);
     expect(hook?.textContent).toContain("Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.");
     expect(paywall).not.toBeNull();
     expect(Boolean(hook!.compareDocumentPosition(paywall!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
-    expect(container.textContent).not.toContain("Efekty pracy giną pod listą obowiązków");
     expect(container.textContent).not.toContain("Najmocniejsze doświadczenie jest opisane jako wykonywane czynności");
     expect(screen.getAllByTestId("express-wallet-stub")).toHaveLength(1);
     const paymentMethods = container.querySelector(".payment-methods-list");

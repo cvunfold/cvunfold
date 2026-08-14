@@ -75,8 +75,10 @@ export type EvidenceMap = Record<string, string>;
 // the launch migration; every new report receives a map built from parsed CV segments.
 export type CVReport = ModelReport & { evidenceMap?: EvidenceMap };
 
-// Keep the unpaid response deliberately small. A hook can create interest, but
-// the verdict, evidence, finding title, and suggested action remain paid data.
+// One named finding makes the teaser specific enough to be useful. The verdict,
+// evidence, explanation, impact, and suggested action remain paid data.
 export type TeaserReport = Pick<CVReport, "version" | "locale"> & {
+  profileSummary: string;
   hook: string;
+  findingTitle: string | null;
 };
