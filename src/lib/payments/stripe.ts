@@ -63,6 +63,9 @@ export function buildCheckoutSessionParams(
   if (surface === "google_pay") {
     return {
       ...common,
+      // Managed Payments only supports hosted or embedded Checkout surfaces.
+      // Express Checkout requires the custom Elements surface instead.
+      managed_payments: { enabled: false },
       // The 2026-07-29 API names the custom Checkout Elements surface `elements`.
       ui_mode: "elements",
       return_url: `${reportUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
@@ -76,6 +79,11 @@ export function buildCheckoutSessionParams(
   };
 }
 
+export function checkoutIdempotencyKey(analysisId: string, price: string, surface: CheckoutSurface): string {
+  const version = surface === "google_pay" ? "v2" : "v1";
+  return `analysis:${analysisId}:${price}:${surface}:${version}`;
+}
+
 async function createValidatedCheckoutSession(analysis: Analysis, surface: CheckoutSurface): Promise<Stripe.Checkout.Session> {
   const stripe = getStripe();
   const definition = getPlanDefinition(analysis.plan, analysis.locale);
@@ -86,7 +94,7 @@ async function createValidatedCheckoutSession(analysis: Analysis, surface: Check
   const reportUrl = `${appUrl()}${reportPath(analysis.locale)}`;
   const session = await stripe.checkout.sessions.create(
     buildCheckoutSessionParams(analysis, stripePrice.id, reportUrl, surface),
-    { idempotencyKey: `analysis:${analysis.id}:${price}:${surface}:v1` },
+    { idempotencyKey: checkoutIdempotencyKey(analysis.id, price, surface) },
   );
   if (session.amount_total == null || !session.currency) throw new Error("STRIPE_CHECKOUT_FAILED");
   await savePendingPayment({
