@@ -22,7 +22,9 @@ const expressCheckoutOptions = {
   buttonTheme: { applePay: "black" as const, googlePay: "black" as const },
   buttonType: { applePay: "buy" as const, googlePay: "buy" as const },
   layout: { maxColumns: 1, maxRows: 1, overflow: "never" as const },
-  paymentMethodOrder: ["applePay", "googlePay"],
+  // The Checkout-specific type requires the key even though Stripe documents
+  // `undefined` as the way to keep its per-customer dynamic ordering.
+  paymentMethodOrder: undefined,
   paymentMethods: {
     applePay: "always" as const,
     googlePay: "always" as const,

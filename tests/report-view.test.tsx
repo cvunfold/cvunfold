@@ -79,6 +79,12 @@ describe("free report purchase hierarchy", () => {
     expect(finding).not.toBeNull();
     expect(categories).not.toBeNull();
     expect(Boolean(finding!.compareDocumentPosition(categories!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    const findingTags = finding!.querySelector(".finding-tags");
+    const expectedSuggestion = teaser.featuredFinding?.suggestionType?.toUpperCase();
+    if (!expectedSuggestion) throw new Error("Missing featured finding suggestion type");
+    expect(findingTags?.children).toHaveLength(2);
+    expect(findingTags?.textContent).toContain("critical");
+    expect(findingTags?.textContent).toContain(expectedSuggestion);
     expect(screen.getAllByTestId("express-wallet-stub")).toHaveLength(1);
     const paymentMethods = container.querySelector(".payment-methods-list");
     expect(paymentMethods?.textContent).toContain("Obsługiwane płatności");

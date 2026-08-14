@@ -773,6 +773,8 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .issues header { display: flex; align-items: center; gap: 8px; }
 .issues header > span { padding: 3px 6px; border: 1px solid var(--line); font-size: 12px; font-weight: 800; text-transform: uppercase; }
 .issues header > b { margin-left: auto; color: var(--muted); font: 34px var(--serif); }
+.finding-tags { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.finding-tags > span { padding: 4px 9px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 12px; font-weight: 800; line-height: 1.2; letter-spacing: .03em; text-transform: uppercase; }
 .severity.critical { border-color: var(--danger) !important; color: var(--danger); }
 .severity.important { border-color: var(--warning) !important; color: var(--warning); }
 .issues h3 { margin: 9px 0 16px; font: 600 27px/1.15 var(--serif); }

@@ -95,7 +95,7 @@ describe("Express wallet checkout CTA", () => {
     const button = await screen.findByRole("button", { name: "Wallet test button" });
     expect(mocks.expressCheckoutOptions).toMatchObject({
       buttonHeight: 55,
-      paymentMethodOrder: ["applePay", "googlePay"],
+      paymentMethodOrder: undefined,
       paymentMethods: { applePay: "always", googlePay: "always" },
     });
     expect(onAvailabilityChange).toHaveBeenCalledWith(true);
