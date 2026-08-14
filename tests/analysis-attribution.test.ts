@@ -2,13 +2,14 @@ import { afterEach, describe, expect, it } from "vitest";
 import { POST as createAnalysis } from "@/app/api/analyses/route";
 import { getAnalysis } from "@/lib/data/store";
 
-function analysisRequest(seniority: string, attribution: Record<string, string> = {}) {
+function analysisRequest(seniority: string, attribution: Record<string, string> = {}, options: { plan?: string; jobDescription?: string } = {}) {
   const form = new FormData();
   form.set("file", new File(["%PDF-1.7\nsynthetic"], "synthetic-cv.pdf", { type: "application/pdf" }));
   form.set("role", "frontend_developer");
   form.set("seniority", seniority);
   form.set("locale", "pl");
-  form.set("jobDescription", "");
+  form.set("jobDescription", options.jobDescription || "");
+  if (options.plan) form.set("plan", options.plan);
   form.set("attribution", JSON.stringify(attribution));
   return new Request("http://localhost/api/analyses", {
     method: "POST",
@@ -29,6 +30,14 @@ describe("analysis attribution boundary", () => {
     const response = await createAnalysis(analysisRequest("invalid"));
     expect(response.status).toBe(400);
     expect(await response.json()).toMatchObject({ errorCategory: "invalid_target_seniority" });
+  });
+
+  it("rejects job matching without a job description", async () => {
+    process.env.MOCK_MODE = "true";
+    delete process.env.TURNSTILE_SECRET_KEY;
+    const response = await createAnalysis(analysisRequest("senior", {}, { plan: "job_match" }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ errorCategory: "invalid_job_description" });
   });
 
   it("stores only safe campaign data and server-owned funnel context", async () => {

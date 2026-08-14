@@ -2,6 +2,60 @@ import mammoth from "mammoth";
 
 export type Segment = { id: string; text: string };
 export type ParsedDocument = { text: string; segments: Segment[]; quality: "good" | "degraded" };
+export type UnreadableDocumentReason =
+  | "pdf_no_text_items"
+  | "pdf_empty_text_items"
+  | "pdf_page_extraction_failed"
+  | "pdf_parse_failed"
+  | "pdf_encrypted"
+  | "docx_no_text"
+  | "docx_parse_failed"
+  | "text_below_threshold";
+export type DocumentExtractionDiagnostics = {
+  document_kind: "pdf" | "docx";
+  file_size_bucket: "under_100_kb" | "100_kb_to_1_mb" | "1_mb_to_5_mb" | "over_5_mb";
+  parser: "pdf-parse" | "mammoth";
+  parser_version?: string;
+  page_count?: number;
+  pages_attempted?: number;
+  pages_processed?: number;
+  pages_with_text?: number;
+  text_item_count?: number;
+  page_extraction_failures?: number;
+  parser_warning_count?: number;
+  extracted_chars: number;
+  threshold_chars: number;
+  reason: UnreadableDocumentReason;
+};
+
+export class UnreadableDocumentError extends Error {
+  constructor(readonly diagnostics: DocumentExtractionDiagnostics) {
+    super("UNREADABLE_DOCUMENT");
+    this.name = "UnreadableDocumentError";
+  }
+}
+
+export function getUnreadableDocumentDiagnostics(error: unknown): DocumentExtractionDiagnostics | undefined {
+  return error instanceof UnreadableDocumentError ? error.diagnostics : undefined;
+}
+
+type PdfTextItem = { str?: unknown; transform?: unknown };
+type PdfPageData = {
+  getTextContent: (options: { normalizeWhitespace: boolean; disableCombineTextItems: boolean }) => Promise<{ items: PdfTextItem[] }>;
+};
+type PdfDocumentData = {
+  numPages: number;
+  getPage: (pageNumber: number) => Promise<PdfPageData>;
+  destroy: () => Promise<void> | void;
+};
+type PdfJsModule = {
+  version: string;
+  disableWorker: boolean;
+  getDocument: (data: Uint8Array) => PromiseLike<PdfDocumentData>;
+};
+
+const minimumTextChars = 120;
+const bundledPdfJsVersion = "v2.0.550";
 
 const email = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const phone = /(?<!\d)(?:\+?48[ -]?)?(?:\d[ -]?){9}(?!\d)/g;
@@ -27,16 +81,141 @@ export function createSegments(text: string): Segment[] {
     .slice(0, 200).map((part, index) => ({ id: `seg_${index.toString(36)}`, text: part }));
 }
 
+function fileSizeBucket(bytes: number): DocumentExtractionDiagnostics["file_size_bucket"] {
+  if (bytes < 100 * 1024) return "under_100_kb";
+  if (bytes < 1024 * 1024) return "100_kb_to_1_mb";
+  if (bytes < 5 * 1024 * 1024) return "1_mb_to_5_mb";
+  return "over_5_mb";
+}
+
+function pdfPageRenderer(counters: {
+  pagesProcessed: number;
+  pagesWithText: number;
+  textItemCount: number;
+  pageExtractionFailures: number;
+}) {
+  return async (pageData: PdfPageData): Promise<string> => {
+    counters.pagesProcessed += 1;
+    try {
+      const textContent = await pageData.getTextContent({ normalizeWhitespace: false, disableCombineTextItems: false });
+      counters.textItemCount += textContent.items.length;
+      let lastY: number | undefined;
+      let text = "";
+      for (const item of textContent.items) {
+        const value = typeof item.str === "string" ? item.str : "";
+        const transform = Array.isArray(item.transform) ? item.transform : [];
+        const y = typeof transform[5] === "number" ? transform[5] : undefined;
+        text += lastY === undefined || y === undefined || lastY === y ? value : `\n${value}`;
+        lastY = y;
+      }
+      if (text.trim()) counters.pagesWithText += 1;
+      return text;
+    } catch {
+      counters.pageExtractionFailures += 1;
+      return "";
+    }
+  };
+}
+
+function unreadableReason(
+  documentKind: "pdf" | "docx",
+  extractedChars: number,
+  pdfCounters?: { textItemCount: number; pageExtractionFailures: number },
+): UnreadableDocumentReason {
+  if (documentKind === "docx" && extractedChars === 0) return "docx_no_text";
+  if (documentKind === "pdf" && pdfCounters?.pageExtractionFailures) return "pdf_page_extraction_failed";
+  if (documentKind === "pdf" && pdfCounters?.textItemCount === 0) return "pdf_no_text_items";
+  if (documentKind === "pdf" && extractedChars === 0) return "pdf_empty_text_items";
+  return "text_below_threshold";
+}
+
+function looksLikeEncryptedPdf(buffer: Buffer): boolean {
+  return buffer.includes(Buffer.from("/Encrypt", "ascii"));
+}
+
 export async function parseDocument(file: File): Promise<ParsedDocument> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const name = file.name.toLowerCase();
   let text = "";
-  if (name.endsWith(".docx")) text = (await mammoth.extractRawText({ buffer })).value;
+  let diagnostics: Omit<DocumentExtractionDiagnostics, "extracted_chars" | "threshold_chars" | "reason">;
+  let pdfCounters: { pagesProcessed: number; pagesWithText: number; textItemCount: number; pageExtractionFailures: number } | undefined;
+  if (name.endsWith(".docx")) {
+    try {
+      const result = await mammoth.extractRawText({ buffer });
+      text = result.value;
+      diagnostics = {
+        document_kind: "docx",
+        file_size_bucket: fileSizeBucket(buffer.byteLength),
+        parser: "mammoth",
+        parser_warning_count: result.messages.length,
+      };
+    } catch {
+      throw new UnreadableDocumentError({
+        document_kind: "docx",
+        file_size_bucket: fileSizeBucket(buffer.byteLength),
+        parser: "mammoth",
+        extracted_chars: 0,
+        threshold_chars: minimumTextChars,
+        reason: "docx_parse_failed",
+      });
+    }
+  }
   else if (name.endsWith(".pdf")) {
-    const pdfParse = (await import("pdf-parse")).default;
-    text = (await pdfParse(buffer, { max: Number(process.env.MAX_PDF_PAGES || 40) })).text;
+    pdfCounters = { pagesProcessed: 0, pagesWithText: 0, textItemCount: 0, pageExtractionFailures: 0 };
+    let document: PdfDocumentData | undefined;
+    try {
+      const imported = await import("pdf-parse/lib/pdf.js/v2.0.550/build/pdf.js");
+      const pdfJs = (imported.default || imported) as PdfJsModule;
+      pdfJs.disableWorker = true;
+      document = await pdfJs.getDocument(new Uint8Array(buffer));
+      const pagesAttempted = Math.min(document.numPages, Math.max(0, Number(process.env.MAX_PDF_PAGES || 40)) || document.numPages);
+      const renderPage = pdfPageRenderer(pdfCounters);
+      for (let pageNumber = 1; pageNumber <= pagesAttempted; pageNumber += 1) {
+        try {
+          const page = await document.getPage(pageNumber);
+          text += `\n\n${await renderPage(page)}`;
+        } catch {
+          pdfCounters.pageExtractionFailures += 1;
+        }
+      }
+      diagnostics = {
+        document_kind: "pdf",
+        file_size_bucket: fileSizeBucket(buffer.byteLength),
+        parser: "pdf-parse",
+        parser_version: `v${pdfJs.version}`,
+        page_count: document.numPages,
+        pages_attempted: pagesAttempted,
+        pages_processed: pdfCounters.pagesProcessed,
+        pages_with_text: pdfCounters.pagesWithText,
+        text_item_count: pdfCounters.textItemCount,
+        page_extraction_failures: pdfCounters.pageExtractionFailures,
+      };
+    } catch {
+      throw new UnreadableDocumentError({
+        document_kind: "pdf",
+        file_size_bucket: fileSizeBucket(buffer.byteLength),
+        parser: "pdf-parse",
+        parser_version: bundledPdfJsVersion,
+        pages_processed: pdfCounters.pagesProcessed,
+        pages_with_text: pdfCounters.pagesWithText,
+        text_item_count: pdfCounters.textItemCount,
+        page_extraction_failures: pdfCounters.pageExtractionFailures,
+        extracted_chars: 0,
+        threshold_chars: minimumTextChars,
+        reason: looksLikeEncryptedPdf(buffer) ? "pdf_encrypted" : "pdf_parse_failed",
+      });
+    } finally {
+      if (document) {
+        try { await document.destroy(); } catch { /* Cleanup must not replace the safe extraction result. */ }
+      }
+    }
   } else throw new Error("UNSUPPORTED_FILE_TYPE");
   text = maskContactPii(text).replace(/\0/g, "").trim();
-  if (text.length < 120) throw new Error("UNREADABLE_DOCUMENT");
+  if (text.length < minimumTextChars) throw new UnreadableDocumentError({
+    ...diagnostics,
+    extracted_chars: text.length,
+    threshold_chars: minimumTextChars,
+    reason: unreadableReason(diagnostics.document_kind, text.length, pdfCounters),
+  });
   return { text, segments: createSegments(text), quality: text.length < 500 ? "degraded" : "good" };
 }

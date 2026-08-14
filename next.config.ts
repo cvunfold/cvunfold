@@ -2,9 +2,11 @@ import type { NextConfig } from "next";
 import { buildContentSecurityPolicy } from "./src/lib/security/csp";
 
 const googleAnalyticsEnabled = Boolean(process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID || process.env.NEXT_PUBLIC_GOOGLE_ADS_ID);
+const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 const csp = buildContentSecurityPolicy({
   googleEnabled: googleAnalyticsEnabled,
+  stripeEnabled,
   turnstileEnabled,
   development: process.env.NODE_ENV === "development",
 });

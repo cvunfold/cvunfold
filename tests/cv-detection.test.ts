@@ -40,6 +40,38 @@ describe("token-free CV detection", () => {
     expect(detectLikelyCv(text).isLikelyCv).toBe(true);
   });
 
+  it("accepts Polish section names after text extraction removes diacritics", () => {
+    const text = `
+      Profil zawodowy
+      Frontend Developer z siedmioletnim doswiadczeniem w aplikacjach SaaS.
+
+      Doswiadczenie zawodowe
+      Sample Systems - Frontend Developer, 2020-obecnie
+      - Rozwoj aplikacji React i TypeScript dla klientow biznesowych.
+      - Utrzymanie testow, CI oraz standardow dostepnosci.
+
+      Wyksztalcenie
+      Informatyka, 2016-2020
+
+      Umiejetnosci
+      React, TypeScript, Next.js, testy automatyczne i CI/CD.
+    `;
+    expect(detectLikelyCv(text)).toMatchObject({ isLikelyCv: true, confidence: "high" });
+  });
+
+  it("accepts a concise CV when its structure, role and career dates are explicit", () => {
+    const text = `
+      Nina Demo - Frontend Developer
+      Doswiadczenie zawodowe
+      Frontend Developer, Test Labs, 2024-obecnie. Tworzenie interfejsow React i testow.
+      Umiejetnosci
+      React, TypeScript, CSS, Git.
+      Wyksztalcenie
+      Informatyka, 2020-2024.
+    `;
+    expect(detectLikelyCv(text)).toMatchObject({ isLikelyCv: true, confidence: "high" });
+  });
+
   it("rejects an invoice without spending model tokens", () => {
     const text = `
       FAKTURA VAT 12/2026

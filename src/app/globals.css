@@ -580,7 +580,9 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 @keyframes orbit { to { transform: rotate(360deg); } }
 .analysis-aside ol { margin: 0; padding: 15px 0 22px; list-style: none; }
 .analysis-aside li { min-height: 78px; position: relative; display: flex; gap: 16px; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, .14); }
-.analysis-aside li > span, .analysis-aside li > svg { width: 29px; height: 29px; flex: none; display: grid; place-items: center; padding: 5px; border: 1px solid rgba(255, 255, 255, .54); border-radius: 50%; background: transparent; color: #fff; }
+.analysis-aside li > span, .analysis-aside li > svg { width: 29px; height: 29px; flex: none; border: 1px solid rgba(255, 255, 255, .54); border-radius: 50%; background: transparent; color: #fff; }
+.analysis-aside li > span { display: flex; align-items: center; justify-content: center; padding: 0 0 2px; font: 500 15px/1 var(--sans); text-align: center; }
+.analysis-aside li > svg { display: block; padding: 5px; }
 .analysis-aside li.active > span, .analysis-aside li.active > svg { border-color: var(--accent); background: var(--accent); color: var(--ink); }
 .analysis-aside li b, .analysis-aside li small { display: block; }
 .analysis-aside li b { font-size: 14px; }
@@ -769,7 +771,13 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .locked > svg { width: 27px; height: 27px; }
 .locked h2 { margin: 8px 0 3px; font: 600 27px var(--serif); }
 .locked p { max-width: 650px; margin: 0 auto 15px; color: var(--muted); font-size: var(--report-small); }
-.locked > div:not(.locked-columns) { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; font-size: 12px; font-weight: 700; }
+.locked-counts { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; font-size: 12px; font-weight: 700; }
+.locked-payment-actions { position: relative; width: min(100%, 680px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 0 auto; }
+.locked-payment-actions.google-pay-ready { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.locked-payment-actions > .button { width: 100%; min-height: 62px; margin: 0; }
+.google-pay-cta { position: absolute; width: 100%; visibility: hidden; pointer-events: none; }
+.google-pay-cta.is-ready { position: relative; visibility: visible; pointer-events: auto; }
+.locked .google-pay-error { margin: 7px 0 0; color: var(--danger); font-size: 12px; line-height: 1.4; text-align: left; }
 .locked > small { display: block; margin-top: 12px; color: var(--muted); font-size: var(--report-small); }
 
 @media (max-width: 1050px) {
@@ -930,7 +938,8 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   .sample-cta { align-items: flex-start; flex-direction: column; }
   .locked { padding-inline: 20px; }
   .locked-columns { display: none !important; }
-  .locked > div:not(.locked-columns) { flex-direction: column; gap: 4px; }
+  .locked-counts { flex-direction: column; gap: 4px; }
+  .locked-payment-actions.google-pay-ready { grid-template-columns: 1fr; }
   .report-title h1 { font-size: 42px; }
   .report-title h2 { font-size: 17px; }
   .report-title { display: block; }

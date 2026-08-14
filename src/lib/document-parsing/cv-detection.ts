@@ -6,22 +6,23 @@ export type CVDetectionResult = {
 };
 
 const sectionSignals = [
-  { key: "experience", weight: 3, pattern: /\b(doświadczenie(?: zawodowe)?|historia zatrudnienia|przebieg kariery|experience|employment|work history|professional experience)\b/i },
-  { key: "education", weight: 1, pattern: /\b(wykształcenie|edukacja|studia|uczelnia|education|university|college|degree)\b/i },
-  { key: "skills", weight: 2, pattern: /\b(umiejętności|kompetencje|technologie|stack technologiczny|skills|competencies|technologies|tech stack)\b/i },
+  { key: "experience", weight: 3, pattern: /\b(do(?:ś|s)wiadczenie(?: zawodowe)?|historia zatrudnienia|przebieg kariery|experience|employment|work history|professional experience)\b/i },
+  { key: "education", weight: 1, pattern: /\b(wykszta(?:ł|l)cenie|edukacja|studia|uczelnia|education|university|college|degree)\b/i },
+  { key: "skills", weight: 2, pattern: /\b(umiej(?:ę|e)tno(?:ś|s)ci|kompetencje|technologie|stack technologiczny|skills|competencies|technologies|tech stack)\b/i },
   { key: "profile", weight: 1, pattern: /\b(profil zawodowy|podsumowanie zawodowe|o mnie|professional profile|professional summary|career summary|about me)\b/i },
-  { key: "projects", weight: 1, pattern: /\b(projekty|osiągnięcia|certyfikaty|publikacje|projects|achievements|certifications|publications)\b/i },
-  { key: "languages", weight: 1, pattern: /\b(języki|znajomość języków|languages|language skills)\b/i },
+  { key: "projects", weight: 1, pattern: /\b(projekty|osi(?:ą|a)gni(?:ę|e)cia|certyfikaty|publikacje|projects|achievements|certifications|publications)\b/i },
+  { key: "languages", weight: 1, pattern: /\b(j(?:ę|e)zyki|znajomo(?:ś|s)ć j(?:ę|e)zyków|languages|language skills)\b/i },
 ] as const;
 
 const yearPattern = /\b(?:19|20)\d{2}\b/g;
 const dateRangePattern = /\b(?:19|20)\d{2}\s*(?:[-–—]|do|to)\s*(?:(?:19|20)\d{2}|obecnie|present|current)\b/gi;
-const jobTitlePattern = /\b(developer(?:ka)?|engineer|inżynier(?:ka)?|manager(?:ka)?|kierownik|specjalist(?:a|ka)|analityk|analityczka|consultant|konsultant(?:ka)?|designer|projektant(?:ka)?|administrator|architect|architekt(?:ka)?|director|dyrektor(?:ka)?|lead|intern|stażyst(?:a|ka))\b/i;
+const jobTitlePattern = /\b(developer(?:ka)?|engineer|in(?:ż|z)ynier(?:ka)?|manager(?:ka)?|kierownik|specjalist(?:a|ka)|analityk|analityczka|consultant|konsultant(?:ka)?|designer|projektant(?:ka)?|administrator|architect|architekt(?:ka)?|director|dyrektor(?:ka)?|lead|intern|sta(?:ż|z)yst(?:a|ka))\b/i;
 const bulletLinePattern = /^\s*(?:[-•●▪◦]|\d+[.)])\s+\S+/gm;
+const minimumStructuredCvChars = 180;
 
 export function detectLikelyCv(text: string): CVDetectionResult {
   const normalized = text.replace(/\s+/g, " ").trim();
-  if (normalized.length < 300) return { isLikelyCv: false, confidence: "low", score: 0, signals: ["too_short"] };
+  if (normalized.length < minimumStructuredCvChars) return { isLikelyCv: false, confidence: "low", score: 0, signals: ["too_short"] };
 
   let score = 0;
   const signals: string[] = [];
