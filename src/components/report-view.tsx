@@ -54,7 +54,7 @@ const copy = {
     deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
     samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV", backHome: "Wróć do strony głównej",
     mobileSummary: "Twój bezpłatny wynik", fullIncludes: "Pełny raport zawiera",
-    teaserTitle: "Wykryliśmy problem, który może osłabiać odbiór Twojego CV.", teaserLocked: "Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.", teaserSidebar: "Pełna diagnoza pokaże dowody, wpływ problemu i bezpieczne poprawki.",
+    teaserTitle: "Wykryliśmy problem, który może osłabiać odbiór Twojego CV.", teaserFinding: "WYKRYTY PROBLEM", teaserLocked: "Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.", teaserSidebar: "Pełna diagnoza pokaże dowody, wpływ problemu i bezpieczne poprawki.",
   },
   en: {
     sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
@@ -74,7 +74,7 @@ const copy = {
     deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
     samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV", backHome: "Back to homepage",
     mobileSummary: "Your free result", fullIncludes: "The full report includes",
-    teaserTitle: "We found an issue that may be weakening how your CV is received.", teaserLocked: "See where it appears, how it affects the reader and what to change.", teaserSidebar: "The full diagnosis shows the evidence, impact and fact-safe improvements.",
+    teaserTitle: "We found an issue that may be weakening how your CV is received.", teaserFinding: "DETECTED ISSUE", teaserLocked: "See where it appears, how it affects the reader and what to change.", teaserSidebar: "The full diagnosis shows the evidence, impact and fact-safe improvements.",
   },
 } as const;
 
@@ -264,6 +264,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
           <section className="report-section teaser-hook">
             <span>{t.mobileSummary}</span>
             <h2>{t.teaserTitle}</h2>
+            {teaser?.findingTitle ? <div className="teaser-finding"><small>{t.teaserFinding}</small><h3>{teaser.findingTitle}</h3></div> : null}
             <p>{teaser?.hook}</p>
             <div><LockIcon/><span>{t.teaserLocked}</span></div>
           </section>

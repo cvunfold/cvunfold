@@ -180,5 +180,5 @@ function teaserHook(category: string | undefined, locale: CVReport["locale"]): s
 
 export function toTeaser(report: CVReport): TeaserReport {
   const featured = report.issues.find((issue) => issue.severity === "critical") || report.issues[0];
-  return { version: report.version, locale: report.locale, hook: teaserHook(featured?.category, report.locale) };
+  return { version: report.version, locale: report.locale, hook: teaserHook(featured?.category, report.locale), findingTitle: featured?.title || null };
 }
