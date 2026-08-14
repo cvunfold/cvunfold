@@ -61,7 +61,10 @@ describe("Google Pay checkout CTA", () => {
     render(<GooglePayCheckout enabled locale="pl" plan="full_review" measurementContext={DEFAULT_MEASUREMENT_CONTEXT} onAvailabilityChange={onAvailabilityChange}/>);
 
     const button = await screen.findByRole("button", { name: "Google Pay test button" });
-    expect(mocks.expressCheckoutOptions).toMatchObject({ buttonHeight: 55 });
+    expect(mocks.expressCheckoutOptions).toMatchObject({
+      buttonHeight: 55,
+      paymentMethods: { googlePay: "always" },
+    });
     expect(onAvailabilityChange).toHaveBeenCalledWith(true);
     fireEvent.click(button);
 

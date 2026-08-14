@@ -18,7 +18,7 @@ const expressCheckoutOptions = {
   layout: { maxColumns: 1, maxRows: 1, overflow: "never" as const },
   paymentMethodOrder: ["googlePay"],
   paymentMethods: {
-    googlePay: "auto" as const,
+    googlePay: "always" as const,
     amazonPay: "never" as const,
     applePay: "never" as const,
     klarna: "never" as const,
