@@ -4,7 +4,8 @@ import { buildContentSecurityPolicy } from "./src/lib/security/csp";
 const googleAnalyticsEnabled = Boolean(process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID || process.env.NEXT_PUBLIC_GOOGLE_ADS_ID);
 const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
-export const crossOriginOpenerPolicy = "same-origin-allow-popups";
+export const defaultCrossOriginOpenerPolicy = "same-origin";
+export const googlePayCrossOriginOpenerPolicy = "same-origin-allow-popups";
 const csp = buildContentSecurityPolicy({
   googleEnabled: googleAnalyticsEnabled,
   stripeEnabled,
@@ -31,9 +32,7 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          // Google Pay opens a cross-origin payment window. Keeping a strict
-          // `same-origin` opener policy can prevent that window from opening.
-          { key: "Cross-Origin-Opener-Policy", value: crossOriginOpenerPolicy },
+          { key: "Cross-Origin-Opener-Policy", value: defaultCrossOriginOpenerPolicy },
           ...(process.env.NODE_ENV === "production"
             ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
             : []),
@@ -41,9 +40,25 @@ const nextConfig: NextConfig = {
       },
       { source: "/api/:path*", headers: [privateRouteHeaders] },
       { source: "/analiza", headers: [privateRouteHeaders, { key: "Referrer-Policy", value: "no-referrer" }] },
-      { source: "/raport", headers: [privateRouteHeaders, { key: "Referrer-Policy", value: "no-referrer" }] },
+      {
+        source: "/raport",
+        headers: [
+          privateRouteHeaders,
+          { key: "Referrer-Policy", value: "no-referrer" },
+          // Google Pay opens a cross-origin payment window. Keeping a strict
+          // `same-origin` opener policy can prevent that window from opening.
+          { key: "Cross-Origin-Opener-Policy", value: googlePayCrossOriginOpenerPolicy },
+        ],
+      },
       { source: "/en/analysis", headers: [privateRouteHeaders, { key: "Referrer-Policy", value: "no-referrer" }] },
-      { source: "/en/report", headers: [privateRouteHeaders, { key: "Referrer-Policy", value: "no-referrer" }] },
+      {
+        source: "/en/report",
+        headers: [
+          privateRouteHeaders,
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cross-Origin-Opener-Policy", value: googlePayCrossOriginOpenerPolicy },
+        ],
+      },
       { source: "/pl/analiza", headers: [privateRouteHeaders] },
       { source: "/pl/raport/:path*", headers: [privateRouteHeaders] },
     ];
