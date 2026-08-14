@@ -78,6 +78,7 @@ export type CVReport = ModelReport & { evidenceMap?: EvidenceMap };
 // One named finding makes the teaser specific enough to be useful. The verdict,
 // evidence, explanation, impact, and suggested action remain paid data.
 export type TeaserReport = Pick<CVReport, "version" | "locale"> & {
+  profileSummary: string;
   hook: string;
   findingTitle: string | null;
 };

@@ -261,6 +261,11 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
           </header>
           {expiresAt ? <p className="report-expiry">{t.expires}: <time dateTime={expiresAt}>{new Intl.DateTimeFormat(locale === "pl" ? "pl-PL" : "en-GB", { dateStyle: "long" }).format(new Date(expiresAt))}</time></p> : null}
 
+          <section className="report-section teaser-profile">
+            <span>{t.perceivedLevel}</span>
+            <p>{teaser?.profileSummary}</p>
+          </section>
+
           <section className="report-section teaser-hook">
             <span>{t.mobileSummary}</span>
             <h2>{t.teaserTitle}</h2>
