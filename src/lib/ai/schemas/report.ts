@@ -79,6 +79,7 @@ export type CVReport = ModelReport & { evidenceMap?: EvidenceMap };
 // evidence, explanation, impact, and suggested action remain paid data.
 export type TeaserReport = Pick<CVReport, "version" | "locale"> & {
   profileSummary: string;
+  issueCount: number;
   hook: string;
   findingTitle: string | null;
 };
