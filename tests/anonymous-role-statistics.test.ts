@@ -7,6 +7,8 @@ import {
 } from "@/lib/analytics/anonymous-role-statistics";
 
 const migration = readFileSync(new URL("../supabase/migrations/20260814112020_anonymous_role_statistics.sql", import.meta.url), "utf8");
+const permissionFix = readFileSync(new URL("../supabase/migrations/20260814153118_grant_anonymous_role_trigger_permissions.sql", import.meta.url), "utf8");
+const triggerFix = readFileSync(new URL("../supabase/migrations/20260814153226_fix_anonymous_role_trigger_variable_conflict.sql", import.meta.url), "utf8");
 const tableDefinition = migration.match(/create table if not exists public\.anonymous_role_aggregates \(([\s\S]*?)\n\);/)?.[1] || "";
 
 describe("anonymous role statistics", () => {
@@ -53,5 +55,14 @@ describe("anonymous role statistics", () => {
     expect(migration).toContain("grant select, insert, update on table public.anonymous_role_aggregates to service_role");
     expect(migration).toContain("after insert on public.reports");
     expect(migration).not.toContain("grant select on table public.anonymous_role_aggregates to anon");
+  });
+
+  it("keeps the private trigger callable by the server role without ambiguous variable names", () => {
+    expect(permissionFix).toContain("grant usage on schema private to service_role");
+    expect(permissionFix).toContain("grant execute on function private.classify_anonymous_perceived_role(text) to service_role");
+    expect(triggerFix).toContain("v_role_category text");
+    expect(triggerFix).toContain("v_source_bucket text");
+    expect(triggerFix).toContain("values (v_role_category, v_source_bucket, 1)");
+    expect(triggerFix).not.toContain("grant execute on function private.classify_anonymous_perceived_role(text) to anon");
   });
 });
