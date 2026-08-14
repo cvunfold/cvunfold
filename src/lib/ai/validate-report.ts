@@ -153,37 +153,32 @@ export function withRecruiterPerspective(report: CVReport): CVReport {
   };
 }
 
+function teaserHook(category: string | undefined, locale: CVReport["locale"]): string {
+  const hooks = locale === "en"
+    ? {
+      impact: "Your experience may not make the outcomes of your work immediately clear.",
+      ownership: "Your experience may not clearly communicate the scope of your responsibility.",
+      credibility: "Your experience may not clearly demonstrate your technical credibility.",
+      architecture: "The technical scope of your decisions may not be clearly visible.",
+      collaboration: "The scope of your collaboration may not be clear from the document.",
+      clarity: "The strongest parts of your CV may not be visible straight away.",
+      ats: "The document structure may make the key information harder to read quickly.",
+      fallback: "One part of your CV may be weakening how your experience is received.",
+    }
+    : {
+      impact: "Twoje doświadczenie może nie komunikować od razu efektów Twojej pracy.",
+      ownership: "Twoje doświadczenie może nie komunikować jasno zakresu odpowiedzialności.",
+      credibility: "Twoje doświadczenie może nie komunikować jasno Twojej wiarygodności technicznej.",
+      architecture: "Skala techniczna Twoich decyzji może nie być jasno widoczna.",
+      collaboration: "Zakres Twojej współpracy może nie być czytelny z dokumentu.",
+      clarity: "Najmocniejsze elementy Twojego CV mogą nie być widoczne od razu.",
+      ats: "Układ dokumentu może utrudniać szybkie odczytanie najważniejszych informacji.",
+      fallback: "Jeden element CV może osłabiać odbiór Twojego doświadczenia.",
+    };
+  return hooks[category as keyof typeof hooks] || hooks.fallback;
+}
+
 export function toTeaser(report: CVReport): TeaserReport {
-  const normalized = withRecruiterPerspective(report);
-  const perspective = normalized.recruiterPerspective;
-  const featured = normalized.issues.find((issue) => issue.severity === "critical") || normalized.issues[0];
-  const evidenceRef = featured?.evidenceRefs[0];
-  return {
-    version: normalized.version, locale: normalized.locale, document: normalized.document, summary: normalized.summary,
-    recruiterPerspective: {
-      profileSummary: perspective.profileSummary,
-      seniorityAlignment: perspective.seniorityAlignment,
-      seniorityAlignmentExplanation: perspective.seniorityAlignmentExplanation,
-      counts: {
-        positiveSignals: perspective.positiveSignals.length,
-        reservations: perspective.reservations.length,
-        likelyInterviewQuestions: perspective.likelyInterviewQuestions.length,
-      },
-    },
-    recruiterSimulation: normalized.recruiterSimulation,
-    categoryScores: normalized.categoryScores.map(({ key, label, score, weight }) => ({ key, label, score, weight, rationale: normalized.locale === "en" ? "Detailed rationale is available in the full report." : "Szczegółowe uzasadnienie dostępne w pełnym raporcie.", evidenceRefs: [] })),
-    counts: { strengths: normalized.strengths.length, issues: normalized.issues.length, nextSteps: normalized.nextSteps.length },
-    ats: { score: normalized.ats.score, findingCount: normalized.ats.findings.length },
-    featuredFinding: featured ? {
-      id: featured.id,
-      title: featured.title,
-      explanation: featured.explanation,
-      whyItMatters: featured.whyItMatters,
-      evidence: evidenceRef ? normalized.evidenceMap?.[evidenceRef] || null : null,
-      action: featured.action,
-      suggestionType: featured.suggestion?.type || null,
-      confidence: featured.confidence,
-      severity: featured.severity,
-    } : null,
-  };
+  const featured = report.issues.find((issue) => issue.severity === "critical") || report.issues[0];
+  return { version: report.version, locale: report.locale, hook: teaserHook(featured?.category, report.locale) };
 }

@@ -75,22 +75,8 @@ export type EvidenceMap = Record<string, string>;
 // the launch migration; every new report receives a map built from parsed CV segments.
 export type CVReport = ModelReport & { evidenceMap?: EvidenceMap };
 
-export type TeaserReport = Pick<CVReport, "version" | "locale" | "document" | "summary" | "recruiterSimulation"> & {
-  recruiterPerspective: Pick<CVReport["recruiterPerspective"], "profileSummary" | "seniorityAlignment" | "seniorityAlignmentExplanation"> & {
-    counts: { positiveSignals: number; reservations: number; likelyInterviewQuestions: number };
-  };
-  categoryScores: CVReport["categoryScores"];
-  counts: { strengths: number; issues: number; nextSteps: number };
-  ats: { score: number; findingCount: number };
-  featuredFinding: null | {
-    id: string;
-    title: string;
-    explanation: string;
-    whyItMatters: string;
-    evidence: string | null;
-    action: string;
-    suggestionType: "rewrite" | "expose" | "gap" | "question" | null;
-    confidence: "low" | "medium" | "high";
-    severity: "minor" | "important" | "critical";
-  };
+// Keep the unpaid response deliberately small. A hook can create interest, but
+// the verdict, evidence, finding title, and suggested action remain paid data.
+export type TeaserReport = Pick<CVReport, "version" | "locale"> & {
+  hook: string;
 };
