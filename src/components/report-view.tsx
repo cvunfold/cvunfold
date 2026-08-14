@@ -280,7 +280,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
             <h2>{teaserTitle(teaser?.issueCount || 0, locale)}</h2>
             {teaser?.findingTitle ? <div className="teaser-finding"><small>{t.teaserFinding}</small><h3>{teaser.findingTitle}</h3></div> : null}
             <p>{teaser?.hook}</p>
-            <div><LockIcon/><span>{t.teaserLocked}</span></div>
+            <div className="teaser-lock"><LockIcon/><span>{t.teaserLocked}</span></div>
           </section>
 
           <section ref={paywall} className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div className={`locked-payment-actions${expressWalletAvailable ? " wallet-ready" : ""}`}><button onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setExpressWalletAvailable}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
