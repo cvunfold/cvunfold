@@ -54,6 +54,7 @@ const copy = {
     deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
     samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV", backHome: "Wróć do strony głównej",
     mobileSummary: "Twój bezpłatny wynik", fullIncludes: "Pełny raport zawiera",
+    teaserTitle: "Wykryliśmy problem, który może osłabiać odbiór Twojego CV.", teaserLocked: "Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.", teaserSidebar: "Pełna diagnoza pokaże dowody, wpływ problemu i bezpieczne poprawki.",
   },
   en: {
     sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
@@ -73,6 +74,7 @@ const copy = {
     deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
     samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV", backHome: "Back to homepage",
     mobileSummary: "Your free result", fullIncludes: "The full report includes",
+    teaserTitle: "We found an issue that may be weakening how your CV is received.", teaserLocked: "See where it appears, how it affects the reader and what to change.", teaserSidebar: "The full diagnosis shows the evidence, impact and fact-safe improvements.",
   },
 } as const;
 
@@ -100,7 +102,7 @@ const reportTopics = {
   },
 } as const;
 
-export function ReportView({ paid, plan = "full_review", purchase, data, mockMode, locale, expiresAt, demo, measurementContext = DEFAULT_MEASUREMENT_CONTEXT }: Props) {
+export function ReportView({ paid, plan = "full_review", purchase, data: reportData, mockMode, locale, expiresAt, demo, measurementContext = DEFAULT_MEASUREMENT_CONTEXT }: Props) {
   const t = copy[locale];
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -113,8 +115,10 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
   const paywall = useRef<HTMLElement>(null);
   const trackedViews = useRef(new Set<string>());
   const trackedPurchaseViews = useRef(new Set<string>());
-  const full = paid ? data as CVReport : null;
-  const teaser = !paid ? data as TeaserReport : null;
+  const isFree = !paid && !demo;
+  const full = paid ? reportData as CVReport : null;
+  const teaser = !paid ? reportData as TeaserReport : null;
+  const data = reportData as CVReport;
   const price = formatPlanPrice(plan, locale);
 
   useEffect(() => {
@@ -238,9 +242,42 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
     if (response.ok) { setSent(true); trackAnalyticsEvent("feedback_submitted", { locale, market: locale, plan, ...measurementContext }); }
   }
 
+  if (isFree) {
+    return <main ref={reportRoot} className="report-page report-v2 report-free-teaser">
+      <header className="report-mobile-header"><Logo locale={locale}/><Link href={homePath(locale)}>{locale === "pl" ? "Wróć" : "Back"}</Link></header>
+      <div className="report-layout">
+        <aside className="report-sidebar report-free-sidebar">
+          <Logo locale={locale}/>
+          <span className="overline">{t.mobileSummary}</span>
+          <p className="verdict">{t.teaserSidebar}</p>
+          <button onClick={() => void unlock("desktop_sidebar")} disabled={busy} className="button sidebar-buy" data-purchase-surface="desktop_sidebar" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button>
+          <small className="safe-note"><LockIcon/> {t.private}</small>
+        </aside>
+
+        <div className="report-content">
+          <header className="report-title">
+            <div><h1>{t.mobileSummary}</h1><p>{locale === "pl" ? "Pełna diagnoza pozostaje prywatna do czasu odblokowania raportu." : "The full diagnosis stays private until you unlock the report."}</p></div>
+            <div className="report-actions"><button className="delete-link" onClick={remove}><LockIcon/>{t.delete}</button></div>
+          </header>
+          {expiresAt ? <p className="report-expiry">{t.expires}: <time dateTime={expiresAt}>{new Intl.DateTimeFormat(locale === "pl" ? "pl-PL" : "en-GB", { dateStyle: "long" }).format(new Date(expiresAt))}</time></p> : null}
+
+          <section className="report-section teaser-hook">
+            <span>{t.mobileSummary}</span>
+            <h2>{t.teaserTitle}</h2>
+            <p>{teaser?.hook}</p>
+            <div><LockIcon/><span>{t.teaserLocked}</span></div>
+          </section>
+
+          <section ref={paywall} className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div className={`locked-payment-actions${expressWalletAvailable ? " wallet-ready" : ""}`}><button onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setExpressWalletAvailable}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
+        </div>
+      </div>
+      {mockMode ? <span className="dev-badge">DEV MOCK</span> : null}
+    </main>;
+  }
+
   const counts = paid && full
     ? { issues: full.issues.length, strengths: full.strengths.length, nextSteps: full.nextSteps.length }
-    : teaser?.counts || { issues: 0, strengths: 0, nextSteps: 0 };
+    : { issues: 0, strengths: 0, nextSteps: 0 };
   const topicKeys = [...new Set([...(full?.issues.map((issue) => issue.category) || []), "seniority", "ownership"])]
     .filter((key): key is keyof typeof reportTopics.pl => key in reportTopics[locale]).slice(0, 3);
 
@@ -299,10 +336,8 @@ export function ReportView({ paid, plan = "full_review", purchase, data, mockMod
           <p className="disclaimer">{t.disclaimer}</p><div className="improve"><b>{t.improve}</b><ul>{data.recruiterSimulation.whatCouldImproveDecision.map((item) => <li key={item}>{item}</li>)}</ul></div>
         </section>
 
-        {teaser?.featuredFinding ? <section className="report-section featured-finding"><div className="section-heading"><span>03</span><h2>{t.featured}</h2></div><article><header className="finding-tags"><span className={`severity ${teaser.featuredFinding.severity}`}>{teaser.featuredFinding.severity}</span><span>{teaser.featuredFinding.suggestionType?.toUpperCase()}</span></header><h3>{teaser.featuredFinding.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{teaser.featuredFinding.explanation}</p></div><div><small>{t.evidence}</small>{teaser.featuredFinding.evidence ? <blockquote className="evidence-quote">{teaser.featuredFinding.evidence}</blockquote> : <p>{locale === "pl" ? "Brak widocznego dowodu w dokumencie." : "No visible evidence in the document."}</p>}</div><div><small>{t.matters}</small><p>{teaser.featuredFinding.whyItMatters}</p></div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: teaser.featuredFinding.action, suggestionType: teaser.featuredFinding.suggestionType, title: teaser.featuredFinding.title, locale })}</p></div></div><footer>{t.confidence}: <b>{confidenceLabel[locale][teaser.featuredFinding.confidence]}</b></footer></article></section> : null}
-
         <section className="report-section">
-          <div className="section-heading"><span>{teaser ? "04" : "03"}</span><h2>{t.categories}</h2></div>
+          <div className="section-heading"><span>03</span><h2>{t.categories}</h2></div>
           <div className="score-rows">{data.categoryScores.map((category) => <div key={category.key}><b>{category.label}</b><p>{category.rationale}</p><strong>{category.score}<small>/100</small></strong><i><span style={{ width: `${category.score}%` }}/></i></div>)}</div>
         </section>
 

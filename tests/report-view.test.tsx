@@ -38,11 +38,6 @@ class IntersectionObserverStub {
   }
 }
 
-const rect = (top: number, bottom: number): DOMRect => ({
-  x: 0, y: top, top, bottom, left: 0, right: 320, width: 320, height: bottom - top,
-  toJSON: () => ({}),
-});
-
 beforeEach(() => {
   IntersectionObserverStub.instances = [];
   vi.stubGlobal("IntersectionObserver", IntersectionObserverStub);
@@ -65,66 +60,46 @@ afterEach(() => {
 });
 
 describe("free report purchase hierarchy", () => {
-  it("shows one mobile summary, promotes the full finding before scores and mounts the wallet once", () => {
+  it("shows one privacy-safe hook before the payment offer and mounts the wallet once", () => {
     const teaser = toTeaser(createMockReport());
     const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
 
-    const summary = container.querySelector(".report-mobile-summary");
-    expect(summary?.textContent).toContain("Twój bezpłatny wynik");
-    expect(summary?.textContent).toContain(`${teaser.counts.issues}`);
-    expect(summary?.textContent).toContain("Odblokuj pełny raport");
-
-    const finding = screen.getByRole("heading", { name: "Najważniejsze ustalenie darmowej analizy" }).closest("section");
-    const categories = screen.getByRole("heading", { name: "Sygnały poziomu w kategoriach" }).closest("section");
-    expect(finding).not.toBeNull();
-    expect(categories).not.toBeNull();
-    expect(Boolean(finding!.compareDocumentPosition(categories!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
-    const findingTags = finding!.querySelector(".finding-tags");
-    const expectedSuggestion = teaser.featuredFinding?.suggestionType?.toUpperCase();
-    if (!expectedSuggestion) throw new Error("Missing featured finding suggestion type");
-    expect(findingTags?.children).toHaveLength(2);
-    expect(findingTags?.textContent).toContain("critical");
-    expect(findingTags?.textContent).toContain(expectedSuggestion);
+    const hook = screen.getByRole("heading", { name: "Wykryliśmy problem, który może osłabiać odbiór Twojego CV." }).closest("section");
+    const paywall = container.querySelector<HTMLElement>(".locked");
+    expect(hook?.textContent).toContain(teaser.hook);
+    expect(hook?.textContent).toContain("Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.");
+    expect(paywall).not.toBeNull();
+    expect(Boolean(hook!.compareDocumentPosition(paywall!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(container.textContent).not.toContain("Efekty pracy giną pod listą obowiązków");
+    expect(container.textContent).not.toContain("Najmocniejsze doświadczenie jest opisane jako wykonywane czynności");
     expect(screen.getAllByTestId("express-wallet-stub")).toHaveLength(1);
     const paymentMethods = container.querySelector(".payment-methods-list");
     expect(paymentMethods?.textContent).toContain("Obsługiwane płatności");
     for (const method of ["Karta", "BLIK", "Apple Pay", "Google Pay"]) expect(paymentMethods?.textContent).toContain(method);
   });
 
-  it("shows the sticky CTA only between the mobile summary and the final paywall", () => {
+  it("tracks the paywall CTA after the hook", () => {
     const teaser = toTeaser(createMockReport());
     const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
-    const summaryButton = container.querySelector<HTMLButtonElement>('[data-purchase-surface="mobile_summary"]')!;
-    const paywall = container.querySelector<HTMLElement>(".locked")!;
-    const sticky = container.querySelector<HTMLButtonElement>(".report-mobile-sticky-cta")!;
-
-    summaryButton.getBoundingClientRect = () => rect(-70, -10);
-    paywall.getBoundingClientRect = () => rect(1400, 1700);
-    act(() => { IntersectionObserverStub.instances.forEach((observer) => observer.trigger(summaryButton, false)); });
-    expect(sticky.dataset.visible).toBe("true");
-    expect(sticky.getAttribute("aria-hidden")).toBe("false");
+    const paywallButton = container.querySelector<HTMLButtonElement>('[data-purchase-surface="report_paywall"]')!;
+    act(() => { IntersectionObserverStub.instances.forEach((observer) => observer.trigger(paywallButton)); });
     expect(analytics).toHaveBeenCalledWith("unlock_cta_viewed", expect.objectContaining({
-      purchase_surface: "mobile_sticky",
+      purchase_surface: "report_paywall",
       payment_method: "standard",
     }));
-
-    paywall.getBoundingClientRect = () => rect(500, 800);
-    act(() => { IntersectionObserverStub.instances.forEach((observer) => observer.trigger(paywall)); });
-    expect(sticky.dataset.visible).toBe("false");
-    expect(sticky.getAttribute("aria-hidden")).toBe("true");
   });
 
   it("tracks the standard purchase surface without report or CV data", () => {
     const teaser = toTeaser(createMockReport());
     vi.stubGlobal("fetch", vi.fn(() => new Promise(() => undefined)));
     const { container } = render(<ReportView paid={false} data={teaser} mockMode locale="pl"/>);
-    const summaryButton = container.querySelector<HTMLButtonElement>('[data-purchase-surface="mobile_summary"]')!;
+    const paywallButton = container.querySelector<HTMLButtonElement>('[data-purchase-surface="report_paywall"]')!;
 
-    fireEvent.click(summaryButton);
+    fireEvent.click(paywallButton);
     expect(analytics).toHaveBeenCalledWith("unlock_cta_clicked", expect.objectContaining({
-      purchase_surface: "mobile_summary",
+      purchase_surface: "report_paywall",
       payment_method: "standard",
     }));
-    expect(JSON.stringify(analytics.mock.calls)).not.toContain(teaser.featuredFinding?.evidence);
+    expect(JSON.stringify(analytics.mock.calls)).not.toContain(teaser.hook);
   });
 });
