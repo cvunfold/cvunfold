@@ -96,10 +96,25 @@ function teaserTitle(issueCount: number, locale: Locale) {
 }
 
 function severitySummary(teaser: TeaserReport, locale: Locale) {
-  const parts = locale === "en"
-    ? [[teaser.severityCounts.critical, "significant"], [teaser.severityCounts.important, "moderate"]]
-    : [[teaser.severityCounts.critical, "istotne"], [teaser.severityCounts.important, "umiarkowane"]];
-  return parts.filter(([count]) => Number(count) > 0).map(([count, label]) => `${count} ${label}`).join(" · ");
+  if (locale === "en") {
+    return [[teaser.severityCounts.critical, "significant"], [teaser.severityCounts.important, "moderate"], [teaser.severityCounts.minor, "minor"]]
+      .filter(([count]) => Number(count) > 0).map(([count, label]) => `${count} ${label}`).join(" · ");
+  }
+  const polishLabel = (count: number, forms: [string, string, string]) => {
+    const lastTwoDigits = count % 100;
+    const lastDigit = count % 10;
+    if (count === 1) return forms[0];
+    if (lastTwoDigits < 12 || lastTwoDigits > 14) {
+      if (lastDigit >= 2 && lastDigit <= 4) return forms[1];
+    }
+    return forms[2];
+  };
+  const parts: Array<{ count: number; forms: [string, string, string] }> = [
+    { count: teaser.severityCounts.critical, forms: ["istotny", "istotne", "istotnych"] },
+    { count: teaser.severityCounts.important, forms: ["umiarkowany", "umiarkowane", "umiarkowanych"] },
+    { count: teaser.severityCounts.minor, forms: ["drobny", "drobne", "drobnych"] },
+  ];
+  return parts.filter(({ count }) => count > 0).map(({ count, forms }) => `${count} ${polishLabel(count, forms)}`).join(" · ");
 }
 
 const reportTopics = {
