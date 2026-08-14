@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAnalysis, recordFunnelEvent } from "@/lib/data/store";
 import { measurementContextFromAttribution } from "@/lib/audience";
-import { markGooglePayCheckoutStarted } from "@/lib/payments/stripe";
+import { markExpressWalletCheckoutStarted } from "@/lib/payments/stripe";
 import { reportTokenFromRequest } from "@/lib/security/report-session";
 
 export const runtime = "nodejs";
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    await markGooglePayCheckoutStarted(body.sessionId, item.id);
+    await markExpressWalletCheckoutStarted(body.sessionId, item.id);
   } catch (error) {
     const code = error instanceof Error ? error.message : "STRIPE_CHECKOUT_FAILED";
     if (code === "STRIPE_ANALYSIS_MISMATCH") return NextResponse.json({ error: "CHECKOUT_SESSION_NOT_FOUND" }, { status: 404 });

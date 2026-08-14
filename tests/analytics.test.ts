@@ -161,6 +161,11 @@ describe("checkout diagnostic events", () => {
     expect(safeAnalyticsPayload("unlock_cta_viewed", {
       locale: "pl", market: "pl", plan: "full_review", purchase_surface: "floating_unknown", payment_method: "wallet_unknown",
     }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
+    for (const payment_method of ["express_wallet", "apple_pay", "google_pay"]) {
+      expect(safeAnalyticsPayload("unlock_cta_clicked", {
+        locale: "pl", market: "pl", plan: "full_review", purchase_surface: "report_paywall", payment_method,
+      }).properties).toMatchObject({ purchase_surface: "report_paywall", payment_method });
+    }
   });
 });
 

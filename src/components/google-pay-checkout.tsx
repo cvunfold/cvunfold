@@ -19,14 +19,16 @@ const stripePromise = publishableKey && /^pk_(test|live)_/.test(publishableKey) 
 
 const expressCheckoutOptions = {
   buttonHeight: 55,
-  buttonTheme: { googlePay: "black" as const },
-  buttonType: { googlePay: "buy" as const },
+  buttonTheme: { applePay: "black" as const, googlePay: "black" as const },
+  buttonType: { applePay: "buy" as const, googlePay: "buy" as const },
   layout: { maxColumns: 1, maxRows: 1, overflow: "never" as const },
-  paymentMethodOrder: ["googlePay"],
+  // The Checkout-specific type requires the key even though Stripe documents
+  // `undefined` as the way to keep its per-customer dynamic ordering.
+  paymentMethodOrder: undefined,
   paymentMethods: {
+    applePay: "always" as const,
     googlePay: "always" as const,
     amazonPay: "never" as const,
-    applePay: "never" as const,
     klarna: "never" as const,
     link: "never" as const,
     paypal: "never" as const,
@@ -42,7 +44,7 @@ type Props = {
   onAvailabilityChange: (available: boolean) => void;
 };
 
-class GooglePayErrorBoundary extends Component<
+class ExpressWalletErrorBoundary extends Component<
   { children: ReactNode; onError: () => void },
   { failed: boolean }
 > {
@@ -61,15 +63,15 @@ class GooglePayErrorBoundary extends Component<
   }
 }
 
-function GooglePayElement({ locale, plan, measurementContext, purchaseSurface, onAvailabilityChange }: Omit<Props, "enabled">) {
+function ExpressWalletElement({ locale, plan, measurementContext, purchaseSurface, onAvailabilityChange }: Omit<Props, "enabled">) {
   const checkoutState = useCheckoutElements();
   const [available, setAvailable] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const container = useRef<HTMLDivElement>(null);
   const viewTracked = useRef(false);
   const genericError = locale === "pl"
-    ? "Nie udało się uruchomić Google Pay. Użyj zwykłego przycisku płatności."
-    : "We could not start Google Pay. Use the standard payment button.";
+    ? "Nie udało się uruchomić szybkiej płatności. Użyj zwykłego przycisku płatności."
+    : "We could not start the wallet. Use the standard payment button.";
 
   useEffect(() => {
     if (checkoutState.type === "error") onAvailabilityChange(false);
@@ -81,7 +83,7 @@ function GooglePayElement({ locale, plan, measurementContext, purchaseSurface, o
       if (!entry?.isIntersecting || viewTracked.current) return;
       viewTracked.current = true;
       trackAnalyticsEvent("unlock_cta_viewed", {
-        plan, locale, market: locale, purchase_surface: purchaseSurface, payment_method: "google_pay", ...measurementContext,
+        plan, locale, market: locale, purchase_surface: purchaseSurface, payment_method: "express_wallet", ...measurementContext,
       });
       observer.disconnect();
     }, { threshold: .5 });
@@ -92,23 +94,29 @@ function GooglePayElement({ locale, plan, measurementContext, purchaseSurface, o
   if (checkoutState.type !== "success") return null;
   const { checkout } = checkoutState;
 
-  function updateGooglePayAvailability(googlePayAvailable: boolean) {
-    setAvailable(googlePayAvailable);
-    onAvailabilityChange(googlePayAvailable);
+  function updateWalletAvailability(walletAvailable: boolean) {
+    setAvailable(walletAvailable);
+    onAvailabilityChange(walletAvailable);
   }
 
   function handleReady(event: StripeExpressCheckoutElementReadyEvent) {
-    updateGooglePayAvailability(event.availablePaymentMethods?.googlePay === true);
+    updateWalletAvailability(event.availablePaymentMethods?.applePay === true || event.availablePaymentMethods?.googlePay === true);
   }
 
   function handleAvailablePaymentMethodsChange(event: StripeExpressCheckoutElementAvailablePaymentMethodsChangeEvent) {
-    updateGooglePayAvailability(event.paymentMethods?.googlePay?.available === true);
+    updateWalletAvailability(event.paymentMethods?.applePay?.available === true || event.paymentMethods?.googlePay?.available === true);
   }
 
   async function handleConfirm(event: StripeExpressCheckoutElementConfirmEvent) {
     setPaymentError(null);
+    const paymentMethod = event.expressPaymentType;
+    if (paymentMethod !== "apple_pay" && paymentMethod !== "google_pay") {
+      event.paymentFailed({ reason: "fail" });
+      setPaymentError(genericError);
+      return;
+    }
     trackAnalyticsEvent("unlock_cta_clicked", {
-      plan, locale, market: locale, purchase_surface: purchaseSurface, payment_method: "google_pay", ...measurementContext,
+      plan, locale, market: locale, purchase_surface: purchaseSurface, payment_method: paymentMethod, ...measurementContext,
     });
     const started = await fetch("/api/report/checkout/google-pay/started", {
       method: "POST",
@@ -129,7 +137,7 @@ function GooglePayElement({ locale, plan, measurementContext, purchaseSurface, o
     window.location.assign(`${reportPath(locale)}?checkout=success&session_id=${encodeURIComponent(result.session.id)}`);
   }
 
-  return <div ref={container} className={`google-pay-cta${available ? " is-ready" : ""}`} aria-hidden={!available}>
+  return <div ref={container} className={`express-wallet-cta${available ? " is-ready" : ""}`} aria-hidden={!available}>
     <ExpressCheckoutElement
       options={expressCheckoutOptions}
       onReady={handleReady}
@@ -138,17 +146,17 @@ function GooglePayElement({ locale, plan, measurementContext, purchaseSurface, o
       onCancel={() => setPaymentError(null)}
       onLoadError={() => { setAvailable(false); onAvailabilityChange(false); }}
     />
-    {paymentError ? <p className="google-pay-error" role="alert">{paymentError}</p> : null}
+    {paymentError ? <p className="express-wallet-error" role="alert">{paymentError}</p> : null}
   </div>;
 }
 
-export function GooglePayCheckout({ enabled, locale, plan, measurementContext, purchaseSurface, onAvailabilityChange }: Props) {
+export function ExpressWalletCheckout({ enabled, locale, plan, measurementContext, purchaseSurface, onAvailabilityChange }: Props) {
   const clientSecret = useMemo(() => {
     if (!enabled || !stripePromise) return null;
     return fetch("/api/report/checkout/google-pay", { method: "POST" })
       .then(async (response) => {
         const body = await response.json().catch(() => ({})) as { clientSecret?: unknown };
-        if (!response.ok || typeof body.clientSecret !== "string") throw new Error("GOOGLE_PAY_CHECKOUT_UNAVAILABLE");
+        if (!response.ok || typeof body.clientSecret !== "string") throw new Error("EXPRESS_WALLET_CHECKOUT_UNAVAILABLE");
         return body.clientSecret;
       });
   }, [enabled]);
@@ -158,9 +166,9 @@ export function GooglePayCheckout({ enabled, locale, plan, measurementContext, p
   }, [clientSecret, onAvailabilityChange]);
 
   if (!stripePromise || !clientSecret) return null;
-  return <GooglePayErrorBoundary onError={() => onAvailabilityChange(false)}>
+  return <ExpressWalletErrorBoundary onError={() => onAvailabilityChange(false)}>
     <CheckoutElementsProvider stripe={stripePromise} options={{ clientSecret }}>
-      <GooglePayElement
+      <ExpressWalletElement
         locale={locale}
         plan={plan}
         measurementContext={measurementContext}
@@ -168,5 +176,5 @@ export function GooglePayCheckout({ enabled, locale, plan, measurementContext, p
         onAvailabilityChange={onAvailabilityChange}
       />
     </CheckoutElementsProvider>
-  </GooglePayErrorBoundary>;
+  </ExpressWalletErrorBoundary>;
 }
