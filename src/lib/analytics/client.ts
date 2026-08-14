@@ -17,7 +17,7 @@ export const CONSENT_UPDATED_EVENT = "cv-review:consent-updated";
 
 export type ConsentChoice = "granted" | "denied";
 type AnalyticsProperties = Record<string, string | number | boolean>;
-type PurchaseConversion = { transactionId: string; value: number; currency: string; plan: "full_review" | "job_match"; locale: "pl" | "en"; market: "pl" | "en" } & Partial<MeasurementContext>;
+type PurchaseConversion = { transactionId: string; value: number; currency: string; plan: "full_review" | "job_match"; locale: "pl" | "en"; market: "pl" | "en"; teaserVariant?: "evidence_v1" } & Partial<MeasurementContext>;
 
 declare global {
   interface Window {
@@ -123,6 +123,7 @@ function sendPurchase(purchase: PurchaseConversion): void {
     ...(purchase.broad_role_enum ? { broad_role_enum: purchase.broad_role_enum } : {}),
     ...(purchase.selected_seniority_enum ? { selected_seniority_enum: purchase.selected_seniority_enum } : {}),
     ...(purchase.handoff_origin ? { handoff_origin: purchase.handoff_origin } : {}),
+    ...(purchase.teaserVariant ? { teaser_variant: purchase.teaserVariant } : {}),
   };
   sendEvent("purchase", properties);
   if (adsPurchaseDestination) {

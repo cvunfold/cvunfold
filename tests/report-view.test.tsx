@@ -60,19 +60,21 @@ afterEach(() => {
 });
 
 describe("free report purchase hierarchy", () => {
-  it("shows one privacy-safe hook before the payment offer and mounts the wallet once", () => {
+  it("shows one evidence-backed issue before the payment offer and mounts the wallet once", () => {
     const teaser = toTeaser(createMockReport());
     const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
 
     const hook = screen.getByRole("heading", { name: "Wykryliśmy 3 problemy, które mogą osłabiać odbiór Twojego CV." }).closest("section");
     const paywall = container.querySelector<HTMLElement>(".locked");
     expect(container.querySelector(".teaser-profile")?.textContent).toContain(teaser.profileSummary);
-    expect(hook?.textContent).toContain(teaser.hook);
-    expect(hook?.textContent).toContain(teaser.findingTitle);
-    expect(hook?.textContent).toContain("Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.");
+    expect(container.querySelector(".teaser-first-impression")?.textContent).toContain(teaser.firstImpression);
+    expect(hook?.textContent).toContain(teaser.featuredIssue?.title);
+    expect(hook?.textContent).toContain(teaser.featuredIssue?.evidence);
+    expect(hook?.textContent).toContain(teaser.featuredIssue?.actionDirection);
     expect(paywall).not.toBeNull();
     expect(Boolean(hook!.compareDocumentPosition(paywall!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
-    expect(container.textContent).not.toContain("Najmocniejsze doświadczenie jest opisane jako wykonywane czynności");
+    expect(container.textContent).toContain("Najmocniejsze doświadczenie jest opisane jako wykonywane czynności");
+    expect(container.textContent).not.toContain("Zakres ownershipu jest niejasny");
     expect(screen.getAllByTestId("express-wallet-stub")).toHaveLength(1);
     const paymentMethods = container.querySelector(".payment-methods-list");
     expect(paymentMethods?.textContent).toContain("Obsługiwane płatności");
@@ -107,6 +109,6 @@ describe("free report purchase hierarchy", () => {
       purchase_surface: "report_paywall",
       payment_method: "standard",
     }));
-    expect(JSON.stringify(analytics.mock.calls)).not.toContain(teaser.hook);
+    expect(JSON.stringify(analytics.mock.calls)).not.toContain("Zakres ownershipu jest niejasny");
   });
 });

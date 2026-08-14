@@ -145,6 +145,13 @@ describe("file picker diagnostics", () => {
 });
 
 describe("checkout diagnostic events", () => {
+  it("keeps the closed teaser version on the conversion funnel without accepting report data", () => {
+    expect(safeAnalyticsPayload("teaser_viewed", {
+      locale: "pl", market: "pl", plan: "full_review", teaser_variant: "evidence_v1",
+      featured_issue: "private title", evidence: "private CV text",
+    }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review", teaser_variant: "evidence_v1" });
+  });
+
   it("allows only privacy-safe cancellation fields", () => {
     expect(safeAnalyticsPayload("checkout_cancelled", {
       locale: "pl", market: "pl", plan: "full_review", filename: "private-cv.pdf",

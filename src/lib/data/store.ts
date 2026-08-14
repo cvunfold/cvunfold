@@ -227,7 +227,7 @@ const funnelEventNames = new Set([
 const safePropertyKeys = new Set([
   "plan", "error_category", "analysis_success", "model", "prompt_version", "rubric_version", "duration_ms",
   "input_tokens", "output_tokens", "estimated_cost", "source", "medium", "campaign", "content", "term",
-  "landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin", "currency", "value",
+  "landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin", "teaser_variant", "currency", "value",
 ]);
 const safePropertyEnums: Record<string, readonly string[]> = {
   plan: ["full_review", "job_match"],
@@ -235,6 +235,7 @@ const safePropertyEnums: Record<string, readonly string[]> = {
   broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
   handoff_origin: ["google_cpc", "other"],
+  teaser_variant: ["evidence_v1"],
   currency: ["PLN", "EUR"],
 };
 

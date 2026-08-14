@@ -4,6 +4,7 @@ import { toTeaser, withRecruiterPerspective } from "@/lib/ai/validate-report";
 import { fulfillCheckoutSession } from "@/lib/payments/stripe";
 import { clearReportSessionCookie, reportTokenFromRequest } from "@/lib/security/report-session";
 import { measurementContextFromAttribution } from "@/lib/audience";
+import { TEASER_VARIANT } from "@/lib/analytics/events";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     analysisId: item.id,
     locale: item.locale,
     market: item.market,
-    properties: { plan: item.plan, ...measurementContext },
+    properties: { plan: item.plan, ...(item.paid ? {} : { teaser_variant: TEASER_VARIANT }), ...measurementContext },
     dedupeKey: `${item.paid ? "full-report-viewed" : "teaser-viewed"}:${item.id}`,
   }).catch(() => undefined);
   return NextResponse.json({
