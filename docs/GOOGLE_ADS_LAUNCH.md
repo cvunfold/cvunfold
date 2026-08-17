@@ -40,6 +40,8 @@ Nagłówki mieszczące się w typowym limicie 30 znaków:
 - Pełna analiza CV za 29 zł
 - Masz Doświadczenie. Widać?
 
+Nagłówek `Pełna analiza CV za 29 zł` przypnij do pozycji 1, aby cena była widoczna w każdej kombinacji RSA. Świadomie ogranicza to swobodę rotacji nagłówków.
+
 Opisy mieszczące się w typowym limicie 90 znaków:
 
 - Zobacz odpowiedzialność, wpływ i pierwsze wrażenie. Każda ważna uwaga ma dowód.
