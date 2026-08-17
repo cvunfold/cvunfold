@@ -290,10 +290,35 @@ function summarizeFeedbackCounts(rows: Array<{ rating: number; accurate: string;
   };
 }
 
-export async function diagnostics() {
+/** Diagnostics windows are caller-supplied, so keep them to whole days inside the retention period. */
+export function clampWindowDays(value: unknown): number {
+  const days = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(days)) return 1;
+  return Math.min(Math.max(Math.trunc(days), 1), 90);
+}
+
+/**
+ * Funnel events carry attribution for every visitor who reached the API, including those
+ * who refused analytics cookies, so this mix is the consent-independent view of traffic.
+ */
+export function summarizeTrafficMix(
+  events: Array<{ event_name: string; safe_properties: Record<string, unknown> | null }>,
+  eventName = "analysis_started",
+): { bySource: Record<string, number>; byMedium: Record<string, number> } {
+  const relevant = events.filter((event) => event.event_name === eventName);
+  const tally = (key: "source" | "medium") => {
+    const values = relevant.map((event) => String(event.safe_properties?.[key] || "(direct)"));
+    return Object.fromEntries([...new Set(values)].sort()
+      .map((value) => [value, values.filter((candidate) => candidate === value).length]));
+  };
+  return { bySource: tally("source"), byMedium: tally("medium") };
+}
+
+export async function diagnostics(options: { windowDays?: number } = {}) {
+  const windowDays = clampWindowDays(options.windowDays ?? 1);
   const client = supabaseClient();
   if (client) {
-    const since = new Date(Date.now() - 86_400_000).toISOString();
+    const since = new Date(Date.now() - windowDays * 86_400_000).toISOString();
     const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }, { data: anonymousRoleRows, error: anonymousRoleError }] = await Promise.all([
       client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,attribution,job_description_present").gte("created_at", since),
       client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since),
@@ -329,8 +354,13 @@ export async function diagnostics() {
     const errorCategories = (events || []).filter((event) => event.event_name === "analysis_failed")
       .map((event) => String((event.safe_properties as Record<string, unknown> | null)?.error_category || "unknown"));
     return {
-      windowHours: 24,
+      windowDays,
+      windowHours: windowDays * 24,
       landingSessions: { value: null, sourceOfTruth: "GA4" },
+      trafficMix: summarizeTrafficMix((events || []).map((event) => ({
+        event_name: event.event_name,
+        safe_properties: event.safe_properties as Record<string, unknown> | null,
+      }))),
       analyses: analyses?.length || 0,
       failed: analyses?.filter((item) => item.status === "failed").length || 0,
       aiCost: (analyses || []).reduce((sum, item) => sum + Number(item.estimated_ai_cost || 0), 0),
@@ -375,7 +405,7 @@ export async function diagnostics() {
     const [source_bucket, role_category] = key.split(":");
     return { source_bucket, role_category, analysis_count } as AnonymousRoleAggregateRow;
   });
-  return { analyses: values.length, completed: values.filter((v) => v.status === "complete").length, paid: values.filter((v) => v.paid).length,
+  return { windowDays, analyses: values.length, completed: values.filter((v) => v.status === "complete").length, paid: values.filter((v) => v.paid).length,
     deleted: values.filter((v) => v.status === "deleted").length, feedback: values.reduce((sum, v) => sum + v.feedback.length, 0),
     anonymousAudienceRoles: summarizeAnonymousRoleStatistics(anonymousRoleRows),
     events: Object.fromEntries([...new Set(store.events.map((e) => e.name))].map((name) => [name, store.events.filter((e) => e.name === name).length])) };
