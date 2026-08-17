@@ -53,7 +53,7 @@ const enumValues: Record<string, readonly string[]> = {
   teaser_variant: [TEASER_VARIANT],
   upload_entrypoint: ["picker", "drop"], handoff_method: ["web_share", "clipboard"],
   purchase_surface: purchaseSurfaces, payment_method: purchasePaymentMethods,
-  currency: ["PLN", "EUR"], error_category: ["empty_file", "file_too_large", "unsupported_file_type", "invalid_file_signature", "invalid_file_mime", "unsafe_archive", "unreadable_document", "document_too_long", "not_a_cv", "invalid_target_role", "invalid_target_seniority", "invalid_job_description", "rate_limit", "model", "storage", "timeout", "configuration", "unknown"],
+  currency: ["PLN", "EUR"], error_category: ["empty_file", "file_too_large", "unsupported_file_type", "invalid_file_signature", "invalid_file_mime", "unsafe_archive", "unreadable_document", "document_too_long", "not_a_cv", "invalid_target_role", "invalid_target_seniority", "invalid_job_description", "rate_limit", "verification", "model", "storage", "timeout", "configuration", "unknown"],
 };
 
 export function safeAnalyticsPayload(event: AnalyticsEvent, properties: Record<string, string | number | boolean> = {}) {

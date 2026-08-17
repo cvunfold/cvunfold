@@ -105,6 +105,7 @@ async function createValidatedCheckoutSession(analysis: Analysis, surface: Check
     market: analysis.market,
     amountGross: session.amount_total,
     currency: session.currency,
+    livemode: session.livemode,
   });
   return session;
 }

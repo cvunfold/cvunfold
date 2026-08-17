@@ -60,6 +60,30 @@ function memoryGet(token: string): Analysis | undefined {
   return item;
 }
 
+/**
+ * A finished analysis has already cost an OpenAI call, so one failed write must not discard it.
+ * Each attempt gets a fresh token and id: a partially written attempt can leave rows behind,
+ * and reusing the same identifiers would turn a transient failure into a permanent conflict.
+ */
+export async function saveAnalysisWithRetry<T extends { id: string }>(
+  attempt: () => { token: string; analysis: T },
+  save: (token: string, analysis: T) => Promise<void> = (token, analysis) => saveAnalysis(token, analysis as unknown as Omit<Analysis, "tokenHash">),
+  { attempts = 3, delayMs = 250 }: { attempts?: number; delayMs?: number } = {},
+): Promise<{ token: string; analysisId: string }> {
+  let lastError: unknown;
+  for (let index = 0; index < attempts; index += 1) {
+    const { token, analysis } = attempt();
+    try {
+      await save(token, analysis);
+      return { token, analysisId: analysis.id };
+    } catch (error) {
+      lastError = error;
+      if (index < attempts - 1) await new Promise((resolve) => setTimeout(resolve, delayMs * (index + 1)));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("SUPABASE_SAVE_FAILED");
+}
+
 export async function saveAnalysis(token: string, analysis: Omit<Analysis, "tokenHash">): Promise<void> {
   const client = supabaseClient();
   const tokenHash = hashToken(token);
@@ -121,7 +145,7 @@ export async function markAnalysisPaid(token: string): Promise<boolean> {
   return Boolean(data);
 }
 
-export async function savePendingPayment(payment: PendingPayment): Promise<void> {
+export async function savePendingPayment(payment: PendingPayment & { livemode: boolean }): Promise<void> {
   const client = supabaseClient();
   if (!client) return;
   const { error } = await client.from("payments").upsert({
@@ -133,6 +157,7 @@ export async function savePendingPayment(payment: PendingPayment): Promise<void>
     locale: payment.locale,
     market: payment.market,
     status: "pending",
+    livemode: payment.livemode,
   }, { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true });
   if (error) throw new Error("SUPABASE_PAYMENT_SAVE_FAILED");
 }
@@ -225,7 +250,7 @@ const funnelEventNames = new Set([
   "feedback_submitted", "delete_requested",
 ]);
 const safePropertyKeys = new Set([
-  "plan", "error_category", "analysis_success", "model", "prompt_version", "rubric_version", "duration_ms",
+  "plan", "error_category", "unreadable_reason", "analysis_success", "model", "prompt_version", "rubric_version", "duration_ms",
   "input_tokens", "output_tokens", "estimated_cost", "source", "medium", "campaign", "content", "term",
   "landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin", "teaser_variant", "currency", "value",
   "paid_click",
@@ -233,6 +258,7 @@ const safePropertyKeys = new Set([
 const safePropertyEnums: Record<string, readonly string[]> = {
   plan: ["full_review", "job_match"],
   landing_variant: ["developer"],
+  unreadable_reason: ["pdf_no_text_items", "pdf_empty_text_items", "pdf_page_extraction_failed", "pdf_parse_failed", "pdf_encrypted", "docx_no_text", "docx_parse_failed", "text_below_threshold"],
   broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
   handoff_origin: ["google_cpc", "other"],
@@ -298,6 +324,11 @@ export function clampWindowDays(value: unknown): number {
   return Math.min(Math.max(Math.trunc(days), 1), 90);
 }
 
+/** Stripe sandbox testing writes real "paid" rows; only live-mode payments are real revenue. */
+export function isRealPurchase(payment: { status: string; livemode: boolean }): boolean {
+  return payment.status === "paid" && payment.livemode === true;
+}
+
 /**
  * Funnel events carry attribution for every visitor who reached the API, including those
  * who refused analytics cookies, so this mix is the consent-independent view of traffic.
@@ -326,7 +357,7 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
     const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }, { data: anonymousRoleRows, error: anonymousRoleError }] = await Promise.all([
       client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,attribution,job_description_present").gte("created_at", since),
       client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since),
-      client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market").gte("created_at", since),
+      client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market,livemode").gte("created_at", since),
       client.from("feedback").select("rating,accurate").gte("created_at", since),
       client.from("feedback_quality_aggregates").select("rating,accurate,response_count"),
       client.from("anonymous_role_aggregates").select("role_category,source_bucket,analysis_count"),
@@ -337,7 +368,7 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
     const count = (name: string) => Number(eventCounts[name] || 0);
     const ratio = (numerator: number, denominator: number) => denominator ? Math.round(numerator / denominator * 10_000) / 100 : null;
     const analysisById = new Map((analyses || []).map((analysis) => [analysis.id, analysis]));
-    const paidPayments = (payments || []).filter((item) => item.status === "paid");
+    const paidPayments = (payments || []).filter(isRealPurchase);
     const segmentCounts = (values: string[]) => Object.fromEntries([...new Set(values)].sort()
       .map((value) => [value, values.filter((candidate) => candidate === value).length]));
     const analysisSegment = (key: keyof Attribution, fallback: string) => (analyses || []).map((analysis) => {

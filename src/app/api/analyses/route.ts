@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { createMockReport } from "@/lib/ai/mock-report";
 import { validateEvidence, toTeaser } from "@/lib/ai/validate-report";
-import { parseDocument } from "@/lib/document-parsing";
+import { getUnreadableDocumentDiagnostics, parseDocument } from "@/lib/document-parsing";
 import { validateCvText } from "@/lib/document-parsing/cv-detection";
-import { recordFunnelEvent, saveAnalysis } from "@/lib/data/store";
+import { recordFunnelEvent, saveAnalysisWithRetry } from "@/lib/data/store";
 import { createAccessToken, hmacIdentifier } from "@/lib/security/tokens";
 import { consumeAnalysisQuota, rateLimit } from "@/lib/security/rate-limit";
 import { validateSignature, validateUpload } from "@/lib/security/upload";
@@ -93,13 +93,14 @@ export async function POST(request: Request) {
       const mockEvidence = mock.evidenceMap || {};
       report = validateEvidence(mock, new Set(Object.keys(mockEvidence)), mockEvidence);
     }
-    const token = createAccessToken();
-    const analysisId = randomUUID();
     const retentionDays = Number(process.env.REPORT_RETENTION_DAYS || 30);
-    await saveAnalysis(token, { id: analysisId, createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
-      status: "complete", paid: false, plan, locale, market, attribution,
-      report, feedback: [], durationMs: Date.now() - startedAt, model: telemetry.model, inputTokens: telemetry.inputTokens,
-      outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost });
+    const { token, analysisId } = await saveAnalysisWithRetry(() => ({
+      token: createAccessToken(),
+      analysis: { id: randomUUID(), createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
+        status: "complete" as const, paid: false, plan, locale, market, attribution,
+        report, feedback: [], durationMs: Date.now() - startedAt, model: telemetry.model, inputTokens: telemetry.inputTokens,
+        outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost },
+    }));
     await Promise.all([
       recordFunnelEvent({ name: "analysis_succeeded", analysisId, locale, market, properties: { plan, ...attribution, analysis_success: true, duration_ms: Date.now() - startedAt, model: telemetry.model, prompt_version: report.promptVersion, rubric_version: report.rubricVersion, input_tokens: telemetry.inputTokens, output_tokens: telemetry.outputTokens, estimated_cost: telemetry.estimatedCost, ...(paidClick ? { paid_click: true } : {}) } }),
     ]).catch(() => undefined);
@@ -135,9 +136,12 @@ export async function POST(request: Request) {
       OPENAI_NOT_CONFIGURED: "configuration", OPENAI_AUTH_FAILED: "configuration", OPENAI_RATE_LIMITED: "rate_limit",
       OPENAI_INVALID_RESPONSE: "model", INVALID_RUBRIC_WEIGHTS: "model",
       SUPABASE_SAVE_FAILED: "storage", ANALYSIS_FAILED: "unknown",
-      TURNSTILE_REQUIRED: "rate_limit", TURNSTILE_FAILED: "rate_limit", TURNSTILE_UNAVAILABLE: "rate_limit",
+      TURNSTILE_REQUIRED: "verification", TURNSTILE_FAILED: "verification", TURNSTILE_UNAVAILABLE: "verification",
     };
     const errorCategory = errorCategories[safeCode] || "unknown";
+    // The parser already knows why extraction failed (scan, password, corrupt file, empty
+    // document); collapsing all of that into one generic message wastes it.
+    const unreadableReason = code === "UNREADABLE_DOCUMENT" ? getUnreadableDocumentDiagnostics(error)?.reason : undefined;
     console.error(JSON.stringify(buildSafeAnalysisFailureLog({
       code: safeCode,
       durationMs: Date.now() - startedAt,
@@ -149,7 +153,42 @@ export async function POST(request: Request) {
       : code === "OPENAI_INVALID_RESPONSE" || code === "SUPABASE_SAVE_FAILED" || safeCode === "ANALYSIS_FAILED" ? 502
       : 400;
     const locale = resolvedLocale;
-    const message = locale === "en" ? ({
+    const unreadableReasonMessages: Record<string, { pl: string; en: string }> = {
+      pdf_encrypted: {
+        pl: "Ten PDF jest zabezpieczony hasłem. Usuń hasło (np. przez wydruk do nowego PDF-a) i prześlij plik ponownie.",
+        en: "This PDF is password-protected. Remove the password (for example by printing to a new PDF) and upload it again.",
+      },
+      pdf_no_text_items: {
+        pl: "To wygląda na zeskanowany obraz bez warstwy tekstowej. Wyeksportuj CV jako tekstowy PDF (np. z Worda lub Google Docs) albo prześlij DOCX.",
+        en: "This looks like a scanned image with no text layer. Export the CV as a text-based PDF (from Word or Google Docs, for example), or upload a DOCX.",
+      },
+      pdf_empty_text_items: {
+        pl: "To wygląda na zeskanowany obraz bez warstwy tekstowej. Wyeksportuj CV jako tekstowy PDF (np. z Worda lub Google Docs) albo prześlij DOCX.",
+        en: "This looks like a scanned image with no text layer. Export the CV as a text-based PDF (from Word or Google Docs, for example), or upload a DOCX.",
+      },
+      pdf_page_extraction_failed: {
+        pl: "Nie udało się odczytać części stron tego PDF-a. Wyeksportuj plik ponownie z programu, w którym powstało CV.",
+        en: "We could not read some pages of this PDF. Export the file again from the program that created the CV.",
+      },
+      pdf_parse_failed: {
+        pl: "Ten plik PDF wygląda na uszkodzony lub zapisany w nietypowy sposób. Wyeksportuj go ponownie i spróbuj jeszcze raz.",
+        en: "This PDF looks damaged or was saved in an unusual way. Export it again and try once more.",
+      },
+      docx_no_text: {
+        pl: "Nie znaleźliśmy tekstu w tym pliku DOCX. Sprawdź, czy dokument nie jest pusty, albo wyeksportuj CV jako PDF.",
+        en: "We found no text in this DOCX file. Check that the document is not empty, or export the CV as a PDF.",
+      },
+      docx_parse_failed: {
+        pl: "Nie udało się otworzyć tego pliku DOCX — może być uszkodzony. Wyeksportuj CV ponownie i spróbuj jeszcze raz.",
+        en: "We could not open this DOCX file — it may be damaged. Export the CV again and try once more.",
+      },
+      text_below_threshold: {
+        pl: "Dokument zawiera za mało tekstu do analizy. Sprawdź, czy CV nie jest prawie puste albo czy tekst nie jest zapisany jako obraz.",
+        en: "The document contains too little text to analyse. Check that the CV is not nearly empty and that its text is not saved as an image.",
+      },
+    };
+    const reasonMessage = unreadableReason ? unreadableReasonMessages[unreadableReason]?.[locale] : undefined;
+    const message = reasonMessage || (locale === "en" ? ({
       EMPTY_FILE: "The file is empty.", FILE_TOO_LARGE: "The file is larger than the allowed limit.", UNSUPPORTED_FILE_TYPE: "Upload a PDF or DOCX file.",
       INVALID_FILE_SIGNATURE: "The file contents do not match its extension.", UNREADABLE_DOCUMENT: "We could not read the text. Upload a text-based PDF or DOCX.",
       INVALID_FILE_MIME: "The file type does not match its extension. Export the CV again as PDF or DOCX.",
@@ -164,8 +203,13 @@ export async function POST(request: Request) {
       ANALYSIS_TIMEOUT: "The review took too long. Please try again shortly.", SUPABASE_SAVE_FAILED: "We could not store the report safely. Please try again.",
       TURNSTILE_REQUIRED: "Complete the anti-abuse check.", TURNSTILE_FAILED: "We could not verify the anti-abuse check. Refresh and try again.",
       TURNSTILE_UNAVAILABLE: "The anti-abuse check is temporarily unavailable. Please try again later.",
-    } as Record<string, string>)[code] || "We could not analyse the document. Please try again." : messages[code] || "Nie udało się przeanalizować dokumentu.";
-    await recordFunnelEvent({ name: "analysis_failed", locale, market: marketForLocale(locale), properties: { analysis_success: false, error_category: errorCategory } }).catch(() => undefined);
+    } as Record<string, string>)[code] || "We could not analyse the document. Please try again." : messages[code] || "Nie udało się przeanalizować dokumentu.");
+    await recordFunnelEvent({
+      name: "analysis_failed",
+      locale,
+      market: marketForLocale(locale),
+      properties: { analysis_success: false, error_category: errorCategory, ...(unreadableReason ? { unreadable_reason: unreadableReason } : {}) },
+    }).catch(() => undefined);
     return NextResponse.json({ error: message, errorCategory }, { status });
   }
 }

@@ -39,6 +39,15 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 | `feedback_submitted` | Zapis feedbacku płatnego raportu | locale, market, plan | Supabase | secondary | odpowiedź 2xx |
 | `delete_requested` | Skuteczne żądanie usunięcia | locale, market | Supabase | diagnostic | zapis poza kasowanym FK |
 
+`error_category` dla `analysis_failed`: `empty_file`, `file_too_large`, `unsupported_file_type`, `invalid_file_signature`,
+`invalid_file_mime`, `unsafe_archive`, `unreadable_document`, `document_too_long`, `not_a_cv`, `invalid_target_role`,
+`invalid_target_seniority`, `invalid_job_description`, `rate_limit`, `verification`, `model`, `storage`, `timeout`,
+`configuration`, `unknown`. `verification` (Turnstile: token brakujący, nieudany lub tymczasowo niedostępny) jest
+rozdzielone od `rate_limit` (przekroczony limit) — inna przyczyna, inna reakcja właściciela. Dla `unreadable_document`
+serwer dokłada `unreadable_reason` (`pdf_no_text_items`, `pdf_empty_text_items`, `pdf_page_extraction_failed`,
+`pdf_parse_failed`, `pdf_encrypted`, `docx_no_text`, `docx_parse_failed`, `text_below_threshold`) i pokazuje reakcji
+zgodny, konkretny komunikat PL/EN zamiast jednego ogólnego "nie udało się odczytać tekstu".
+
 ### Alert awarii konfiguracji analizy
 
 - GA4 custom dimension: `Kategoria błędu analizy`, zakres `Zdarzenie`, parametr `error_category` — utworzona 2026-08-10.

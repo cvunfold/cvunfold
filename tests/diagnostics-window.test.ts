@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampWindowDays, summarizeTrafficMix } from "@/lib/data/store";
+import { clampWindowDays, isRealPurchase, summarizeTrafficMix } from "@/lib/data/store";
 import { clickAttributionPresent } from "@/lib/audience";
 import { GET } from "@/app/api/admin/diagnostics/route";
 
@@ -12,6 +12,22 @@ describe("diagnostics window", () => {
     expect(clampWindowDays(9000)).toBe(90);
     expect(clampWindowDays(2.9)).toBe(2);
     expect(clampWindowDays("wczoraj")).toBe(1);
+  });
+});
+
+describe("real purchases", () => {
+  // Sandbox testing writes real "paid" rows in Stripe test mode, which once made a 87 zl
+  // week of revenue read as 145 zl. Only a paid, live-mode row is real revenue.
+  it("excludes a paid row from Stripe test mode", () => {
+    expect(isRealPurchase({ status: "paid", livemode: false })).toBe(false);
+  });
+
+  it("excludes a pending row even in live mode", () => {
+    expect(isRealPurchase({ status: "pending", livemode: true })).toBe(false);
+  });
+
+  it("counts only a paid, live-mode row", () => {
+    expect(isRealPurchase({ status: "paid", livemode: true })).toBe(true);
   });
 });
 
