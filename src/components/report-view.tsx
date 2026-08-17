@@ -99,14 +99,14 @@ const reportTopics = {
     ownership: ["Dlaczego ownership jest ważny", "dlaczego-ownership-jest-wazny-dla-pracodawcow"],
     impact: ["Jak opisywać wpływ", "obowiazki-to-nie-rezultaty-jak-opisywac-wplyw"],
     credibility: ["Wiarygodność techniczna w CV", "wiarygodnosc-techniczna-w-cv"],
-    clarity: ["Pierwsze 20 sekund CV", "pierwsze-20-sekund-cv"],
+    clarity: ["ATS a pierwsze 20 sekund CV", "pierwsze-20-sekund-cv"],
     seniority: ["Jak pokazać seniority", "jak-pokazac-seniority-w-cv"],
   },
   en: {
     ownership: ["Why ownership matters", "why-ownership-matters-to-employers"],
     impact: ["How to show impact", "responsibilities-are-not-outcomes"],
     credibility: ["Technical credibility in a CV", "technical-credibility-in-a-developer-cv"],
-    clarity: ["The first 20 seconds", "the-first-20-seconds-of-a-cv"],
+    clarity: ["ATS and the first 20 seconds", "the-first-20-seconds-of-a-cv"],
     seniority: ["How to show seniority", "how-to-show-seniority-in-a-cv"],
   },
 } as const;
