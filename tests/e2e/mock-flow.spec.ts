@@ -21,13 +21,16 @@ test("mock vertical slice keeps paid details server-side", async ({ page }) => {
   await page.locator(".consent input").check();
   await page.getByRole("button", { name: /Analizuj CV/ }).click();
   await expect(page).toHaveURL(/\/raport$/);
-  await expect(page.getByRole("heading", { name: "Najważniejsze ustalenie darmowej analizy" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Twój bezpłatny wynik" })).toBeVisible();
+  await expect(page.locator(".teaser-finding")).toBeVisible();
   expect(await page.content()).not.toContain("Odpowiadałem za [zweryfikowany zakres]");
+  // The teaser shows one finding; every other issue stays behind the paywall.
+  expect(await page.content()).not.toContain("Zakres ownershipu jest niejasny");
   const response = await page.request.get("/api/report");
   const teaser = await response.json();
   expect(teaser.report).not.toHaveProperty("issues");
   await page.getByRole("button", { name: /Odblokuj pełny raport/ }).last().click();
-  await expect(page.getByText("Efekty pracy giną pod listą obowiązków")).toBeVisible();
+  await expect(page.getByText("Zakres ownershipu jest niejasny")).toBeVisible();
   await page.getByRole("button", { name: "Wyślij feedback" }).click();
   await expect(page.getByText(/Dziękujemy/)).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
@@ -41,7 +44,7 @@ test("English mock flow returns an English teaser and full report", async ({ pag
   await page.locator(".consent input").check();
   await page.getByRole("button", { name: "Analyse my CV" }).click();
   await expect(page).toHaveURL(/\/en\/report$/);
-  await expect(page.getByRole("heading", { name: "The most important finding from your free analysis" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your free result" })).toBeVisible();
   expect(await page.content()).not.toContain("A generic bullet weakens an otherwise strong section");
   await page.getByRole("button", { name: /Unlock the full report/ }).last().click();
   await expect(page.getByRole("heading", { name: "Your CV report" })).toBeVisible();
