@@ -11,7 +11,9 @@ export async function POST(request: Request) {
   if (!item) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
   const nextToken = createAccessToken();
   if (!await rotateAnalysisToken(token, nextToken)) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
+  // On Vercel Preview each deployment has its own ephemeral URL, so a fixed
+  // NEXT_PUBLIC_APP_URL there would send the access link to the wrong preview.
+  const appUrl = (process.env.VERCEL_ENV === "preview" ? null : process.env.NEXT_PUBLIC_APP_URL) || new URL(request.url).origin;
   const response = NextResponse.json({ url: `${new URL(reportPath(item.locale), appUrl).toString()}#${nextToken}` }, { headers: { "Cache-Control": "no-store" } });
   setReportSessionCookie(response, nextToken, item.expiresAt);
   return response;

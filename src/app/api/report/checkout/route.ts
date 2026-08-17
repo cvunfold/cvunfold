@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ unlocked: true });
   }
   try {
-    const url = await createCheckout(item);
+    const url = await createCheckout(item, new URL(request.url).origin);
     await recordFunnelEvent({
       name: "checkout_started",
       analysisId: item.id,

@@ -28,7 +28,11 @@ export function priceForPlan(plan: Plan, locale: Analysis["locale"] = "pl"): str
   return price;
 }
 
-function appUrl(): string {
+function appUrl(requestOrigin?: string): string {
+  // Vercel Preview deployments each get their own ephemeral URL, so a fixed
+  // NEXT_PUBLIC_APP_URL there always points at whichever preview happened to
+  // be configured last. Use the requesting deployment's own origin instead.
+  if (process.env.VERCEL_ENV === "preview" && requestOrigin) return requestOrigin;
   const value = process.env.NEXT_PUBLIC_APP_URL;
   if (!value) throw new Error("APP_URL_NOT_CONFIGURED");
   const url = new URL(value);
@@ -84,14 +88,14 @@ export function checkoutIdempotencyKey(analysisId: string, price: string, surfac
   return `analysis:${analysisId}:${price}:${surface}:${version}`;
 }
 
-async function createValidatedCheckoutSession(analysis: Analysis, surface: CheckoutSurface): Promise<Stripe.Checkout.Session> {
+async function createValidatedCheckoutSession(analysis: Analysis, surface: CheckoutSurface, requestOrigin?: string): Promise<Stripe.Checkout.Session> {
   const stripe = getStripe();
   const definition = getPlanDefinition(analysis.plan, analysis.locale);
   const price = priceForPlan(analysis.plan, analysis.locale);
   const stripePrice = await stripe.prices.retrieve(price);
   if (!stripePrice.active || stripePrice.recurring || stripePrice.unit_amount !== definition.amountMinor
     || stripePrice.currency.toUpperCase() !== definition.currency) throw new Error("STRIPE_PRICE_MISMATCH");
-  const reportUrl = `${appUrl()}${reportPath(analysis.locale)}`;
+  const reportUrl = `${appUrl(requestOrigin)}${reportPath(analysis.locale)}`;
   const session = await stripe.checkout.sessions.create(
     buildCheckoutSessionParams(analysis, stripePrice.id, reportUrl, surface),
     { idempotencyKey: checkoutIdempotencyKey(analysis.id, price, surface) },
@@ -110,14 +114,14 @@ async function createValidatedCheckoutSession(analysis: Analysis, surface: Check
   return session;
 }
 
-export async function createCheckout(analysis: Analysis): Promise<string> {
-  const session = await createValidatedCheckoutSession(analysis, "hosted");
+export async function createCheckout(analysis: Analysis, requestOrigin?: string): Promise<string> {
+  const session = await createValidatedCheckoutSession(analysis, "hosted", requestOrigin);
   if (!session.url) throw new Error("STRIPE_CHECKOUT_FAILED");
   return session.url;
 }
 
-export async function createExpressWalletCheckout(analysis: Analysis): Promise<string> {
-  const session = await createValidatedCheckoutSession(analysis, "express_wallet");
+export async function createExpressWalletCheckout(analysis: Analysis, requestOrigin?: string): Promise<string> {
+  const session = await createValidatedCheckoutSession(analysis, "express_wallet", requestOrigin);
   if (!session.client_secret) throw new Error("STRIPE_CHECKOUT_FAILED");
   return session.client_secret;
 }

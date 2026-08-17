@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   if (process.env.MOCK_MODE === "true") return NextResponse.json({ error: "EXPRESS_WALLET_UNAVAILABLE" }, { status: 404 });
 
   try {
-    const clientSecret = await createExpressWalletCheckout(item);
+    const clientSecret = await createExpressWalletCheckout(item, new URL(request.url).origin);
     return NextResponse.json({ clientSecret }, { headers: { "Cache-Control": "private, no-store, max-age=0" } });
   } catch (error) {
     const code = error instanceof Error ? error.message : "STRIPE_CHECKOUT_FAILED";
