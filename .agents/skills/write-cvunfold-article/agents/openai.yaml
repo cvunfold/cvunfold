@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write CVUnfold Articles"
+  short_description: "Natural, evidence-led CVUnfold articles"
+  default_prompt: "Use $write-cvunfold-article to draft or edit a natural, evidence-led CVUnfold article in the calibrated author voice."
