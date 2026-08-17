@@ -153,33 +153,75 @@ export function withRecruiterPerspective(report: CVReport): CVReport {
   };
 }
 
-function teaserHook(category: string | undefined, locale: CVReport["locale"]): string {
-  const hooks = locale === "en"
+const severityRank = { critical: 3, important: 2, minor: 1 } as const;
+const confidenceRank = { high: 3, medium: 2, low: 1 } as const;
+
+function redactTeaserEvidence(value: string): string {
+  return value
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[email redacted]")
+    .replace(/\b(?:https?:\/\/|www\.)\S+/gi, "[link redacted]")
+    .replace(/(?:\+|00)\d[\d\s().-]{7,}\d|\b\d{3}[\s.-]?\d{3}[\s.-]?\d{3}\b/g, "[phone redacted]")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 280);
+}
+
+function freeActionDirection(category: string, locale: CVReport["locale"]): string {
+  const directions = locale === "en"
     ? {
-      impact: "Your experience may not make the outcomes of your work immediately clear.",
-      ownership: "Your experience may not clearly communicate the scope of your responsibility.",
-      credibility: "Your experience may not clearly demonstrate your technical credibility.",
-      architecture: "The technical scope of your decisions may not be clearly visible.",
-      collaboration: "The scope of your collaboration may not be clear from the document.",
-      clarity: "The strongest parts of your CV may not be visible straight away.",
-      ats: "The document structure may make the key information harder to read quickly.",
-      fallback: "One part of your CV may be weakening how your experience is received.",
+      impact: "Make the result of this work clearer, without adding facts you cannot verify.",
+      ownership: "Make your role in the work clearer, without overstating responsibility.",
+      clarity: "Make the strongest relevant signal easier to notice in the first scan.",
+      fallback: "Clarify this signal using only details you can verify.",
     }
     : {
-      impact: "Twoje doświadczenie może nie komunikować od razu efektów Twojej pracy.",
-      ownership: "Twoje doświadczenie może nie komunikować jasno zakresu odpowiedzialności.",
-      credibility: "Twoje doświadczenie może nie komunikować jasno Twojej wiarygodności technicznej.",
-      architecture: "Skala techniczna Twoich decyzji może nie być jasno widoczna.",
-      collaboration: "Zakres Twojej współpracy może nie być czytelny z dokumentu.",
-      clarity: "Najmocniejsze elementy Twojego CV mogą nie być widoczne od razu.",
-      ats: "Układ dokumentu może utrudniać szybkie odczytanie najważniejszych informacji.",
-      fallback: "Jeden element CV może osłabiać odbiór Twojego doświadczenia.",
+      impact: "Doprecyzuj rezultat tej pracy bez dodawania informacji, których nie możesz potwierdzić.",
+      ownership: "Doprecyzuj swoją rolę w tej pracy bez zawyżania zakresu odpowiedzialności.",
+      clarity: "Ułatw zauważenie najmocniejszego sygnału już przy pierwszym skanie CV.",
+      fallback: "Doprecyzuj ten sygnał wyłącznie informacjami, które możesz potwierdzić.",
     };
-  return hooks[category as keyof typeof hooks] || hooks.fallback;
+  return directions[category as keyof typeof directions] || directions.fallback;
+}
+
+/** Selects one useful, evidence-backed issue deterministically for the unpaid report. */
+export function featuredFreeIssue(report: CVReport): TeaserReport["featuredIssue"] {
+  const candidates = report.issues.flatMap((issue, index) => {
+    if (issue.confidence === "low") return [];
+    const evidence = issue.evidenceRefs
+      .map((ref) => redactTeaserEvidence(report.evidenceMap?.[ref] || ""))
+      .find((value) => value.length >= 16);
+    if (!evidence) return [];
+    return [{ issue, index, evidence, evidenceQuality: Math.min(evidence.length, 160) }];
+  });
+  candidates.sort((left, right) =>
+    severityRank[right.issue.severity] - severityRank[left.issue.severity]
+    || confidenceRank[right.issue.confidence] - confidenceRank[left.issue.confidence]
+    || right.evidenceQuality - left.evidenceQuality
+    || left.index - right.index,
+  );
+  const selected = candidates[0];
+  if (!selected) return null;
+  return {
+    title: selected.issue.title,
+    evidence: selected.evidence,
+    interpretation: selected.issue.explanation,
+    actionDirection: freeActionDirection(selected.issue.category, report.locale),
+  };
 }
 
 export function toTeaser(report: CVReport): TeaserReport {
   const normalized = withRecruiterPerspective(report);
-  const featured = normalized.issues.find((issue) => issue.severity === "critical") || normalized.issues[0];
-  return { version: normalized.version, locale: normalized.locale, profileSummary: normalized.recruiterPerspective.profileSummary, issueCount: normalized.issues.length, hook: teaserHook(featured?.category, normalized.locale), findingTitle: featured?.title || null };
+  const severityCounts = normalized.issues.reduce<TeaserReport["severityCounts"]>((counts, issue) => {
+    counts[issue.severity] += 1;
+    return counts;
+  }, { critical: 0, important: 0, minor: 0 });
+  return {
+    version: normalized.version,
+    locale: normalized.locale,
+    profileSummary: normalized.recruiterPerspective.profileSummary,
+    firstImpression: normalized.recruiterSimulation.after20Seconds,
+    issueCount: normalized.issues.length,
+    severityCounts,
+    featuredIssue: featuredFreeIssue(normalized),
+  };
 }

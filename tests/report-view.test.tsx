@@ -60,29 +60,33 @@ afterEach(() => {
 });
 
 describe("free report purchase hierarchy", () => {
-  it("shows one privacy-safe hook before the payment offer and mounts the wallet once", () => {
+  it("shows one evidence-backed issue before the payment offer and mounts the wallet once", () => {
     const teaser = toTeaser(createMockReport());
     const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
 
     const hook = screen.getByRole("heading", { name: "Wykryliśmy 3 problemy, które mogą osłabiać odbiór Twojego CV." }).closest("section");
     const paywall = container.querySelector<HTMLElement>(".locked");
     expect(container.querySelector(".teaser-profile")?.textContent).toContain(teaser.profileSummary);
-    expect(hook?.textContent).toContain(teaser.hook);
-    expect(hook?.textContent).toContain(teaser.findingTitle);
-    expect(hook?.textContent).toContain("Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.");
+    expect(container.querySelector(".teaser-first-impression")?.textContent).toContain(teaser.firstImpression);
+    expect(hook?.textContent).toContain(teaser.featuredIssue?.title);
+    expect(hook?.textContent).toContain(teaser.featuredIssue?.evidence);
+    expect(hook?.textContent).toContain(teaser.featuredIssue?.actionDirection);
+    expect(hook?.textContent).toContain("1 istotny · 1 umiarkowany · 1 drobny");
     expect(paywall).not.toBeNull();
     expect(Boolean(hook!.compareDocumentPosition(paywall!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
-    expect(container.textContent).not.toContain("Najmocniejsze doświadczenie jest opisane jako wykonywane czynności");
+    expect(container.textContent).toContain("Najmocniejsze doświadczenie jest opisane jako wykonywane czynności");
+    expect(container.textContent).not.toContain("Zakres ownershipu jest niejasny");
     expect(screen.getAllByTestId("express-wallet-stub")).toHaveLength(1);
     const paymentMethods = container.querySelector(".payment-methods-list");
     expect(paymentMethods?.textContent).toContain("Obsługiwane płatności");
     for (const method of ["Karta", "BLIK", "Apple Pay", "Google Pay"]) expect(paymentMethods?.textContent).toContain(method);
   });
 
-  it("uses the correct Polish inflection for four issues", () => {
-    const teaser = { ...toTeaser(createMockReport()), issueCount: 4 };
+  it("shows every severity count with correct Polish inflection", () => {
+    const teaser = { ...toTeaser(createMockReport()), issueCount: 5, severityCounts: { critical: 1, important: 3, minor: 1 } };
     render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
-    expect(screen.getByRole("heading", { name: "Wykryliśmy 4 problemy, które mogą osłabiać odbiór Twojego CV." })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Wykryliśmy 5 problemów, które mogą osłabiać odbiór Twojego CV." })).toBeTruthy();
+    expect(screen.getByText("1 istotny · 3 umiarkowane · 1 drobny")).toBeTruthy();
   });
 
   it("tracks the paywall CTA after the hook", () => {
@@ -107,6 +111,6 @@ describe("free report purchase hierarchy", () => {
       purchase_surface: "report_paywall",
       payment_method: "standard",
     }));
-    expect(JSON.stringify(analytics.mock.calls)).not.toContain(teaser.hook);
+    expect(JSON.stringify(analytics.mock.calls)).not.toContain("Zakres ownershipu jest niejasny");
   });
 });

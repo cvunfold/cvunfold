@@ -75,11 +75,20 @@ export type EvidenceMap = Record<string, string>;
 // the launch migration; every new report receives a map built from parsed CV segments.
 export type CVReport = ModelReport & { evidenceMap?: EvidenceMap };
 
-// One named finding makes the teaser specific enough to be useful. The verdict,
-// evidence, explanation, impact, and suggested action remain paid data.
+export type TeaserSeverityCounts = { critical: number; important: number; minor: number };
+
+// This is the complete unpaid boundary. Keep it intentionally small: it must be
+// safe to serialize to an unpaid browser session without exposing the report's
+// other issues, recommendations, evidence references, or recruiter rationale.
 export type TeaserReport = Pick<CVReport, "version" | "locale"> & {
   profileSummary: string;
+  firstImpression: string;
   issueCount: number;
-  hook: string;
-  findingTitle: string | null;
+  severityCounts: TeaserSeverityCounts;
+  featuredIssue: {
+    title: string;
+    evidence: string;
+    interpretation: string;
+    actionDirection: string;
+  } | null;
 };

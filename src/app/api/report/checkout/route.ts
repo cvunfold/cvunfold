@@ -3,6 +3,7 @@ import { getAnalysis, markAnalysisPaid, recordFunnelEvent } from "@/lib/data/sto
 import { createCheckout } from "@/lib/payments/stripe";
 import { reportTokenFromRequest } from "@/lib/security/report-session";
 import { measurementContextFromAttribution } from "@/lib/audience";
+import { TEASER_VARIANT } from "@/lib/analytics/events";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
       analysisId: item.id,
       locale: item.locale,
       market: item.market,
-      properties: { plan: item.plan, ...measurementContextFromAttribution(item.attribution) },
+      properties: { plan: item.plan, teaser_variant: TEASER_VARIANT, ...measurementContextFromAttribution(item.attribution) },
       dedupeKey: `checkout-started:${item.id}`,
     }).catch(() => undefined);
     return NextResponse.json({ url });

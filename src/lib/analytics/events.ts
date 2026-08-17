@@ -13,6 +13,8 @@ export const purchasePaymentMethods = ["standard", "express_wallet", "apple_pay"
 
 const attributionKeys = ["source", "medium", "campaign", "content", "term"] as const;
 const measurementKeys = ["landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin"] as const;
+export const TEASER_VARIANT = "evidence_v1" as const;
+const teaserKeys = ["teaser_variant"] as const;
 const allowed: Record<AnalyticsEvent, readonly string[]> = {
   page_view: ["locale", "market", "landing_variant"],
   landing_view: ["locale", "market", ...measurementKeys, ...attributionKeys],
@@ -30,14 +32,14 @@ const allowed: Record<AnalyticsEvent, readonly string[]> = {
   analysis_succeeded: ["locale", "market", "plan", "analysis_success", ...measurementKeys, ...attributionKeys],
   analysis_failed: ["locale", "market", "plan", "analysis_success", "error_category", ...measurementKeys, ...attributionKeys],
   analysis_configuration_failed: ["locale", "market", "plan", "analysis_success", ...measurementKeys, ...attributionKeys],
-  teaser_viewed: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
-  unlock_cta_viewed: ["locale", "market", "plan", "purchase_surface", "payment_method", ...measurementKeys, ...attributionKeys],
-  unlock_cta_clicked: ["locale", "market", "plan", "purchase_surface", "payment_method", ...measurementKeys, ...attributionKeys],
-  checkout_started: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
+  teaser_viewed: ["locale", "market", "plan", ...teaserKeys, ...measurementKeys, ...attributionKeys],
+  unlock_cta_viewed: ["locale", "market", "plan", "purchase_surface", "payment_method", ...teaserKeys, ...measurementKeys, ...attributionKeys],
+  unlock_cta_clicked: ["locale", "market", "plan", "purchase_surface", "payment_method", ...teaserKeys, ...measurementKeys, ...attributionKeys],
+  checkout_started: ["locale", "market", "plan", ...teaserKeys, ...measurementKeys, ...attributionKeys],
   checkout_cancelled: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
   checkout_expired: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
   payment_failed: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
-  purchase: ["transaction_id", "value", "currency", "plan", "locale", "market", ...measurementKeys, ...attributionKeys],
+  purchase: ["transaction_id", "value", "currency", "plan", "locale", "market", ...teaserKeys, ...measurementKeys, ...attributionKeys],
   full_report_viewed: ["locale", "market", "plan", ...measurementKeys],
   feedback_submitted: ["locale", "market", "plan", ...measurementKeys],
   delete_requested: ["locale", "market", ...measurementKeys],
@@ -48,6 +50,7 @@ const enumValues: Record<string, readonly string[]> = {
   broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
   landing_variant: ["developer"], handoff_origin: ["google_cpc", "other"],
+  teaser_variant: [TEASER_VARIANT],
   upload_entrypoint: ["picker", "drop"], handoff_method: ["web_share", "clipboard"],
   purchase_surface: purchaseSurfaces, payment_method: purchasePaymentMethods,
   currency: ["PLN", "EUR"], error_category: ["empty_file", "file_too_large", "unsupported_file_type", "invalid_file_signature", "invalid_file_mime", "unsafe_archive", "unreadable_document", "document_too_long", "not_a_cv", "invalid_target_role", "invalid_target_seniority", "invalid_job_description", "rate_limit", "model", "storage", "timeout", "configuration", "unknown"],

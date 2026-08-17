@@ -84,6 +84,7 @@ const confidenceLabel = {
   pl: { low: "niska", medium: "średnia", high: "wysoka" },
   en: { low: "low", medium: "medium", high: "high" },
 } as const;
+const TEASER_VARIANT = "evidence_v1" as const;
 
 function teaserTitle(issueCount: number, locale: Locale) {
   if (locale === "en") return `We found ${issueCount} ${issueCount === 1 ? "issue" : "issues"} that may be weakening how your CV is received.`;
@@ -92,6 +93,28 @@ function teaserTitle(issueCount: number, locale: Locale) {
   const lastDigit = issueCount % 10;
   const noun = lastTwoDigits >= 12 && lastTwoDigits <= 14 || lastDigit < 2 || lastDigit > 4 ? "problemów" : "problemy";
   return `Wykryliśmy ${issueCount} ${noun}, które mogą osłabiać odbiór Twojego CV.`;
+}
+
+function severitySummary(teaser: TeaserReport, locale: Locale) {
+  if (locale === "en") {
+    return [[teaser.severityCounts.critical, "significant"], [teaser.severityCounts.important, "moderate"], [teaser.severityCounts.minor, "minor"]]
+      .filter(([count]) => Number(count) > 0).map(([count, label]) => `${count} ${label}`).join(" · ");
+  }
+  const polishLabel = (count: number, forms: [string, string, string]) => {
+    const lastTwoDigits = count % 100;
+    const lastDigit = count % 10;
+    if (count === 1) return forms[0];
+    if (lastTwoDigits < 12 || lastTwoDigits > 14) {
+      if (lastDigit >= 2 && lastDigit <= 4) return forms[1];
+    }
+    return forms[2];
+  };
+  const parts: Array<{ count: number; forms: [string, string, string] }> = [
+    { count: teaser.severityCounts.critical, forms: ["istotny", "istotne", "istotnych"] },
+    { count: teaser.severityCounts.important, forms: ["umiarkowany", "umiarkowane", "umiarkowanych"] },
+    { count: teaser.severityCounts.minor, forms: ["drobny", "drobne", "drobnych"] },
+  ];
+  return parts.filter(({ count }) => count > 0).map(({ count, forms }) => `${count} ${polishLabel(count, forms)}`).join(" · ");
 }
 
 const reportTopics = {
@@ -134,10 +157,10 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
     const event = demo ? "sample_report_viewed" : paid ? "full_report_viewed" : "teaser_viewed";
     if (!trackedViews.current.has(event)) {
       trackedViews.current.add(event);
-      trackAnalyticsEvent(event, { plan, locale, market: locale, ...measurementContext });
+      trackAnalyticsEvent(event, { plan, locale, market: locale, ...(isFree ? { teaser_variant: TEASER_VARIANT } : {}), ...measurementContext });
     }
-    if (paid && purchase) trackPurchaseConversion({ ...purchase, locale, market: locale, ...measurementContext });
-  }, [demo, locale, measurementContext, paid, plan, purchase]);
+    if (paid && purchase) trackPurchaseConversion({ ...purchase, locale, market: locale, teaserVariant: TEASER_VARIANT, ...measurementContext });
+  }, [demo, isFree, locale, measurementContext, paid, plan, purchase]);
 
   useEffect(() => {
     if (paid || demo || !reportRoot.current || !("IntersectionObserver" in window)) return;
@@ -152,7 +175,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
         if (trackedPurchaseViews.current.has(key)) continue;
         trackedPurchaseViews.current.add(key);
         trackAnalyticsEvent("unlock_cta_viewed", {
-          plan, locale, market: locale, purchase_surface: purchaseSurface, payment_method: paymentMethod, ...measurementContext,
+          plan, locale, market: locale, purchase_surface: purchaseSurface, payment_method: paymentMethod, teaser_variant: TEASER_VARIANT, ...measurementContext,
         });
       }
     }, { threshold: .5 });
@@ -196,21 +219,21 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
     if (trackedPurchaseViews.current.has(key)) return;
     trackedPurchaseViews.current.add(key);
     trackAnalyticsEvent("unlock_cta_viewed", {
-      plan, locale, market: locale, purchase_surface: "mobile_sticky", payment_method: "standard", ...measurementContext,
+      plan, locale, market: locale, purchase_surface: "mobile_sticky", payment_method: "standard", teaser_variant: TEASER_VARIANT, ...measurementContext,
     });
   }, [locale, measurementContext, mobileStickyVisible, plan]);
 
   async function unlock(surface: PurchaseSurface) {
     if (busy) return;
     trackAnalyticsEvent("unlock_cta_clicked", {
-      plan, locale, market: locale, purchase_surface: surface, payment_method: "standard", ...measurementContext,
+      plan, locale, market: locale, purchase_surface: surface, payment_method: "standard", teaser_variant: TEASER_VARIANT, ...measurementContext,
     });
     setBusy(true);
     try {
       const response = await fetch("/api/report/checkout", { method: "POST" });
       const result = await response.json().catch(() => ({}));
       if (response.ok && result.url) {
-        trackAnalyticsEvent("checkout_started", { plan, locale, market: locale, ...measurementContext });
+        trackAnalyticsEvent("checkout_started", { plan, locale, market: locale, teaser_variant: TEASER_VARIANT, ...measurementContext });
         window.location.assign(result.url);
         return;
       }
@@ -275,15 +298,24 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
             <p>{teaser?.profileSummary}</p>
           </section>
 
-          <section className="report-section teaser-hook">
-            <span>{t.mobileSummary}</span>
-            <h2>{teaserTitle(teaser?.issueCount || 0, locale)}</h2>
-            {teaser?.findingTitle ? <div className="teaser-finding"><small>{t.teaserFinding}</small><h3>{teaser.findingTitle}</h3></div> : null}
-            <p>{teaser?.hook}</p>
-            <div className="teaser-lock"><LockIcon/><span>{t.teaserLocked}</span></div>
+          <section className="report-section teaser-first-impression">
+            <span>{locale === "pl" ? "PIERWSZE WRAŻENIE PO 20 SEKUNDACH" : "FIRST IMPRESSION AFTER 20 SECONDS"}</span>
+            <p>{teaser?.firstImpression}</p>
           </section>
 
-          <section ref={paywall} className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div className={`locked-payment-actions${expressWalletAvailable ? " wallet-ready" : ""}`}><button onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setExpressWalletAvailable}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
+          <section className="report-section teaser-featured-issue">
+            <span>{t.teaserFinding}</span>
+            <h2>{teaserTitle(teaser?.issueCount || 0, locale)}</h2>
+            {teaser ? <p className="teaser-severity">{severitySummary(teaser, locale)}</p> : null}
+            {teaser?.featuredIssue ? <article className="teaser-finding">
+              <div><small>{t.problem}</small><h3>{teaser.featuredIssue.title}</h3></div>
+              <div><small>{t.evidence}</small><blockquote>{teaser.featuredIssue.evidence}</blockquote></div>
+              <div><small>{locale === "pl" ? "JAK MOŻE TO ZOSTAĆ ODCZYTANE" : "HOW THIS MAY BE READ"}</small><p>{teaser.featuredIssue.interpretation}</p></div>
+              <div><small>{locale === "pl" ? "KIERUNEK POPRAWY" : "DIRECTION FOR IMPROVEMENT"}</small><p>{teaser.featuredIssue.actionDirection}</p></div>
+            </article> : <div className="teaser-lock"><LockIcon/><span>{locale === "pl" ? "Pełny raport zawiera diagnozy wraz z dowodami i priorytetami." : "The full report contains diagnoses with evidence and priorities."}</span></div>}
+          </section>
+
+          <section ref={paywall} className="locked"><LockIcon/><h2>{locale === "pl" ? `To tylko 1 z ${teaser?.issueCount || 0} wykrytych problemów.` : `This is only 1 of ${teaser?.issueCount || 0} detected issues.`}</h2><p>{locale === "pl" ? "Pełny raport pokazuje pozostałe diagnozy, wszystkie dowody, ich wpływ na odbiór CV oraz kolejność poprawek." : "The full report shows the remaining diagnoses, all evidence, their effect on how your CV is received, and the order of improvements."}</p><ul className="locked-value"><li>{locale === "pl" ? "wszystkie wykryte problemy" : "all detected issues"}</li><li>{locale === "pl" ? "dowody z dokumentu i priorytety" : "document evidence and priorities"}</li><li>{locale === "pl" ? "bezpieczne sugestie bez dopisywania faktów" : "fact-safe suggestions"}</li><li>{locale === "pl" ? "pełne pierwsze 20 sekund" : "the full first 20 seconds"}</li></ul><div className={`locked-payment-actions${expressWalletAvailable ? " wallet-ready" : ""}`}><button onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setExpressWalletAvailable}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
         </div>
       </div>
       {mockMode ? <span className="dev-badge">DEV MOCK</span> : null}
