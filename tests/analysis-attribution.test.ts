@@ -75,4 +75,13 @@ describe("analysis attribution boundary", () => {
     expect(analysis?.report.document.targetRole).toBe("Pozostałe");
     expect(analysis?.attribution?.broad_role_enum).toBe("other");
   });
+
+  it("reports a missing bot-check token as verification, not rate_limit", async () => {
+    process.env.MOCK_MODE = "true";
+    process.env.TURNSTILE_SECRET_KEY = "secret";
+    const response = await createAnalysis(analysisRequest("senior"));
+    expect(response.status).toBe(400);
+    // A blocked human and someone over quota need different guidance, so they must not share a category.
+    expect(await response.json()).toMatchObject({ errorCategory: "verification" });
+  });
 });
