@@ -77,6 +77,10 @@ console.log(table(report.trafficMix?.byMedium, "no analysis_started events in th
 console.log(heading("Where the traffic came from (source)"));
 console.log(table(report.trafficMix?.bySource, "no analysis_started events in this window"));
 
+// A Google Ads click without utm_medium=cpc lands in "(direct)" above. This is how many of
+// those direct-looking visits actually carried an ad click ID (gclid/gbraid/wbraid).
+console.log(`\n  Of which had an ad click ID but no UTM tag: ${number(report.trafficMix?.paidClicks)}`);
+
 console.log(heading("Failed analyses by cause"));
 console.log(table(report.topErrorCategories, "none"));
 
