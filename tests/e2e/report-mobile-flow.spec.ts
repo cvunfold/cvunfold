@@ -5,7 +5,7 @@ async function createPolishTeaser(page: Page) {
   await page.locator(".consent input").check();
   await page.getByRole("button", { name: "Analizuj CV" }).click();
   await expect(page).toHaveURL(/\/raport$/);
-  await expect(page.getByRole("heading", { name: "Twój raport CV" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Twój bezpłatny wynik" })).toBeVisible();
 }
 
 test("analysis progress stays in the viewport while the request is pending", async ({ page }, testInfo) => {
@@ -62,7 +62,7 @@ for (const viewport of [
     expect(actionBox!.y + actionBox!.height).toBeLessThanOrEqual(viewport.height);
 
     const findingBeforeScores = await page.evaluate(() => {
-      const finding = document.querySelector(".featured-finding");
+      const finding = document.querySelector(".teaser-finding");
       const scores = document.querySelector(".score-rows")?.closest("section");
       return Boolean(finding && scores && (finding.compareDocumentPosition(scores) & Node.DOCUMENT_POSITION_FOLLOWING));
     });
@@ -77,7 +77,7 @@ test("mobile sticky purchase action is limited to the useful middle of the tease
   const sticky = page.locator(".report-mobile-sticky-cta");
 
   await expect(sticky).toBeHidden();
-  await page.locator(".featured-finding").scrollIntoViewIfNeeded();
+  await page.locator(".teaser-finding").scrollIntoViewIfNeeded();
   await expect(sticky).toBeVisible();
   await expect(sticky).toHaveAttribute("data-visible", "true");
 
