@@ -145,7 +145,7 @@ export async function markAnalysisPaid(token: string): Promise<boolean> {
   return Boolean(data);
 }
 
-export async function savePendingPayment(payment: PendingPayment): Promise<void> {
+export async function savePendingPayment(payment: PendingPayment & { livemode: boolean }): Promise<void> {
   const client = supabaseClient();
   if (!client) return;
   const { error } = await client.from("payments").upsert({
@@ -157,6 +157,7 @@ export async function savePendingPayment(payment: PendingPayment): Promise<void>
     locale: payment.locale,
     market: payment.market,
     status: "pending",
+    livemode: payment.livemode,
   }, { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true });
   if (error) throw new Error("SUPABASE_PAYMENT_SAVE_FAILED");
 }
@@ -322,6 +323,11 @@ export function clampWindowDays(value: unknown): number {
   return Math.min(Math.max(Math.trunc(days), 1), 90);
 }
 
+/** Stripe sandbox testing writes real "paid" rows; only live-mode payments are real revenue. */
+export function isRealPurchase(payment: { status: string; livemode: boolean }): boolean {
+  return payment.status === "paid" && payment.livemode === true;
+}
+
 /**
  * Funnel events carry attribution for every visitor who reached the API, including those
  * who refused analytics cookies, so this mix is the consent-independent view of traffic.
@@ -347,7 +353,7 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
     const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }, { data: anonymousRoleRows, error: anonymousRoleError }] = await Promise.all([
       client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,attribution,job_description_present").gte("created_at", since),
       client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since),
-      client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market").gte("created_at", since),
+      client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market,livemode").gte("created_at", since),
       client.from("feedback").select("rating,accurate").gte("created_at", since),
       client.from("feedback_quality_aggregates").select("rating,accurate,response_count"),
       client.from("anonymous_role_aggregates").select("role_category,source_bucket,analysis_count"),
@@ -358,7 +364,7 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
     const count = (name: string) => Number(eventCounts[name] || 0);
     const ratio = (numerator: number, denominator: number) => denominator ? Math.round(numerator / denominator * 10_000) / 100 : null;
     const analysisById = new Map((analyses || []).map((analysis) => [analysis.id, analysis]));
-    const paidPayments = (payments || []).filter((item) => item.status === "paid");
+    const paidPayments = (payments || []).filter(isRealPurchase);
     const segmentCounts = (values: string[]) => Object.fromEntries([...new Set(values)].sort()
       .map((value) => [value, values.filter((candidate) => candidate === value).length]));
     const analysisSegment = (key: keyof Attribution, fallback: string) => (analyses || []).map((analysis) => {
