@@ -61,12 +61,14 @@ for (const viewport of [
     expect(actionBox).not.toBeNull();
     expect(actionBox!.y + actionBox!.height).toBeLessThanOrEqual(viewport.height);
 
-    const findingBeforeScores = await page.evaluate(() => {
+    // The teaser no longer shows category scores, so the order that matters is
+    // evidence first, paywall after it.
+    const findingBeforePaywall = await page.evaluate(() => {
       const finding = document.querySelector(".teaser-finding");
-      const scores = document.querySelector(".score-rows")?.closest("section");
-      return Boolean(finding && scores && (finding.compareDocumentPosition(scores) & Node.DOCUMENT_POSITION_FOLLOWING));
+      const paywall = document.querySelector(".locked");
+      return Boolean(finding && paywall && (finding.compareDocumentPosition(paywall) & Node.DOCUMENT_POSITION_FOLLOWING));
     });
-    expect(findingBeforeScores).toBe(true);
+    expect(findingBeforePaywall).toBe(true);
   });
 }
 
