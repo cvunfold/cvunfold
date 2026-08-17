@@ -228,6 +228,7 @@ const safePropertyKeys = new Set([
   "plan", "error_category", "analysis_success", "model", "prompt_version", "rubric_version", "duration_ms",
   "input_tokens", "output_tokens", "estimated_cost", "source", "medium", "campaign", "content", "term",
   "landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin", "teaser_variant", "currency", "value",
+  "paid_click",
 ]);
 const safePropertyEnums: Record<string, readonly string[]> = {
   plan: ["full_review", "job_match"],
@@ -304,14 +305,17 @@ export function clampWindowDays(value: unknown): number {
 export function summarizeTrafficMix(
   events: Array<{ event_name: string; safe_properties: Record<string, unknown> | null }>,
   eventName = "analysis_started",
-): { bySource: Record<string, number>; byMedium: Record<string, number> } {
+): { bySource: Record<string, number>; byMedium: Record<string, number>; paidClicks: number } {
   const relevant = events.filter((event) => event.event_name === eventName);
   const tally = (key: "source" | "medium") => {
     const values = relevant.map((event) => String(event.safe_properties?.[key] || "(direct)"));
     return Object.fromEntries([...new Set(values)].sort()
       .map((value) => [value, values.filter((candidate) => candidate === value).length]));
   };
-  return { bySource: tally("source"), byMedium: tally("medium") };
+  // A Google Ads click often lands with a click ID but no utm_medium=cpc, so it falls into
+  // "(direct)" above. This counts it separately without needing source/medium to be present.
+  const paidClicks = relevant.filter((event) => event.safe_properties?.paid_click === true).length;
+  return { bySource: tally("source"), byMedium: tally("medium"), paidClicks };
 }
 
 export async function diagnostics(options: { windowDays?: number } = {}) {

@@ -33,6 +33,12 @@ export function handoffOriginFromAttribution(attribution: Record<string, unknown
   return attribution.source === "google" && attribution.medium === "cpc" ? "google_cpc" : "other";
 }
 
+// Ad clicks often land with a click ID but no utm_medium=cpc, so a Google Ads visit can go
+// unrecognised by source/medium alone. This never stores the click ID itself, only whether one was present.
+export function clickAttributionPresent(attribution: Record<string, unknown>): boolean {
+  return Boolean(attribution.gclid || attribution.gbraid || attribution.wbraid);
+}
+
 export function measurementContextFromAttribution(attribution: Record<string, unknown>): MeasurementContext {
   const handoffOrigin = parseHandoffOrigin(attribution.handoff_origin);
   return {

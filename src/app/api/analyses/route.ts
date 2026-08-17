@@ -16,7 +16,7 @@ import { marketForLocale, type Plan } from "@/lib/plans";
 import { parseAttribution } from "@/lib/analytics/attribution";
 import type { ReviewTelemetry } from "@/lib/ai/openai-review";
 import { verifyTurnstile } from "@/lib/security/turnstile";
-import { DEFAULT_LANDING_VARIANT } from "@/lib/audience";
+import { clickAttributionPresent, DEFAULT_LANDING_VARIANT } from "@/lib/audience";
 import { buildSafeAnalysisFailureLog } from "@/lib/observability/analysis-failure";
 
 export const runtime = "nodejs";
@@ -59,11 +59,12 @@ export async function POST(request: Request) {
       selected_seniority_enum: seniority,
     });
     const plan: Plan = requestedPlan || (jobDescription ? "job_match" : "full_review");
+    const paidClick = clickAttributionPresent(attribution);
     await recordFunnelEvent({
       name: "analysis_started",
       locale,
       market,
-      properties: { plan, ...attribution },
+      properties: { plan, ...attribution, ...(paidClick ? { paid_click: true } : {}) },
     }).catch(() => undefined);
     await verifyTurnstile(String(form.get("turnstileToken") || ""), clientIp);
     if (jobDescription.length > Number(process.env.MAX_JOB_DESCRIPTION_LENGTH || 20_000)) throw new Error("JOB_DESCRIPTION_TOO_LONG");
@@ -100,7 +101,7 @@ export async function POST(request: Request) {
       report, feedback: [], durationMs: Date.now() - startedAt, model: telemetry.model, inputTokens: telemetry.inputTokens,
       outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost });
     await Promise.all([
-      recordFunnelEvent({ name: "analysis_succeeded", analysisId, locale, market, properties: { plan, ...attribution, analysis_success: true, duration_ms: Date.now() - startedAt, model: telemetry.model, prompt_version: report.promptVersion, rubric_version: report.rubricVersion, input_tokens: telemetry.inputTokens, output_tokens: telemetry.outputTokens, estimated_cost: telemetry.estimatedCost } }),
+      recordFunnelEvent({ name: "analysis_succeeded", analysisId, locale, market, properties: { plan, ...attribution, analysis_success: true, duration_ms: Date.now() - startedAt, model: telemetry.model, prompt_version: report.promptVersion, rubric_version: report.rubricVersion, input_tokens: telemetry.inputTokens, output_tokens: telemetry.outputTokens, estimated_cost: telemetry.estimatedCost, ...(paidClick ? { paid_click: true } : {}) } }),
     ]).catch(() => undefined);
     return NextResponse.json({ accessToken: token, reportPath: reportPath(locale), teaser: toTeaser(report) });
   } catch (error) {
