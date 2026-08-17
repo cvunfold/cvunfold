@@ -70,6 +70,30 @@ Jeżeli skonfigurowano `NEXT_PUBLIC_GOOGLE_ADS_ID` oraz `NEXT_PUBLIC_GOOGLE_ADS_
 - Usunięcie lub wygaśnięcie raportu nie zmniejsza skumulowanego anonimowego licznika.
 - Admin diagnostics pokazuje kategorie dopiero od pięciu analiz; małe komórki zwraca wyłącznie jako sumę ukrytą.
 
+## Lejek niezależny od zgody
+
+GA4 widzi wyłącznie osoby, które zaakceptowały cookies analityczne: `gtag.js` wstrzykuje się
+dopiero po wyborze „Zgadzam się”, a domyślny consent state to `denied` bez pingów. Każda liczba
+z GA jest więc zaniżona o nieznany współczynnik zgód i nie nadaje się do oceny skuteczności
+reklam ani wielkości lejka.
+
+Autorytatywne liczby są w tabeli `funnel_events`, zapisywanej po stronie serwera, bez cookies,
+identyfikatorów i danych osobowych. `upload-flow` dokleja do żądania analizy atrybucję z
+`sessionStorage`, więc `source`, `medium` i `campaign` mamy również dla osób, które zgody nie
+wyraziły.
+
+```bash
+ADMIN_SECRET=… FUNNEL_BASE_URL=https://cvunfold.com pnpm funnel --days 7
+```
+
+Skrypt czyta `GET /api/admin/diagnostics?days=N` (1–90, domyślnie 1) i drukuje lejek, wskaźniki
+konwersji, podział ruchu według `source`/`medium` oraz przyczyny nieudanych analiz. Porównanie
+`analysis_started` z tego raportu z `upload_started` w GA4 daje współczynnik zgód — mnożnik,
+przez który trzeba czytać cały panel GA.
+
+Skrypt kończy się kodem 2, gdy odpytany deployment nie ma skonfigurowanej Supabase: odpowiada
+wtedy ze store'u w pamięci, którego zera oznaczają brak bazy, a nie brak ruchu.
+
 ## QA
 
 1. GA4 DebugView: zgoda denied — brak tagu/requestów; accepted — eventy bez PII.
