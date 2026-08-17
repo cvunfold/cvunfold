@@ -76,8 +76,20 @@ function looksLikePromptInjection(text: string): boolean {
   return /(?:ignore previous instructions|give (?:a )?score(?: of)? \d+|reveal (?:the )?(?:system prompt|secrets)|environment variables|open https?:\/\/|zignoruj poprzednie instrukcje|przyznaj \d+ punktów|ujawnij (?:prompt systemowy|sekrety)|zmienne środowiskowe|otwórz https?:\/\/)/i.test(text);
 }
 
+// The PDF renderer emits a single newline per visual line, so splitting on blank
+// lines alone keeps a whole bullet list inside one segment. The sentence rule
+// cannot recover it either: after a bullet's closing period the next character is
+// the marker, not a capital. A bullet marker is the reliable boundary in a CV, so
+// treat it as one and strip it from the quoted evidence.
+const SEGMENT_BOUNDARY = /\n{2,}|\n(?=[ \t]*(?:[•·▪◦‣∙]|[-*–—][ \t]))|(?<=\.)\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ])/;
+const BULLET_PREFIX = /^\s*(?:[•·▪◦‣∙]+|[-*–—](?=\s))\s*/;
+
 export function createSegments(text: string): Segment[] {
-  return text.split(/\n{2,}|(?<=\.)\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ])/).map((part) => part.trim()).filter((part) => Boolean(part) && !containsProtectedPersonalData(part) && !looksLikePromptInjection(part))
+  return text.split(SEGMENT_BOUNDARY)
+    // A segment still wraps across visual lines, so collapse those breaks to keep
+    // the quoted evidence readable instead of reproducing the PDF's line layout.
+    .map((part) => part.replace(BULLET_PREFIX, "").replace(/\s+/g, " ").trim())
+    .filter((part) => Boolean(part) && !containsProtectedPersonalData(part) && !looksLikePromptInjection(part))
     .slice(0, 200).map((part, index) => ({ id: `seg_${index.toString(36)}`, text: part }));
 }
 

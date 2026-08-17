@@ -67,22 +67,31 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
       const evidenceRefs = item.suggestion?.type === "gap" ? [] : keep(item.evidenceRefs);
       const sources = [...evidenceRefs.map((ref) => evidence[ref] || ""), item.suggestion?.original || ""];
       const guardedSuggestion = item.suggestion?.type === "rewrite" || item.suggestion?.type === "expose";
+      // A GAP or QUESTION never has replacement text by design — the reader is
+      // meant to supply the missing fact, not receive a drafted one. Drop
+      // whatever the model put there (including stray punctuation like ".")
+      // instead of rendering an empty proposed-text box.
+      const rawProposed = guardedSuggestion ? item.suggestion?.proposed ?? null : null;
+      const proposed = rawProposed && /[\p{L}\p{N}]{2,}/u.test(rawProposed) ? rawProposed : null;
       const unsafeRewrite = guardedSuggestion
-        ? !item.suggestion?.original?.trim() || Boolean(item.suggestion?.proposed && (unsupportedFacts(item.suggestion.proposed, sources) || excessiveSemanticNovelty(item.suggestion.proposed, sources)))
+        ? !item.suggestion?.original?.trim() || Boolean(proposed && (unsupportedFacts(proposed, sources) || excessiveSemanticNovelty(proposed, sources)))
         : false;
       const suggestion = unsafeRewrite ? {
         type: "question" as const,
         original: item.suggestion?.original || null,
         proposed: null,
         factualityNote: parsed.locale === "en"
-          ? "This rewrite needs facts not present in the cited CV fragment. Ask the candidate before writing it."
-          : "Ta wersja wymaga faktów, których nie ma w cytowanym fragmencie CV. Najpierw dopytaj kandydata.",
-      } : item.suggestion;
+          ? "This rewrite needs facts the cited CV fragment does not contain. Confirm them yourself before adding anything."
+          : "Ta wersja wymaga faktów, których nie ma w cytowanym fragmencie CV. Potwierdź je, zanim cokolwiek dopiszesz.",
+      } : item.suggestion ? { ...item.suggestion, proposed } : item.suggestion;
       return {
         ...item,
         severity: item.severity === "critical" && item.confidence === "low" ? "important" as const : item.severity,
         evidenceRefs,
-        action: normalizeIssueAction({ action: item.action, suggestionType: suggestion?.type, title: item.title, locale: parsed.locale, factualityNote: suggestion?.factualityNote }),
+        // The model wrote its action for the rewrite it proposed. Once the guard
+        // downgrades that to a question, an action still saying "rewrite this"
+        // contradicts both the type and the note, so let it be regenerated.
+        action: normalizeIssueAction({ action: unsafeRewrite ? "" : item.action, suggestionType: suggestion?.type, title: item.title, locale: parsed.locale, factualityNote: suggestion?.factualityNote }),
         suggestion,
       };
     });
