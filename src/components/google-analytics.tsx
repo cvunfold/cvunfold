@@ -41,6 +41,14 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
     setChoice(readConsent());
   }, [enabled]);
 
+  // Click-through CTAs (analysisPath) never forward the landing page's query string, so a
+  // gclid/UTM present on first paint is lost the moment someone navigates to /analiza unless
+  // it's captured into sessionStorage before then. This write never leaves the browser and
+  // must not wait for consent, or paid traffic that doesn't grant it loses attribution entirely.
+  useEffect(() => {
+    readSafeAttribution();
+  }, []);
+
   useEffect(() => {
     if (!enabled || choice !== "granted") return;
     const attribution = readSafeAttribution();
