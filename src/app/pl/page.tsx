@@ -37,7 +37,7 @@ const checks = [
   { title: "Techniczna wiarygodność", copy: "Czy technologie mają kontekst i uzasadnienie.", article: ["Jak budować wiarygodność", "wiarygodnosc-techniczna-w-cv"] },
   { title: "Architektura", copy: "Czy pokazujesz skalę, jakość i trade-offy." },
   { title: "Współpraca", copy: "Czy widać pracę z produktem i zespołem." },
-  { title: "Jasność", copy: "Czy najważniejsze sygnały da się znaleźć szybko.", article: ["Jak działa pierwsze wrażenie", "pierwsze-20-sekund-cv"] },
+  { title: "Jasność", copy: "Czy najważniejsze sygnały da się znaleźć szybko.", article: ["Co czyta ATS, a co widzi człowiek", "pierwsze-20-sekund-cv"] },
 ];
 
 const faq = [
@@ -249,7 +249,7 @@ export default function LandingPage() {
       <div className="section-intro">
         <h2>Pierwsze 20 sekund</h2>
         <p>Tyle często wystarcza, by powstało pierwsze wrażenie. Pokazujemy je krok po kroku — bez udawania prawdziwej decyzji rekrutacyjnej.</p>
-        <Link className="check-topic-link" href="/pl/artykuly/pierwsze-20-sekund-cv">Przeczytaj, jak powstaje pierwsze wrażenie <ArrowIcon /></Link>
+        <Link className="check-topic-link" href="/pl/artykuly/pierwsze-20-sekund-cv">Przeczytaj, co czyta ATS, a co widzi człowiek <ArrowIcon /></Link>
       </div>
       <ol className="seconds-list">
         <li><b>5 s</b><span>Co od razu przyciąga uwagę</span></li>

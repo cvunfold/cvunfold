@@ -57,16 +57,95 @@ export const articlesEn: Article[] = [
     ], checklist: ["Does the bullet say what changed?", "Can you explain the source of every number?", "Without a number, do you show a mechanism, scale or removed risk?", "Are the strongest outcomes first?"],
   },
   {
-    slug: "the-first-20-seconds-of-a-cv", category: "First impression", title: "The first 20 seconds of a CV: what does a recruiter see?", readingTime: "6 min", publishedAt: "2026-08-08",
-    description: "Understand how an initial profile forms in seconds and how to keep the strongest evidence from disappearing in detail.",
-    excerpt: "A CV is not first read like a book. A fast hypothesis forms, and only then does the reader seek confirmation.",
-    intro: "A first impression is not a complete assessment or a real hiring decision. It is a working hypothesis about the role, level and whether the document deserves more attention. CV hierarchy determines which signals create that hypothesis.",
+    slug: "the-first-20-seconds-of-a-cv",
+    category: "ATS and first impression",
+    title: "ATS vs the first 20 seconds: what software reads and people judge",
+    description: "Learn what an ATS can extract from a CV and what a person may judge in the first 20 seconds. Separate parsing and keywords from seniority, ownership and impact.",
+    excerpt: "An ATS can extract information and support search. A person's first impression asks a different question: what profile and level does the document actually communicate?",
+    readingTime: "8 min",
+    publishedAt: "2026-08-08",
+    updatedAt: "2026-08-17",
+    intro: "A CV passes through two different layers of assessment. Software may extract information, support search or assist matching. A person tries to understand the role, level and credibility of the experience quickly. The phrase ‘beat the ATS’ turns recruitment software into one gatekeeper with one score. In practice, there is a more useful goal: make the document easy for software to read and meaningful in the first 20 seconds of human attention, while recognising that these are separate tasks.",
     sections: [
-      { heading: "After 5 seconds: role, level and readability", paragraphs: ["Headings, the current role, companies, dates and document density stand out first. The reader asks what this person does, how long the story is and where the most relevant experience sits.", "A generic summary, unclear titles and a latest role that begins with a long duty list create a weaker hypothesis than the real experience deserves." ] },
-      { heading: "After 10 seconds: is there evidence?", paragraphs: ["The eye looks for outcomes, scale, products and words that indicate responsibility. This is not merely keyword scanning; it is a search for a fragment that supports the declared level.", "One concrete decision-and-outcome bullet can do more than a summary full of ‘experienced’, ‘proactive’ and ‘quality-focused’." ] },
-      { heading: "After 20 seconds: the candidate story forms", paragraphs: ["Signals combine into a simple narrative: performance specialist, product-minded frontend engineer, design-system builder, reliable executor or an unclear profile.", "Your goal is not to control every interpretation, but to make the strongest truthful evidence easier to notice than secondary information."], example: { before: "React, TypeScript, JavaScript, HTML, CSS, Git, Jira, REST, Agile.", after: "Frontend Developer specialising in checkout performance and component systems used across product teams.", note: "The stack can remain lower on the page. The first screen should explain profile and value first." } },
-      { heading: "Readability does not mean an empty document", paragraphs: ["An experienced person may need two pages. The problem is not length by itself but the absence of priorities.", "Use standard headings, predictable chronology, short paragraphs and visible outcomes. Decoration does not rescue weak content, and complex columns can hinder readers and parsers." ] },
-    ], checklist: ["Is the target role clear on the first screen?", "Does the latest role begin with the strongest evidence?", "Can the profile be described in one specific sentence?", "Do details support rather than fight the hierarchy?"],
+      {
+        heading: "An ATS is a category of software, not one exam",
+        paragraphs: [
+          "An applicant tracking system helps an employer manage candidates and recruitment stages. The available features depend on the platform and the employer's setup. Knowing that a company uses an ATS does not tell you whether it relies on a candidate database, full-text search, filters, an additional AI feature or primarily manual review.",
+          "The mix of vendors also differs by country, so guidance written for one market often describes software your employer does not use. A candidate applying in Poland frequently meets local platforms such as eRecruiter, Traffit or HRlink, while an international employer may run something else entirely. The principle survives the difference: each product exposes different features, and each employer configures them differently.",
+          "This matters because advice that promises to help you ‘pass the ATS’ often collapses several different mechanisms into one mysterious score. You can test whether a CV is technically readable and whether it reflects a particular job description. You cannot honestly claim that one percentage reproduces every employer's process.",
+        ],
+      },
+      {
+        heading: "Step one: a parser extracts information",
+        paragraphs: [
+          "A parser turns a document into information that can populate a candidate profile. It may identify contact details, job titles, employers, dates, education and skills. When the layout is difficult to interpret, content can end up in the wrong field or fail to appear in the profile at all.",
+          "A safer CV uses selectable text, familiar headings and a predictable reading order. Scanned pages, text embedded in images, complicated columns, important content in headers or footers and decorative graphics can increase parsing risk. This is not a ban on thoughtful design. It means the design should not depend on a structure that loses meaning when the text is selected or copied.",
+        ],
+      },
+      {
+        heading: "Machine readability does not replace a clear message for people",
+        paragraphs: [
+          "This is where formatting stops working for you and judgement takes over. A perfectly parsed CV can still fail to communicate a candidate's level. Software may identify a Senior Frontend Developer title, React and five years of experience. Those fields alone do not show whether you made decisions, owned an outcome or solved increasingly complex problems.",
+          "You need both layers at once. The machine layer lets software read the file: clear sections, actual text and accurate names for relevant skills. The human layer lets a person understand the experience: concrete scope, decisions, constraints, impact and evidence that supports the target level. The first is pointless without the second, and the second may never be read without the first.",
+        ],
+        example: {
+          before: "Senior Frontend Developer. React, TypeScript, Next.js. Developed new features.",
+          after: "Owned the checkout migration to Next.js: split the rollout into stages, aligned the API contract and monitored errors after launch.",
+          note: "Both versions are technically readable. Only the second gives a person useful evidence about responsibility.",
+        },
+      },
+      {
+        heading: "Step two: search and filters reflect the employer's criteria",
+        paragraphs: [
+          "Back to the machine layer for a moment, because once an application is stored, some systems let recruiters search CVs for words and phrases. They may also offer filters or Boolean queries that combine terms, such as a role title and a technology. This is not a secret master list of keywords. The criteria come from a particular vacancy, team and user configuration.",
+          "If you genuinely used an important technology named in the job description, it should be easy to find in your CV. Do not leave it only in a skills list: connect it to experience that shows the practical scope. Avoid copying the whole advert or repeating one phrase in every bullet. The document still has to remain credible when a person opens it.",
+        ],
+        example: {
+          before: "React, React.js, ReactJS, frontend React, React library.",
+          after: "React and TypeScript — checkout development, rendering optimisation and maintenance of a shared component library.",
+          note: "The second version contains the recognisable technology, but connects it to work instead of manufacturing repetitions.",
+        },
+      },
+      {
+        heading: "Matching and AI are optional features, not the definition of every ATS",
+        paragraphs: [
+          "Some platforms offer candidate matching or an assistant that supports screening. Such a feature may consider skills, job history and criteria configured for a vacancy. That does not mean every ATS automatically gives every candidate the same kind of score.",
+          "Greenhouse provides a useful example: it describes Talent Matching as a separate feature that must be enabled and calibrated, and presents its output as assistance for recruiters rather than an automatic accept-or-reject decision. Another platform or employer may use a different process entirely. Honest optimisation therefore starts with the job and the quality of your evidence, not with guessing one algorithm.",
+        ],
+      },
+      {
+        heading: "The human layer: what happens after 5, 10 and 20 seconds",
+        paragraphs: [
+          "Within the first few seconds, the current role, headings, employers, dates and document density attract attention. Around the ten-second mark, the reader starts looking for something that supports the claimed level: a decision, outcome, scale or scope of responsibility. By twenty seconds, a working story may have formed — performance specialist, product-minded frontend engineer, reliable executor or a profile that remains difficult to describe.",
+          "This is not a real hiring decision or a prediction of an application outcome. It is a model of first impression based on the document alone. You cannot control every interpretation, but you can make the strongest truthful evidence easier to find than generic duties and secondary technologies.",
+        ],
+      },
+      {
+        heading: "A practical pre-submission test",
+        paragraphs: [
+          "Start with extraction. Open the PDF, select all of the content and paste it into a plain-text editor. Check whether job titles, employers, dates and bullets still follow a logical order. If an application form extracts details from the upload, review the populated fields and correct mistakes before submitting.",
+          "Then compare the CV with the job description. Mark the requirements you genuinely meet and make sure the evidence is visible in your experience. Separate three situations: the skill is shown; the skill exists but is hidden; or you have no basis to claim it. Only the second situation calls for better exposure. A keyword cannot safely fix the third.",
+          "Finally, read the first page as someone who does not know your story. Within a short scan, is the target role clear, does the document communicate an appropriate level and is the strongest evidence easy to find? A readable file enables assessment. It does not perform that assessment for you.",
+        ],
+      },
+      {
+        heading: "What an ATS checker can test — and what it should not promise",
+        paragraphs: [
+          "A checker can usefully test whether text can be extracted, sections are recognisable, relevant terms from a specific job have supporting evidence and the format creates obvious parsing problems. That is document hygiene, not a prediction of a hiring outcome.",
+          "Be cautious when a tool presents a high percentage without explaining its criteria, claims compatibility with every system or implies that adding words guarantees an interview. A useful finding should point to a specific part of the CV and distinguish a parsing problem, missing visible evidence and genuinely absent information.",
+        ],
+      },
+    ],
+    checklist: [
+      "Does copied PDF text preserve the logical order of sections?",
+      "Do you use familiar headings for experience, skills and education?",
+      "Are important technologies from the job description truthful and supported by specific experience?",
+      "Does the document avoid scans, decorative tables, headers or footers that contain essential content?",
+      "Do you separate technical readability from judgement of seniority, ownership and impact?",
+      "Does the first screen make the target role and the strongest evidence of level easy to identify?",
+      "Could you defend every point of alignment in an interview without inventing facts?",
+      "Does the checker explain its criteria instead of promising a universal ATS score?",
+    ],
   },
   {
     slug: "technical-credibility-in-a-developer-cv", category: "Technical credibility", title: "How to build technical credibility in a developer CV", readingTime: "7 min", publishedAt: "2026-08-08",
