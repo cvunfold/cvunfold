@@ -60,6 +60,30 @@ function memoryGet(token: string): Analysis | undefined {
   return item;
 }
 
+/**
+ * A finished analysis has already cost an OpenAI call, so one failed write must not discard it.
+ * Each attempt gets a fresh token and id: a partially written attempt can leave rows behind,
+ * and reusing the same identifiers would turn a transient failure into a permanent conflict.
+ */
+export async function saveAnalysisWithRetry<T extends { id: string }>(
+  attempt: () => { token: string; analysis: T },
+  save: (token: string, analysis: T) => Promise<void> = (token, analysis) => saveAnalysis(token, analysis as unknown as Omit<Analysis, "tokenHash">),
+  { attempts = 3, delayMs = 250 }: { attempts?: number; delayMs?: number } = {},
+): Promise<{ token: string; analysisId: string }> {
+  let lastError: unknown;
+  for (let index = 0; index < attempts; index += 1) {
+    const { token, analysis } = attempt();
+    try {
+      await save(token, analysis);
+      return { token, analysisId: analysis.id };
+    } catch (error) {
+      lastError = error;
+      if (index < attempts - 1) await new Promise((resolve) => setTimeout(resolve, delayMs * (index + 1)));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("SUPABASE_SAVE_FAILED");
+}
+
 export async function saveAnalysis(token: string, analysis: Omit<Analysis, "tokenHash">): Promise<void> {
   const client = supabaseClient();
   const tokenHash = hashToken(token);
@@ -225,13 +249,14 @@ const funnelEventNames = new Set([
   "feedback_submitted", "delete_requested",
 ]);
 const safePropertyKeys = new Set([
-  "plan", "error_category", "analysis_success", "model", "prompt_version", "rubric_version", "duration_ms",
+  "plan", "error_category", "unreadable_reason", "analysis_success", "model", "prompt_version", "rubric_version", "duration_ms",
   "input_tokens", "output_tokens", "estimated_cost", "source", "medium", "campaign", "content", "term",
   "landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin", "teaser_variant", "currency", "value",
 ]);
 const safePropertyEnums: Record<string, readonly string[]> = {
   plan: ["full_review", "job_match"],
   landing_variant: ["developer"],
+  unreadable_reason: ["pdf_no_text_items", "pdf_empty_text_items", "pdf_page_extraction_failed", "pdf_parse_failed", "pdf_encrypted", "docx_no_text", "docx_parse_failed", "text_below_threshold"],
   broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
   handoff_origin: ["google_cpc", "other"],
