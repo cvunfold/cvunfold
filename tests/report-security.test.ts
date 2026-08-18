@@ -15,3 +15,26 @@ describe("report boundary",()=>{
   it("turns a fill-in placeholder expose suggestion into a question",()=>{const input=createMockReport();input.issues[0].suggestion={type:"expose",original:"Built accessible React interfaces.",proposed:"Built accessible React interfaces, improving [gap].",factualityNote:"Fill this with a real result."};const report=validateEvidence(input,new Set(["seg_exp_1"]),input.evidenceMap);expect(report.issues[0].suggestion?.type).toBe("question");expect(report.issues[0].suggestion?.proposed).toBeNull()});
   it("hydrates recruiter perspective for reports generated before v2",()=>{const legacy=createMockReport() as Partial<CVReport>;delete legacy.recruiterPerspective;const hydrated=withRecruiterPerspective(legacy as CVReport);expect(hydrated.recruiterPerspective.profileSummary).toBe(hydrated.summary.oneSentenceVerdict);expect(hydrated.recruiterPerspective.likelyInterviewQuestions.length).toBeGreaterThan(0)});
 });
+
+describe("featured free finding", () => {
+  it("follows the model's impact ordering rather than whichever quote is longest", () => {
+    const report = createMockReport();
+    const evidenceMap = { seg_short: "Krótki, ale najważniejszy dowód z CV.", seg_long: `Znacznie dłuższy cytat z CV, ${"x".repeat(120)}` };
+    report.evidenceMap = evidenceMap;
+    report.issues = [
+      { ...report.issues[0], id: "top", severity: "important", confidence: "high", category: "impact", title: "Najważniejszy problem", evidenceRefs: ["seg_short"] },
+      { ...report.issues[0], id: "later", severity: "important", confidence: "high", category: "clarity", title: "Mniej ważny problem", evidenceRefs: ["seg_long"] },
+    ];
+    expect(featuredFreeIssue(report)?.title).toBe("Najważniejszy problem");
+  });
+
+  it("still prefers a materially worse issue over the model's ordering", () => {
+    const report = createMockReport();
+    report.evidenceMap = { seg_a: "Dowód pierwszy, wystarczająco długi.", seg_b: "Dowód drugi, wystarczająco długi." };
+    report.issues = [
+      { ...report.issues[0], id: "minor-first", severity: "minor", confidence: "high", category: "clarity", title: "Drobny", evidenceRefs: ["seg_a"] },
+      { ...report.issues[0], id: "critical-later", severity: "critical", confidence: "high", category: "impact", title: "Krytyczny", evidenceRefs: ["seg_b"] },
+    ];
+    expect(featuredFreeIssue(report)?.title).toBe("Krytyczny");
+  });
+});

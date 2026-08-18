@@ -241,8 +241,13 @@ export function featuredFreeIssue(report: CVReport): TeaserReport["featuredIssue
   candidates.sort((left, right) =>
     severityRank[right.issue.severity] - severityRank[left.issue.severity]
     || confidenceRank[right.issue.confidence] - confidenceRank[left.issue.confidence]
-    || right.evidenceQuality - left.evidenceQuality
-    || left.index - right.index,
+    // The prompt orders issues by how much fixing them would change the
+    // document's reception, so the model's own ranking is a deliberate signal.
+    // Quote length is not: it only decided the teaser because it happened to
+    // outrank that ordering, and the 160-character cap hid it whenever every
+    // quote was long.
+    || left.index - right.index
+    || right.evidenceQuality - left.evidenceQuality,
   );
   const selected = candidates[0];
   if (!selected) return null;
