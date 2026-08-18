@@ -697,6 +697,8 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .report-title { display: flex; justify-content: space-between; padding-bottom: 21px; border-bottom: 1px solid #9da7b6; }
 .report-title h1 { margin: 0 0 8px; font: 600 clamp(47px, 4.2vw, 65px)/.94 var(--serif); letter-spacing: -.052em; }
 .report-title h2 { margin: 0 0 7px; font-size: 24px; }
+.report-target { margin: 0 0 8px; color: var(--muted); font-size: var(--report-small); }
+.report-target::before { content: ""; display: inline-block; width: 14px; height: 1px; margin: 0 7px 4px 0; background: var(--line); }
 .report-title span { padding: 3px 5px; background: var(--soft); font-size: var(--report-label); letter-spacing: .04em; }
 .report-title p { margin: 6px 0 0; color: var(--muted); font-size: var(--report-small); }
 .report-actions { display: flex; align-items: flex-start; gap: 16px; margin-left: 28px; }

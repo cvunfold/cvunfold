@@ -39,7 +39,7 @@ const copy = {
   pl: {
     sample: "PRZYKŁADOWY RAPORT", yourReport: "Twój raport CV", sampleReport: "Przykładowy raport CV",
     perceivedLevel: "POSTRZEGANY POZIOM", first20: "PIERWSZE 20 SEKUND", overall: "OGÓLNA JAKOŚĆ KOMUNIKACJI CV",
-    documentPerception: "PERCEPCJA DOKUMENTU", print: "Drukuj / zapisz PDF", copyLink: "Skopiuj bezpieczny link",
+    documentPerception: "PERCEPCJA DOKUMENTU", targetLevel: "Aplikuje na poziom", targetAuto: "Poziom wykrywany z treści CV", print: "Drukuj / zapisz PDF", copyLink: "Skopiuj bezpieczny link",
     delete: "Usuń raport", expires: "Raport wygasa", profile: "Jak dokument buduje Twój profil", signals: "Co buduje ten obraz",
     reservations: "Co budzi rezerwę", questions: "O co mogą zapytać", after: ["Po 5 sekundach", "Po 10 sekundach", "Po 20 sekundach"],
     simulated: "SYMULOWANY WYNIK", improve: { reached: "Co najbardziej wzmocniłoby ten wynik?", pending: "Co najbardziej mogłoby przesunąć wynik w stronę Interview?" },
@@ -59,7 +59,7 @@ const copy = {
   en: {
     sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
     perceivedLevel: "PERCEIVED LEVEL", first20: "FIRST 20 SECONDS", overall: "OVERALL CV COMMUNICATION QUALITY",
-    documentPerception: "DOCUMENT PERCEPTION", print: "Print / save PDF", copyLink: "Copy secure link",
+    documentPerception: "DOCUMENT PERCEPTION", targetLevel: "Applying for level", targetAuto: "Level inferred from the CV", print: "Print / save PDF", copyLink: "Copy secure link",
     delete: "Delete report", expires: "Report expires", profile: "How the document frames your profile", signals: "What supports this impression",
     reservations: "What creates doubt", questions: "What they may ask", after: ["After 5 seconds", "After 10 seconds", "After 20 seconds"],
     simulated: "SIMULATED OUTCOME", improve: { reached: "What would most strengthen this outcome?", pending: "What could most improve the outcome towards Interview?" },
@@ -171,6 +171,14 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
   // ATS is document hygiene, not a seniority signal, so it is shown apart from
   // the rubric list. It stays inside overallScore: at senior its weight is 4%,
   // and removing it would move the result by at most a point.
+  // perceivedRole already reads like "Senior Frontend Engineer ...", so appending
+  // the perceived seniority repeated it a third time — it is also shown in the
+  // sidebar and the recruiter profile. The selected target was missing instead,
+  // and it is the thing the whole report compares the document against.
+  const targetSeniority = reportData && "document" in reportData ? reportData.document.targetSeniority : undefined;
+  const targetLevelLine = !targetSeniority ? null
+    : targetSeniority === "auto" ? t.targetAuto
+    : `${t.targetLevel}: ${seniorityLabel(targetSeniority)}`;
   const atsCategory = reportData && "categoryScores" in reportData ? reportData.categoryScores.find((category) => category.key === "ats") : undefined;
   const teaser = !paid ? reportData as TeaserReport : null;
   const data = reportData as CVReport;
@@ -385,7 +393,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
       <div className="report-content">
         {demo ? <div className="sample-disclosure"><div><b>{t.sample}</b><small>{t.samplePrivate}</small></div><p>{demo.note}</p><Link className="sample-home-link" href={homePath(locale)}>{t.backHome}<ArrowIcon/></Link></div> : null}
         <header className="report-title">
-          <div><h1>{demo ? t.sampleReport : t.yourReport}</h1><h2>{demo ? `${demo.name} · ` : ""}{data.document.perceivedRole} · {seniorityLabel(data.document.perceivedSeniority)}</h2><span>{t.documentPerception}</span><p>{locale === "pl" ? "Na podstawie treści i struktury CV. To nie jest ocena osoby." : "Based on the CV's content and structure. This is not an assessment of the person."}</p></div>
+          <div><h1>{demo ? t.sampleReport : t.yourReport}</h1><h2>{demo ? `${demo.name} · ` : ""}{data.document.perceivedRole}</h2><p className="report-target">{targetLevelLine}</p><span>{t.documentPerception}</span><p>{locale === "pl" ? "Na podstawie treści i struktury CV. To nie jest ocena osoby." : "Based on the CV's content and structure. This is not an assessment of the person."}</p></div>
           <div className="report-actions">
             {demo || paid ? <button className="report-download" onClick={() => window.print()}>{t.print}</button> : null}
             {!demo ? <button className="report-download" onClick={copySecureLink}>{linkState === "copied" ? t.copied : linkState === "error" ? t.copyFailed : t.copyLink}</button> : null}

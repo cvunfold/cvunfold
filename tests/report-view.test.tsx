@@ -139,3 +139,21 @@ describe("ATS presentation", () => {
     expect(findings.length).toBe(report.ats.findings.length);
   });
 });
+
+describe("report header", () => {
+  it("states the selected target level instead of repeating the perceived one", () => {
+    const report = createMockReport("senior");
+    const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
+
+    const heading = container.querySelector(".report-title h2");
+    // perceivedRole already carries the level; the suffix was a third repetition.
+    expect(heading?.textContent).toBe(report.document.perceivedRole);
+    expect(container.querySelector(".report-target")?.textContent).toBe("Aplikuje na poziom: Senior");
+  });
+
+  it("says the level was inferred when no target was chosen", () => {
+    const report = createMockReport("auto");
+    const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
+    expect(container.querySelector(".report-target")?.textContent).toBe("Poziom wykrywany z treści CV");
+  });
+});
