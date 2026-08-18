@@ -16,8 +16,8 @@ const copy = {
   pl: {
     nav: ["Różnica", "Raport", "Cennik", "FAQ"], navIds: ["roznica", "raport", "cennik", "faq"], switchLabel: "EN",
     title: <>Twoje CV ma kilka sekund.<br/>Czy pokazuje <em>to, co potrafisz?</em></>,
-    description: "Sprawdź, co hiring manager zrozumie z Twojego CV w pierwszych 20 sekundach — czy widać odpowiedzialność, wpływ i techniczną wiarygodność. Oceniamy dokument, nie Ciebie, a każda ważna uwaga wskazuje konkretny fragment CV.",
-    primary: "Sprawdź, co pokazuje moje CV", secondary: "Zobacz przykładowy raport",
+    description: "Prześlij CV i bezpłatnie zobacz, jaki poziom komunikuje, jakie robi pierwsze wrażenie i jeden konkretny problem z dowodem z dokumentu. Pełny raport odblokujesz tylko wtedy, gdy uznasz analizę za wartościową.",
+    primary: "Sprawdź swoje CV za darmo", secondary: "Zobacz przykładowy raport — 79/100",
     priceLine: `Darmowy wynik wstępny · Pełny raport od ${formatPlanPrice("full_review", "pl")} · Bez konta`,
     trustLine: "Plik źródłowy usuwamy po analizie. Nie dopisujemy faktów, których nie ma w dokumencie.",
     specialty: "Obecnie najmocniej specjalizujemy się w CV Frontend Developerów. Obsługujemy też Backend, Full-stack, Mobile, QA i DevOps / Platform — na różnych etapach kariery.",
@@ -53,7 +53,7 @@ const copy = {
     move: "Co najbardziej mogłoby przesunąć wynik w stronę Interview?", moveAnswer: "W ostatnich trzech rolach widać implementację złożonych funkcji, ale tylko jeden fragment jasno pokazuje decyzję kandydatki. Największy efekt da doprecyzowanie zakresu odpowiedzialności przy migracji checkoutu.",
     disclaimer: "To symulacja pierwszego wrażenia na podstawie samego dokumentu, a nie prawdziwa decyzja rekrutacyjna ani przewidywanie wyniku konkretnej rekrutacji.",
     reportEyebrow: "PEŁNY PRZYKŁAD BEZ UPLOADU", reportTitle: `Tak wygląda raport ${brand.name}`,
-    reportCopy: "Dane syntetyczne · fikcyjna kandydatka. Zobacz pierwsze wrażenie, ocenę kategorii, dowód, znaczenie problemu i bezpieczny następny krok.",
+    reportCopy: "Dane syntetyczne · fikcyjna kandydatka z wynikiem 79/100. Nawet dobre CV dostaje konkretne, możliwe do wdrożenia uwagi — zobacz pierwsze wrażenie, ocenę kategorii, dowód i bezpieczny następny krok.",
     finding: { type: "QUESTION", title: "Ownership migracji jest niewidoczny", evidence: "„Praca przy migracji checkoutu do Next.js we współpracy z zespołem Backend.”", why: "Nie wiadomo, czy kandydatka podejmowała decyzje, czy wykonywała przydzielony fragment.", action: "Dopisz zakres decyzji dopiero po odpowiedzi: za który etap i kompromis odpowiadałaś osobiście?" },
     openReport: "Zobacz pełny przykładowy raport", noFacts: "Sugestia nie dodaje żadnego nowego faktu.",
     checksTitle: "Co sprawdzamy", checks: [["Doświadczenie", "Czy najważniejsze role i projekty budują czytelny obraz specjalizacji."], ["Odpowiedzialność", "Czy widać samodzielność i zakres decyzji."], ["Wpływ", "Czy dokument pokazuje zmianę, a nie tylko zadania."], ["Wiarygodność", "Czy stack ma kontekst, ograniczenia i konsekwencje."], ["Pierwsze wrażenie", "Jaki obraz powstaje po 5, 10 i 20 sekundach."], ["Higiena ATS", "Czy dokument jest czytelny technicznie i strukturalnie."]],
@@ -65,7 +65,7 @@ const copy = {
     oneTime: "Płatność jednorazowa · bez subskrypcji", privateTitle: "Twoje CV nie zostaje z nami", privateCopy: "Dokument przetwarzamy w pamięci i nie zapisujemy pliku źródłowego w storage. Raport wygasa po 30 dniach, a Ty możesz usunąć go wcześniej. Treść CV, ogłoszenia i raportu nigdy nie trafia do analytics.",
     faqTitle: "Najważniejsze pytania", faq: [["Co dostaję bezpłatnie?", "Krótki werdykt, pierwsze wrażenie, jeden najważniejszy problem i konkretny dowód."], ["Czy oceniacie mnie jako specjalistę?", "Nie. Oceniamy wyłącznie sposób przedstawienia doświadczenia w dokumencie."], ["Czy CV może być po angielsku?", "Tak. Analiza obsługuje CV po polsku i angielsku; skanowane PDF-y mogą być nieczytelne."], ["Czy muszę zakładać konto?", "Nie. Dostęp do raportu działa przez prywatną sesję i bezpieczny link."], ["Jak długo przechowujecie raport?", "Domyślnie 30 dni. Możesz usunąć go natychmiast z poziomu raportu."], ["Czy to gwarantuje rozmowę?", "Nie. Symulacja opisuje wrażenie tworzone przez dokument, nie decyzję konkretnego pracodawcy."]],
     articlesTitle: "Dobre CV zaczyna się przed redakcją", articlesCopy: "Trzy krótkie przewodniki o sygnałach, których szuka nasza analiza.",
-    articles: [["Ownership", "Dlaczego ownership jest ważny dla pracodawców?", "dlaczego-ownership-jest-wazny-dla-pracodawcow"], ["Wpływ", "Obowiązki to nie rezultaty. Jak opisywać wpływ?", "obowiazki-to-nie-rezultaty-jak-opisywac-wplyw"], ["Kariera i AI", "Czy AI zastąpi programistów?", "jak-nie-dac-sie-zastapic-przez-ai"]],
+    articles: [["Ownership", "Ownership w pracy: co oznacza i jak pokazać je w CV?", "dlaczego-ownership-jest-wazny-dla-pracodawcow"], ["Wpływ", "Obowiązki to nie rezultaty. Jak opisywać wpływ?", "obowiazki-to-nie-rezultaty-jak-opisywac-wplyw"], ["Wiarygodność", "Jak budować wiarygodność techniczną w CV?", "wiarygodnosc-techniczna-w-cv"]],
     read: "Czytaj", finalTitle: "Sprawdź, co naprawdę komunikuje Twoje CV.", finalCopy: "Wynik wstępny jest bezpłatny. Cena pełnego raportu jest znana przed uploadem.",
     footerCopy: "Analiza CV oparta na dowodach z dokumentu.", footerLinks: ["Prywatność", "Regulamin", "Cookies", "Usuń dane", "Kontakt"],
     methodology: { label: "METODOLOGIA I ODPOWIEDZIALNOŚĆ", title: "Metoda ma właściciela i wersje.", copy: "Za metodę i produkt odpowiada Paweł Mączka-Czarnecki — Senior Frontend Developer z 15-letnim doświadczeniem w branży technologicznej, obejmującym prowadzenie zespołów i rozmów technicznych. Zasady analizy są jawne i wersjonowane.", link: "Zobacz, jak powstaje analiza" },
@@ -73,8 +73,8 @@ const copy = {
   en: {
     nav: ["Difference", "Report", "Pricing", "FAQ"], navIds: ["difference", "report", "pricing", "faq"], switchLabel: "PL",
     title: <>Your CV has a few seconds.<br/>Does it show <em>what you can do?</em></>,
-    description: "See what a hiring manager understands from your CV in the first 20 seconds — whether responsibility, impact and technical credibility are visible. We assess the document, not you, and every important finding points to a specific excerpt.",
-    primary: "See what my CV communicates", secondary: "View the sample report",
+    description: "Upload your CV and see for free what level it communicates, the first impression it makes, and one concrete issue backed by an excerpt from your document. You only unlock the full report if you find the review valuable.",
+    primary: "Check your CV for free", secondary: "View the sample report — 79/100",
     priceLine: `Free initial result · Full report from ${formatPlanPrice("full_review", "en")} · No account`,
     trustLine: "We delete the source file after analysis. We never add facts that are not in the document.",
     specialty: "We currently specialise most deeply in Frontend Developer CVs. Backend, Full-stack, Mobile, QA and DevOps / Platform are also supported across different career stages.",
@@ -110,7 +110,7 @@ const copy = {
     move: "What could most move the outcome towards Interview?", moveAnswer: "The last three roles show complex implementation, but only one excerpt clearly shows a decision owned by the candidate. Clarifying her responsibility during the checkout migration would have the largest effect.",
     disclaimer: "This is a simulation of the first impression created by the document, not a real hiring decision or a prediction for a specific application.",
     reportEyebrow: "A COMPLETE EXAMPLE — NO UPLOAD", reportTitle: `This is a ${brand.name} report`,
-    reportCopy: "Synthetic data · fictional candidate. See first impression, category scores, evidence, why the issue matters and a fact-safe next step.",
+    reportCopy: "Synthetic data · fictional candidate scoring 79/100. Even a strong CV gets concrete, actionable feedback — see the first impression, category scores, evidence and a fact-safe next step.",
     finding: { type: "QUESTION", title: "Ownership of the migration is invisible", evidence: "“Worked on migrating checkout to Next.js with the Backend team.”", why: "It is unclear whether the candidate made decisions or delivered an assigned part.", action: "Add decision scope only after answering: which stage and trade-off did you personally own?" },
     openReport: "View the full sample report", noFacts: "This suggestion adds no new facts.",
     checksTitle: "What we review", checks: [["Experience", "Do the most important roles and projects create a clear picture of your specialism?"], ["Responsibility", "Are autonomy and decision scope visible?"], ["Impact", "Does the document show change, not only tasks?"], ["Credibility", "Does the stack have context, constraints and consequences?"], ["First impression", "What picture forms after 5, 10 and 20 seconds?"], ["ATS hygiene", "Is the document technically and structurally readable?"]],
@@ -122,7 +122,7 @@ const copy = {
     oneTime: "One-time payment · no subscription", privateTitle: "Your CV does not stay with us", privateCopy: "The document is processed in memory; we do not store the source file. The report expires after 30 days and you can delete it sooner. CV, job-description and report content never goes to analytics.",
     faqTitle: "Key questions", faq: [["What do I get for free?", "A short verdict, first impression, the most important issue and one specific piece of evidence."], ["Do you assess me as a professional?", "No. We only assess how experience is presented in the document."], ["Can my CV be in Polish?", "Yes. The review supports English and Polish CVs; scanned PDFs may be unreadable."], ["Do I need an account?", "No. Report access uses a private session and a secure link."], ["How long is the report stored?", "Thirty days by default. You can delete it immediately from the report."], ["Does this guarantee an interview?", "No. The simulation describes the impression created by the document, not a specific employer's decision."]],
     articlesTitle: "A strong CV starts before editing", articlesCopy: "Three practical guides to the signals our review looks for.",
-    articles: [["Ownership", "Why does ownership matter to employers?", "why-ownership-matters-to-employers"], ["Impact", "Responsibilities are not outcomes. How do you show impact?", "responsibilities-are-not-outcomes"], ["Career and AI", "Will AI replace software developers?", "how-to-stay-relevant-in-the-age-of-ai"]],
+    articles: [["Ownership", "Ownership at work: what it means and how to show it on a CV", "why-ownership-matters-to-employers"], ["Impact", "Responsibilities are not outcomes. How do you show impact?", "responsibilities-are-not-outcomes"], ["Technical credibility", "How to build technical credibility in a developer CV", "technical-credibility-in-a-developer-cv"]],
     read: "Read", finalTitle: "See what your CV really communicates.", finalCopy: "The initial result is free. The full report price is clear before upload.",
     footerCopy: "A CV review grounded in evidence from the document.", footerLinks: ["Privacy", "Terms", "Cookies", "Delete data", "Contact"],
     methodology: { label: "METHODOLOGY AND ACCOUNTABILITY", title: "The method has an owner and versions.", copy: "The method and product are owned by Paweł Mączka-Czarnecki — a Senior Frontend Developer with 15 years in technology, including team leadership and technical interviews. The review rules are public and versioned.", link: "See how the review is produced" },
@@ -156,6 +156,12 @@ export function LandingPage({ locale }: { locale: Locale }) {
 
     <section id={sectionIds[0]} className="ats-section"><div className="container"><header className="launch-section-head"><span>{t.atsEyebrow}</span><h2>{t.atsTitle}</h2></header><div className="ats-compare"><article><h3>{t.ats.title}</h3><ul>{t.ats.items.map((item) => <li key={item}>{item}</li>)}</ul></article><article className="product-compare"><h3>{t.product.title}</h3><ul>{t.product.items.map((item) => <li key={item}><CheckIcon/>{item}</li>)}</ul></article></div></div></section>
 
+
+    <section className="seconds-showcase container"><div className="launch-section-head"><span>05 → 20 SEC</span><h2>{t.secondsTitle}</h2><p>{t.secondsIntro}</p></div><div className="seconds-cards">{t.seconds.map(([label, text], index) => <article key={label}><b>{["05", "10", "20"][index]}</b><h3>{label}</h3><p>{text}</p></article>)}<aside><span>SIMULATION</span><strong>MAYBE</strong></aside></div><div className="move-interview"><h3>{t.move}</h3><p>{t.moveAnswer}</p></div><small className="launch-disclaimer">{t.disclaimer}</small></section>
+
+    <section id={sectionIds[1]} className="sample-showcase"><div className="container sample-showcase-grid"><div><div className="launch-section-head"><span>{t.reportEyebrow}</span><h2>{t.reportTitle}</h2><p>{t.reportCopy}</p></div><Link className="button" href={reportUrl}>{t.openReport}<ArrowIcon/></Link></div><article className="sample-finding"><header><span>CRITICAL</span><b>{t.finding.type}</b></header><h3>{t.finding.title}</h3><div><small>EVIDENCE</small><blockquote>{t.finding.evidence}</blockquote></div><div><small>WHY IT MATTERS</small><p>{t.finding.why}</p></div><div><small>ACTION</small><p>{t.finding.action}</p></div><footer><CheckIcon/>{t.noFacts}</footer></article></div></section>
+
+
     <section className="ai-agent-section container" aria-labelledby={`ai-agent-${locale}`}>
       <header className="ai-agent-intro"><span>{t.agent.eyebrow}</span><h2 id={`ai-agent-${locale}`}>{t.agent.title}</h2><h3>{t.agent.subtitle}</h3><p>{t.agent.lead}</p></header>
       <div className="ai-agent-detail">
@@ -165,11 +171,6 @@ export function LandingPage({ locale }: { locale: Locale }) {
         <Link className="ai-agent-link" href={methodologyPath(locale)}>{t.agent.link}<ArrowIcon/></Link>
       </div>
     </section>
-
-    <section className="seconds-showcase container"><div className="launch-section-head"><span>05 → 20 SEC</span><h2>{t.secondsTitle}</h2><p>{t.secondsIntro}</p></div><div className="seconds-cards">{t.seconds.map(([label, text], index) => <article key={label}><b>{["05", "10", "20"][index]}</b><h3>{label}</h3><p>{text}</p></article>)}<aside><span>SIMULATION</span><strong>MAYBE</strong></aside></div><div className="move-interview"><h3>{t.move}</h3><p>{t.moveAnswer}</p></div><small className="launch-disclaimer">{t.disclaimer}</small></section>
-
-    <section id={sectionIds[1]} className="sample-showcase"><div className="container sample-showcase-grid"><div><div className="launch-section-head"><span>{t.reportEyebrow}</span><h2>{t.reportTitle}</h2><p>{t.reportCopy}</p></div><Link className="button" href={reportUrl}>{t.openReport}<ArrowIcon/></Link></div><article className="sample-finding"><header><span>CRITICAL</span><b>{t.finding.type}</b></header><h3>{t.finding.title}</h3><div><small>EVIDENCE</small><blockquote>{t.finding.evidence}</blockquote></div><div><small>WHY IT MATTERS</small><p>{t.finding.why}</p></div><div><small>ACTION</small><p>{t.finding.action}</p></div><footer><CheckIcon/>{t.noFacts}</footer></article></div></section>
-
     <section className="compact-section container"><div className="launch-section-head"><span>RUBRIC</span><h2>{t.checksTitle}</h2></div><div className="launch-checks">{t.checks.map(([title, text]) => <article key={title}><CheckIcon/><div><h3>{title}</h3><p>{text}</p></div></article>)}</div></section>
     <section id="jak" className="how-section"><div className="container"><div className="launch-section-head"><span>PROCESS</span><h2>{t.howTitle}</h2></div><ol>{t.how.map(([number, title, text]) => <li key={number}><b>{number}</b><h3>{title}</h3><p>{text}</p></li>)}</ol></div></section>
     <section className="promise-strip"><div className="container"><LockIcon/><div><h2>{t.promiseTitle}</h2><p>{t.promiseCopy}</p></div></div></section>
