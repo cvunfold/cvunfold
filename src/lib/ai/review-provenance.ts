@@ -6,7 +6,7 @@ import type { CalibrationViolation } from "./validate-report";
 // a stored report for identical model output — segmentation, evidence
 // validation, suggestion downgrades or action normalisation. Without it, two
 // runs of the same prompt and model are not necessarily comparable.
-export const REVIEW_PIPELINE_VERSION = "report-pipeline-v3";
+export const REVIEW_PIPELINE_VERSION = "report-pipeline-v4";
 
 // Everything needed to answer "which prompt, model and code produced this
 // report". Persisted server-side only; never part of the report payload the

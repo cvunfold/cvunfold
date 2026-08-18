@@ -35,6 +35,31 @@ const fillInPlaceholderPattern = /\[[^\]]+\]|<[^>]+>|\b(?:TBD|TODO)\b/gi;
 const rewriteStopwords = new Set([
   "and", "the", "for", "with", "from", "that", "this", "into", "oraz", "dla", "przy", "nad", "pod", "który", "która", "które", "jest", "było", "była", "with",
 ]);
+// Words about repositioning existing evidence, not about facts. An EXPOSE
+// necessarily writes new connective language when it moves a fact into a
+// different sentence or section — "warto wyeksponować obok najnowszej roli"
+// contains zero new claims, but every one of those words is absent from the
+// cited evidence. Without this list, novelty counts framing prose as
+// fabrication precisely where EXPOSE is supposed to add it.
+const repositioningStopwords = new Set([
+  "warto", "eksponować", "wyeksponować", "eksponuj", "wyeksponuj", "podkreślić", "podkreśl",
+  "przenieś", "przenieść", "przesunąć", "przesuń", "wcześniej", "wyżej", "obok", "bliżej",
+  "kluczowy", "kluczowe", "kluczowa", "najważniejszy", "najważniejsze", "najważniejsza",
+  "doświadczenie", "doświadczenia", "doświadczeniu", "doświadczeniem",
+  "osiągnięcie", "osiągnięcia", "osiągnięte", "osiągnięty",
+  "podsumowanie", "podsumowaniu", "podsumowania", "sekcja", "sekcji", "sekcję",
+  "surface", "highlight", "highlighting", "worth", "move", "moved", "moving", "earlier", "above", "near", "closer",
+  "key", "important", "summary", "achieved", "achievement", "achievements", "experience", "section",
+]);
+
+// A Polish inflected form (zmniejszenie/zmniejszyła, ograniczenie/ograniczyła,
+// najnowszego/najnowsza) shares almost none of its exact spelling with the verb
+// or adjective form actually cited, even though it names the identical fact.
+// English barely inflects, so this prefix approximation is nearly a no-op there
+// and only does real work for Polish.
+function stem(token: string): string {
+  return token.slice(0, Math.min(token.length, 6));
+}
 
 function unsupportedFacts(proposed: string, sources: string[]): boolean {
   const source = sources.join(" ").toLocaleLowerCase("en");
@@ -48,10 +73,11 @@ function unsupportedFacts(proposed: string, sources: string[]): boolean {
 
 function excessiveSemanticNovelty(proposed: string, sources: string[]): boolean {
   const tokens = (value: string) => new Set((value.toLocaleLowerCase("en").match(/[\p{L}\p{N}]+/gu) || [])
-    .filter((token) => token.length >= 4 && !rewriteStopwords.has(token)));
+    .filter((token) => token.length >= 4 && !rewriteStopwords.has(token) && !repositioningStopwords.has(token)));
   const sourceTokens = tokens(sources.join(" "));
+  const sourceStems = new Set([...sourceTokens].map(stem));
   const proposedTokens = [...tokens(proposed)];
-  return proposedTokens.filter((token) => !sourceTokens.has(token)).length > 2;
+  return proposedTokens.filter((token) => !sourceTokens.has(token) && !sourceStems.has(stem(token))).length > 2;
 }
 
 // Models keep filing "no job description was supplied" as an ATS warning. It is
