@@ -14,6 +14,7 @@ The live prompt is chosen in exactly one place: `src/lib/ai/prompts/index.ts`. N
 | `stable` (default) | en | `review-en-v1.3.0` | `prompts/review-en-v1.ts` |
 | `v1.6-rc1` | pl | `v1.6-rc1` | `prompts/review-pl-v1_6-rc1.ts` |
 | `v1.6-rc2` | pl | `v1.6-rc2` | `prompts/review-pl-v1_6-rc2.ts` |
+| `v1.6-rc3` | pl | `v1.6-rc3` | `prompts/review-pl-v1_6-rc3.ts` |
 
 Select a variant with the `CV_REVIEW_PROMPT_VARIANT` environment variable. It defaults to `stable`, and an unrecognised value also resolves to `stable`, so production cannot be switched by a typo. `v1.6-rc1` is Polish-only on purpose: English stays on its stable prompt so a canary measures the Polish rewrite alone.
 
@@ -35,7 +36,11 @@ Analyses created before this field existed keep `null` and are reported as `lega
 
 ## Current candidate and the Natalie baseline
 
-The candidate under test is **`v1.6-rc2`**: the verbatim `v1.6-rc1` text plus a mandatory score-calibration procedure inserted as section 19 (the three trailing sections are renumbered). `v1.6-rc1` is left byte-for-byte intact, because four analyses are already attributed to it.
+The candidate under test is **`v1.6-rc3`**: `v1.6-rc2` plus one scope rule stating that `ats.findings` covers parsing and structure only, never matching against a specific job posting. Models filed "no job description was supplied" as an ATS warning in five separate runs, each worded differently. That is neither document hygiene nor a flaw in what a `full_review` reader bought, since the offer comparison is a separately paid plan.
+
+The server-side filter in `validate-report` stays in place regardless of the prompt, because this text is user-visible and commercially sensitive, and prompt rules have repeatedly proven model-dependent. The filter drops such findings only when no offer was supplied: with one, a keyword-gap finding against it is legitimate and `job_match` keeps it.
+
+`v1.6-rc2` was: the verbatim `v1.6-rc1` text plus a mandatory score-calibration procedure inserted as section 19 (the three trailing sections are renumbered). `v1.6-rc1` is left byte-for-byte intact, because four analyses are already attributed to it.
 
 `v1.6-rc2` ships together with two changes that make its central rule enforceable rather than aspirational:
 

@@ -39,6 +39,24 @@ describe("calibration audit", () => {
   });
 });
 
+describe("v1.6-rc3 prompt", () => {
+  it("keeps rc2's calibration procedure and adds the ats.findings scope rule", () => {
+    const original = process.env.CV_REVIEW_PROMPT_VARIANT;
+    process.env.CV_REVIEW_PROMPT_VARIANT = "v1.6-rc3";
+    try {
+      const resolved = getReviewPrompt("pl");
+      expect(resolved.variant).toBe("v1.6-rc3");
+      expect(resolved.version).toBe("v1.6-rc3");
+      expect(resolved.systemPrompt).toContain("KALIBRACJA SCORE — PROCEDURA OBOWIĄZKOWA");
+      expect(resolved.systemPrompt).toContain("Brak oferty nie jest wadą dokumentu");
+      expect(resolved.systemPrompt).toContain("Dopasowanie do oferty należy wyłącznie do jobMatch");
+    } finally {
+      if (original === undefined) delete process.env.CV_REVIEW_PROMPT_VARIANT;
+      else process.env.CV_REVIEW_PROMPT_VARIANT = original;
+    }
+  });
+});
+
 describe("v1.6-rc2 prompt", () => {
   it("is selectable and reports its own version", () => {
     const original = process.env.CV_REVIEW_PROMPT_VARIANT;
