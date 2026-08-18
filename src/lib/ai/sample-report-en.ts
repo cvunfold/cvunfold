@@ -2,94 +2,294 @@ import type { CVReport } from "./schemas/report";
 import { calculateOverall } from "./validate-report";
 import { getRubric, RUBRIC_VERSION } from "@/lib/rubrics/technical-v1";
 import { EN_PROMPT_VERSION } from "./prompts/review-en-v1";
+import { brand } from "@/lib/brand";
 
+// Direct translation of the Polish sample: VertexPay is the current role,
+// Railbird Mobility the previous one. Company names, the candidate name and
+// the numbers are unchanged; only the sentences are translated.
 const evidence = {
-  seg_summary: "Senior Frontend Developer with 7 years of experience in React, TypeScript and Next.js. I specialise in application performance and design systems.",
-  seg_exp_1: "Led the migration of three critical checkout journeys to Next.js. After release, p75 LCP fell from 3.1s to 2.2s and mobile abandonment decreased by 8%.",
-  seg_exp_2: "Designed and implemented a design system with 32 components used by four product teams.",
-  seg_exp_3: "Developed new features in React and TypeScript. Code review. Collaboration with UX and backend.",
-  seg_exp_4: "Authored the RFC for splitting the frontend monolith into domain modules and led alignment with the Checkout, Account and Platform teams.",
-  seg_project_1: "Created CI performance budgets and a Web Vitals dashboard that detects regressions before production release.",
+  seg_summary: "Senior Frontend Engineer with around eight years of experience in React and TypeScript, specialising in performance, accessibility and UI architecture.",
+  seg_4: "Coordinated the frontend delivery of the customer onboarding redesign used by three product teams, working with product, design and backend.",
+  seg_5: "Helped build a shared component library with 28 components, now used across several parts of the product.",
+  seg_6: "Planned and delivered the migration of onboarding screens from legacy Redux patterns to hooks, React Query and a more modular frontend structure.",
+  seg_7: "Improved Core Web Vitals and load performance across the onboarding and account-management flows.",
+  seg_8: "Built customer-facing features, conducted code review and supported less experienced frontend developers with day-to-day technical questions.",
+  seg_9: "Coordinated frontend implementation across several onboarding workstreams and took part in architecture discussions with backend engineers.",
+  seg_patterns: "Established reusable patterns for forms, navigation, validation and feedback states, working with designers and engineers from other teams as adoption grew.",
+  seg_rollout: "Set the rollout stages and release checks so the onboarding redesign shipped without disrupting active customer acquisition.",
+  seg_a11y: "Introduced Playwright tests into the release process and improved keyboard navigation and form error handling after an accessibility review.",
+  seg_b: "Reduced p75 LCP on the mobile booking flow from 4.4s to 2.5s and cut mobile booking abandonment by 10% through route-level code splitting, image optimisation and performance budgets in CI.",
+  seg_c: "Authored an RFC for splitting the large frontend application into domain modules and led alignment with the backend and platform teams before rollout.",
 } as const;
 
-const scores: Record<string, number> = { impact: 82, ownership: 72, credibility: 90, architecture: 80, collaboration: 84, clarity: 74, ats: 86 };
-const rationales: Record<string, string> = {
-  impact: "The CV contains measurable performance and conversion outcomes, but not for every important project.",
-  ownership: "The migration and RFC show initiative; some bullets still fail to separate the candidate's contribution from the team's work.",
-  credibility: "Technologies appear in concrete contexts: migration, Web Vitals measurement, CI and a design system.",
-  architecture: "The document shows decisions about modularisation and standards shared by several teams.",
-  collaboration: "Product, UX and backend collaboration is visible, as is cross-team decision facilitation.",
-  clarity: "The strongest evidence is specific, but it is mixed with generic responsibility bullets.",
-  ats: "Standard headings, a clear chronology and contextual keywords support parsing.",
+// Weighted to round to 79, not a rounder number — an important issue touches
+// impact, ownership and clarity, so each stays within the rc4 calibration
+// procedure's default cap of 79 for a category a material issue concerns.
+const scores: Record<string, number> = {
+  impact: 74,
+  ownership: 76,
+  credibility: 86,
+  architecture: 82,
+  collaboration: 82,
+  clarity: 72,
+  ats: 94,
 };
-const categoryScores = getRubric("senior", "frontend_developer", "en").map((category) => ({ ...category, score: scores[category.key], rationale: rationales[category.key], evidenceRefs: category.key === "ats" ? ["seg_summary"] : ["seg_exp_1", "seg_exp_4"] }));
+
+const rationales: Record<string, string> = {
+  impact: "The category has very strong evidence at Railbird Mobility: concrete LCP and abandonment results. At VertexPay, impact is stated but without a before/after comparison or an observable consequence, so the repeatability of evidence in the most recent role is limited.",
+  ownership: "The CV shows planning a migration, authoring an RFC and leading it to agreement. In the most recent role, though, some bullets use the verbs “Coordinated” and “Helped”, which makes the boundaries of personal responsibility less clear.",
+  credibility: "The document contains concrete frontend mechanisms and results: route-level code splitting, image optimisation, performance budgets, Playwright, an accessibility improvement and an architecture migration. This is evidence of practice, not just a technology list.",
+  architecture: "The RFC on domain modules, the migration to a more modular structure and the shared component library show systems thinking. VertexPay, however, lacks detail on component boundaries, the library's API or the reasoning behind key trade-offs.",
+  collaboration: "The CV shows collaboration with product, design, backend, QA and platform teams, plus work on a solution used by three product teams. Some bullets, however, do not specify what impact the applicant had on agreements and decisions.",
+  clarity: "The CV has clear sections, chronology and distinct specialisations, but the best evidence — concrete performance results and the RFC — sits with the earlier role. The most recent role and its initiatives are more generic, so the signal hierarchy does not maximise how seniority is read.",
+  ats: "The document has standard headings, a chronological employment history, dates, job titles, locations and clearly grouped competencies. There are no extraction artefacts or parsing issues visible.",
+};
+
+const categoryEvidenceRefs: Record<string, string[]> = {
+  impact: ["seg_b", "seg_7"],
+  ownership: ["seg_c", "seg_4", "seg_5"],
+  credibility: ["seg_b", "seg_a11y", "seg_6"],
+  architecture: ["seg_c", "seg_6", "seg_5"],
+  collaboration: ["seg_4", "seg_9"],
+  clarity: ["seg_b", "seg_c", "seg_8"],
+  ats: ["seg_summary"],
+};
+
+const categoryScores = getRubric("senior", "frontend_developer", "en").map((category) => ({
+  ...category,
+  score: scores[category.key],
+  rationale: rationales[category.key],
+  evidenceRefs: categoryEvidenceRefs[category.key],
+}));
 
 export const sampleProfileEn = {
-  name: "Marta Wysocka",
-  note: "Marta Wysocka, the companies and every business outcome are fictional. This sample demonstrates the report format and level of detail.",
+  name: "Julia Zawadzka",
+  location: "Warsaw · hybrid",
+  experience: "~8 years of experience",
+  target: "Senior Frontend Engineer",
+  note: `Julia Zawadzka, the companies and every business outcome are fictional. This sample demonstrates the format and level of detail of a ${brand.name} report.`,
+  skills: ["React", "TypeScript", "React Query", "Web Performance", "Accessibility", "Playwright"],
+  positions: [
+    {
+      company: "VertexPay",
+      role: "Senior Frontend Engineer",
+      period: "2023–present",
+      bullets: [evidence.seg_4, evidence.seg_5, evidence.seg_6, evidence.seg_7, evidence.seg_8],
+    },
+    {
+      company: "Railbird Mobility",
+      role: "Senior Frontend Engineer",
+      period: "2020–2023",
+      bullets: [evidence.seg_b, evidence.seg_c, evidence.seg_a11y],
+    },
+  ],
   evidence,
 } as const;
 
 export const sampleReportEn: CVReport = {
-  version: "2.0.0", rubricVersion: RUBRIC_VERSION, promptVersion: EN_PROMPT_VERSION, locale: "en", evidenceMap: evidence,
-  document: { detectedLanguage: "en", parseQuality: "good", targetRole: "Frontend Developer", targetSeniority: "senior", perceivedRole: "Frontend Developer", perceivedSeniority: "senior", perceivedSeniorityConfidence: "high" },
+  version: "2.1.0",
+  rubricVersion: RUBRIC_VERSION,
+  promptVersion: EN_PROMPT_VERSION,
+  locale: "en",
+  evidenceMap: evidence,
+  document: {
+    detectedLanguage: "en",
+    parseQuality: "good",
+    targetRole: "Frontend Developer",
+    targetSeniority: "senior",
+    perceivedRole: "Senior Frontend Engineer specialising in React, TypeScript, performance, accessibility and UI architecture",
+    perceivedSeniority: "senior",
+    perceivedSeniorityConfidence: "high",
+  },
   summary: {
     overallScore: calculateOverall(categoryScores),
-    oneSentenceVerdict: "The document credibly communicates Senior level, but loses some force because the candidate's individual contribution is unclear.",
-    strongestSignal: "Measurable checkout performance impact combined with architectural initiative.",
-    biggestRisk: "The strongest evidence sits next to generic responsibilities, so ownership is not always unambiguous.",
+    oneSentenceVerdict: "The CV credibly communicates Senior Frontend level, mainly through strong performance, architecture and quality evidence from the earlier role, but the most recent experience is described more generically and shows result and individual-ownership boundaries less clearly.",
+    strongestSignal: "Measurable performance impact combined with an architectural decision in the Senior Frontend Engineer role at Railbird Mobility.",
+    biggestRisk: "The most recent role describes a wide range of initiatives but without results or clear ownership boundaries, making its contribution to seniority harder to confirm.",
   },
   recruiterPerspective: {
-    profileSummary: "Senior Frontend Developer with a strong web-performance specialisation and visible architectural and cross-team impact.",
+    profileSummary: "The document shows an experienced frontend profile with around eight years in React and TypeScript. The strongest evidence concerns performance, modular architecture, end-to-end testing and accessibility. The most recent role suggests a broader scope of responsibility, but its description is less concrete than the Railbird Mobility role.",
     seniorityAlignment: "aligned",
-    seniorityAlignmentExplanation: "The document communicates Senior level through measurable outcomes, initiative and work beyond the candidate's own backlog. The main uncertainty is her exact decision scope in the design system.",
+    seniorityAlignmentExplanation: "The Senior target is supported by concrete technical decisions, results, usage scale, cross-team work and delivery-process impact. The reading of seniority rests mainly on Railbird Mobility, while VertexPay strengthens the picture of scope but documents impact and individual contribution less clearly.",
     positiveSignals: [
-      { title: "Impact connected to a product outcome", explanation: "The LCP improvement is linked to lower mobile checkout abandonment, making the product relevance visible.", evidenceRefs: ["seg_exp_1"] },
-      { title: "Architectural initiative", explanation: "Authoring an RFC and leading alignment with three teams suggests autonomy and influence over direction.", evidenceRefs: ["seg_exp_4"] },
-      { title: "A specialisation backed by practice", explanation: "CI performance budgets and a Web Vitals dashboard make the performance profile credible and distinctive.", evidenceRefs: ["seg_project_1"] },
+      {
+        title: "Measurable impact on performance and the product",
+        explanation: "The CV shows both the technical mechanism and the business/user outcome: the optimisations reduced p75 LCP from 4.4s to 2.5s and cut mobile booking abandonment by 10%.",
+        evidenceRefs: ["seg_b"],
+      },
+      {
+        title: "Credible architectural thinking",
+        explanation: "The RFC on splitting the application into domain modules, and leading it to agreement with the backend and platform teams, is concrete evidence of a systems-level decision beyond a single feature.",
+        evidenceRefs: ["seg_c"],
+      },
+      {
+        title: "A practical approach to quality and accessibility",
+        explanation: "Introducing Playwright tests into the release process, and improving keyboard navigation and form error handling after an accessibility review, show quality practices applied in the product.",
+        evidenceRefs: ["seg_a11y"],
+      },
+      {
+        title: "Breadth of frontend collaboration and impact",
+        explanation: "The VertexPay description points to work on a process used by three product teams, a shared library of 28 components, and collaboration with product, design and backend.",
+        evidenceRefs: ["seg_4", "seg_5"],
+      },
     ],
     reservations: [
-      { kind: "evidence", title: "Unclear design-system ownership", explanation: "‘Designed and implemented’ does not show which decisions belonged to the candidate and which to the four adopting teams.", evidenceRefs: ["seg_exp_2"] },
-      { kind: "evidence", title: "Strong evidence is mixed with duties", explanation: "The generic feature-development, review and collaboration bullet weakens the precise picture created by the other achievements.", evidenceRefs: ["seg_exp_3"] },
+      {
+        kind: "evidence",
+        title: "The most recent role shows results less clearly",
+        explanation: "VertexPay contains important initiatives, but the bullets on Core Web Vitals, the migration and the component library state no observable result or improvement mechanism.",
+        evidenceRefs: ["seg_6", "seg_7"],
+      },
+      {
+        kind: "evidence",
+        title: "Individual ownership boundaries need clarification",
+        explanation: "The phrases “Helped build”, “Coordinated” and “took part in discussions” show involvement in important initiatives, but do not clearly separate personal decisions from the team's work.",
+        evidenceRefs: ["seg_4", "seg_5", "seg_9"],
+      },
+      {
+        kind: "evidence",
+        title: "The strongest evidence of seniority sits in the earlier role",
+        explanation: "The most convincing numbers and architectural decisions are described at Railbird Mobility, while the most recent role occupies the more prominent position but has more generic bullets.",
+        evidenceRefs: ["seg_b", "seg_c"],
+      },
     ],
     likelyInterviewQuestions: [
-      { question: "Which design-system decisions did you own directly?", whyThisQuestion: "The interviewer will want to separate individual ownership from work shared by several teams.", evidenceRefs: ["seg_exp_2"] },
-      { question: "What trade-off shaped the split into domain modules?", whyThisQuestion: "The RFC is a strong seniority signal, but the CV does not show alternatives or decision criteria.", evidenceRefs: ["seg_exp_4"] },
-      { question: "What changed after design-system adoption beyond the component count?", whyThisQuestion: "Scale is visible, but the organisational or product outcome is not.", evidenceRefs: ["seg_exp_2"] },
+      {
+        question: "Which technical decisions during the migration from Redux to hooks and React Query belonged directly to you, and which were agreed as a team?",
+        whyThisQuestion: "The CV describes planning and delivering the migration, but does not show its scope, constraints or specific trade-offs.",
+        evidenceRefs: ["seg_6"],
+      },
+      {
+        question: "What concrete result did the 28-component library deliver, and what was the scope of your personal contribution to building it?",
+        whyThisQuestion: "The document states the component count and adoption, but does not describe the effect on consistency, delivery speed, quality or ownership of standards.",
+        evidenceRefs: ["seg_5"],
+      },
+      {
+        question: "How was the Core Web Vitals and performance improvement at VertexPay measured, and which technical work had the biggest effect?",
+        whyThisQuestion: "The most recent role states a performance improvement but gives no before/after values or improvement mechanism.",
+        evidenceRefs: ["seg_7"],
+      },
+      {
+        question: "What were the constraints and criteria for the staged rollout of the onboarding modernisation?",
+        whyThisQuestion: "The CV points to pre-release checks and a rollout that did not disrupt onboarding, but does not explain the decisions, risks or coordination involved.",
+        evidenceRefs: ["seg_rollout"],
+      },
     ],
   },
   categoryScores,
   recruiterSimulation: {
-    after5Seconds: "An experienced Frontend Developer with a current stack and a clear progression.",
-    after10Seconds: "Specific outcomes stand out: improved LCP, lower abandonment and a design system used by four teams.",
-    after20Seconds: "The profile meets Senior expectations; the interview still needs to establish individual contribution to team initiatives.",
-    simulatedDecision: "interview", confidence: "high",
-    reasons: ["Outcomes are measurable and placed in product context.", "The CV shows initiated change, not just delivered tasks.", "Technologies are supported by concrete applications."],
-    whatCouldImproveDecision: ["Clarify personal responsibility for the design system.", "Replace the generic feature-development bullet with one decision or outcome."],
+    after5Seconds: "A Senior Frontend Engineer with around eight years of experience, focused on React, TypeScript, performance, accessibility and UI architecture.",
+    after10Seconds: "A concrete performance result stands out — p75 LCP down from 4.4s to 2.5s — along with experience authoring an RFC and splitting a large application into domain modules.",
+    after20Seconds: "The profile gives good reason for a Senior Frontend conversation, but raises the question of whether the most recent role had comparable impact and ownership scope, since its results are described less concretely.",
+    simulatedDecision: "interview",
+    confidence: "high",
+    reasons: [
+      "The performance result is measurable and tied to a concrete technical mechanism.",
+      "The RFC and the alignment with backend and platform teams show architectural impact.",
+      "The most recent role shows a wide collaboration scope, even though its results are described less concretely.",
+    ],
+    whatCouldImproveDecision: [
+      "Clarifying results and personal decisions in the most recent VertexPay role.",
+      "Better surfacing the strongest evidence without implying that Railbird Mobility's results belong to VertexPay.",
+    ],
   },
   strengths: [
-    { id: "s1", title: "Outcomes connected to product value", explanation: "The LCP improvement is not isolated; it is connected to lower mobile checkout abandonment.", evidenceRefs: ["seg_exp_1"] },
-    { id: "s2", title: "Visible architectural initiative", explanation: "Authoring the RFC and leading alignment signal influence beyond the candidate's own backlog.", evidenceRefs: ["seg_exp_4"] },
-    { id: "s3", title: "Technical credibility", explanation: "Web Vitals, performance budgets and CI form a specific and coherent performance specialisation.", evidenceRefs: ["seg_project_1"] },
-    { id: "s4", title: "Cross-team impact", explanation: "A design system used by four teams shows organisational scale.", evidenceRefs: ["seg_exp_2"] },
+    {
+      id: "s1",
+      title: "A performance result tied to its mechanism",
+      explanation: "The document does not stop at a performance-improvement claim: it states the p75 LCP change, the effect on booking abandonment, and the technical work behind it.",
+      evidenceRefs: ["seg_b"],
+    },
+    {
+      id: "s2",
+      title: "Evidence of an architectural decision",
+      explanation: "Authoring the RFC on domain modules and leading it to agreement with other teams show work on the structure of a larger frontend application.",
+      evidenceRefs: ["seg_c"],
+    },
+    {
+      id: "s3",
+      title: "Frontend quality spanning testing and accessibility",
+      explanation: "Introducing Playwright into the release process, plus concrete keyboard-navigation and form-error-handling improvements, strengthen the profile's credibility.",
+      evidenceRefs: ["seg_a11y"],
+    },
+    {
+      id: "s4",
+      title: "Experience with shared solutions",
+      explanation: "The 28-component library and the reusable patterns for forms, navigation, validation and feedback states show impact broader than a single feature.",
+      evidenceRefs: ["seg_5", "seg_patterns"],
+    },
   ],
   issues: [
-    { id: "i1", severity: "critical", category: "ownership", title: "‘Designed and implemented’ hides the actual decision scope", explanation: "The design system sounds substantial, but the bullet does not separate the candidate's decisions, implementation work and the contribution of other teams.", whyItMatters: "For a Senior role, the reader needs to understand decision scope: API standards, governance, adoption, migration or component implementation.", evidenceRefs: ["seg_exp_2"], confidence: "high", action: "Add the verified responsibility scope and how adoption across four teams was achieved.", suggestion: { type: "question", original: evidence.seg_exp_2, proposed: null, factualityNote: "Which design-system decisions did you own directly, and how did adoption work across the four teams?" } },
-    { id: "i2", severity: "important", category: "clarity", title: "A generic bullet weakens an otherwise strong section", explanation: "After two concrete achievements, a list of standard responsibilities adds no new information.", whyItMatters: "The reader may interpret the section as shared team duties instead of noticing individual impact.", evidenceRefs: ["seg_exp_3"], confidence: "high", action: "Remove the bullet or replace it with one specific feature, decision or problem solved with UX and backend.", suggestion: { type: "rewrite", original: evidence.seg_exp_3, proposed: "Developed features in React and TypeScript, conducted code review and collaborated with UX and backend.", factualityNote: "This only organises facts already present; replacing it with a concrete example would be stronger." } },
-    { id: "i3", severity: "important", category: "impact", title: "The design system has no stated outcome", explanation: "The number of components and teams shows scale, but not what changed after adoption.", whyItMatters: "Solution scale is not the same as impact. The effect may have been faster delivery, fewer regressions or consistency — the document does not establish which.", evidenceRefs: ["seg_exp_2"], confidence: "medium", action: "Add only a verified adoption outcome, or explicitly leave the bullet without a number.", suggestion: { type: "gap", original: null, proposed: null, factualityNote: "Do not add percentages or time savings without data. Check pull requests, release notes or adoption metrics." } },
-    { id: "i4", severity: "minor", category: "clarity", title: "The performance specialisation appears too late", explanation: "Performance budgets and automatic regression detection are strong differentiators, but only appear in an earlier role.", whyItMatters: "This evidence supports the current specialisation and should be visible in the summary or most recent experience.", evidenceRefs: ["seg_project_1"], confidence: "high", action: "Add a short reference to performance governance in the summary without duplicating the full bullet.", suggestion: { type: "expose", original: null, proposed: null, factualityNote: "This exposure change uses only information already present in the CV." } },
+    {
+      id: "i1",
+      severity: "important",
+      category: "impact",
+      title: "The most recent role states an improvement but not its consequence",
+      explanation: "VertexPay bullets mention improving Core Web Vitals, the component library and the migration, but show no before/after values, regression reduction, faster delivery or other observable outcome. The earlier role contains a markedly stronger impact signal.",
+      whyItMatters: "For a Senior target, the reader needs to see that impact and results are current, not only tied to earlier experience.",
+      evidenceRefs: ["seg_5", "seg_6", "seg_7", "seg_b"],
+      confidence: "high",
+      action: "For each key VertexPay initiative, establish a concrete observable consequence, then add it to the relevant bullet only when it follows from actual data or a confirmable effect.",
+      suggestion: {
+        type: "question",
+        original: evidence.seg_7,
+        proposed: null,
+        factualityNote: "The CV does not contain enough to safely write a stronger version without adding an unknown fact. What was the Core Web Vitals value before and after the VertexPay change?",
+      },
+    },
+    {
+      id: "i2",
+      severity: "important",
+      category: "ownership",
+      title: "Individual ownership boundaries are unclear in the most important initiatives",
+      explanation: "VertexPay uses the phrases “Coordinated”, “Helped build” and “took part in architecture discussions”. These show involvement in important work, but do not explain which decisions, implementation elements and agreements belonged directly to the applicant.",
+      whyItMatters: "An unclear split of responsibility can weaken the Senior-level reading, even when the initiative itself has the right scope.",
+      evidenceRefs: ["seg_4", "seg_5", "seg_9", "seg_patterns"],
+      confidence: "high",
+      action: "Clarify the personal decisions, implementation scope and responsibility for agreements in the onboarding redesign and the component library before strengthening the verbs describing your contribution.",
+      suggestion: {
+        type: "question",
+        original: evidence.seg_5,
+        proposed: null,
+        factualityNote: "Do not replace “Helped build” with a stronger verb without confirming the real ownership scope. Which component-library decisions were directly yours?",
+      },
+    },
+    {
+      id: "i3",
+      severity: "important",
+      category: "clarity",
+      title: "The strongest evidence is less exposed than the most recent role",
+      explanation: "The most concrete achievements — the LCP result, the effect on booking abandonment and the architectural RFC — sit with Railbird Mobility. VertexPay, the first and most prominent role, is dominated by descriptions of coordination, feature-building and support.",
+      whyItMatters: "A first read of the CV may suggest less current impact than the document as a whole actually shows.",
+      evidenceRefs: ["seg_4", "seg_5", "seg_6", "seg_8", "seg_b", "seg_c"],
+      confidence: "high",
+      action: "Move the LCP result and the RFC closer to the summary, keeping their attribution to the Senior Frontend Engineer role at Railbird Mobility.",
+      suggestion: {
+        type: "expose",
+        original: evidence.seg_b,
+        proposed: "Reducing p75 LCP on the booking flow from 4.4s to 2.5s and cutting mobile booking abandonment by 10%, together with the RFC splitting the application into domain modules agreed with the backend and platform teams — the strongest evidence of seniority in this document — is worth surfacing closer to the summary, while keeping its attribution to the Senior Frontend Engineer role at Railbird Mobility.",
+        factualityNote: "This change uses only existing facts; only their exposure changes, and the attribution to Railbird Mobility is preserved so the result does not look like a VertexPay achievement.",
+      },
+    },
   ],
-  ats: { score: 86, findings: [
-    { type: "positive", title: "Standard structure", explanation: "Section names, job titles and dates are easy for a parser to identify." },
-    { type: "positive", title: "Keywords have context", explanation: "React, Next.js, CI and Web Vitals appear next to concrete work." },
-    { type: "warning", title: "Some stack duplication", explanation: "The skills list repeats technology already visible in experience and could be shorter." },
-  ] },
+  ats: {
+    score: 94,
+    findings: [
+      { type: "positive", title: "A readable document structure", explanation: "The CV contains recognisable sections for summary, skills, experience, initiatives, education and languages." },
+      { type: "positive", title: "Consistent dates and job titles", explanation: "Roles include employer names, locations and unambiguous employment periods in a month–year format." },
+      { type: "positive", title: "A parseable list of technical skills", explanation: "Technologies are grouped by area, such as frontend, architecture, quality and delivery." },
+      { type: "warning", title: "Mixed terminology language", explanation: "The document mixes narrative in one language with English technical terms and job titles; this reads fine, but it is worth keeping a consistent style for headings and descriptions." },
+    ],
+  },
   jobMatch: null,
   nextSteps: [
-    { priority: 1, title: "Clarify design-system ownership", action: "Name your decisions, collaboration and responsibility for adoption.", expectedImpact: "high" },
-    { priority: 2, title: "Remove the generic duty bullet", action: "Replace it with one specific product problem and your contribution.", expectedImpact: "high" },
-    { priority: 3, title: "Add a design-system outcome", action: "Check available evidence and state the effect without estimating unknown numbers.", expectedImpact: "medium" },
-    { priority: 4, title: "Expose the specialisation", action: "Move the performance-governance signal into the profile summary.", expectedImpact: "medium" },
+    { priority: 1, title: "Clarify the impact of the most recent role", action: "Establish and add to the VertexPay bullets verifiable results for the performance improvement, the migration and the component library, without inventing new or unconfirmed metrics.", expectedImpact: "high" },
+    { priority: 2, title: "Clarify your personal scope of responsibility", action: "In the VertexPay descriptions, separate your own decisions and actions from the team's work, particularly for onboarding, the component library and the migration rollout.", expectedImpact: "high" },
+    { priority: 3, title: "Strengthen the hierarchy of existing evidence", action: "Move or highlight the LCP result and the RFC in the achievements summary, while keeping their attribution to Railbird Mobility unambiguous.", expectedImpact: "medium" },
   ],
-  limitations: ["The review covers only information visible in the sample document.", "The first-impression simulation does not predict a specific hiring process.", "Every person, company and outcome in this sample is fictional."],
+  limitations: [
+    "The review covers only information visible in the sample document.",
+    "The first-impression simulation does not predict the outcome of a specific hiring process.",
+    "Every person, company and outcome in this sample is fictional.",
+  ],
 };
