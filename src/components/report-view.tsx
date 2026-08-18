@@ -54,7 +54,7 @@ const copy = {
     deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
     samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV", backHome: "Wróć do strony głównej",
     mobileSummary: "Twój bezpłatny wynik", fullIncludes: "Pełny raport zawiera",
-    teaserFinding: "WYKRYTY PROBLEM", teaserLocked: "Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.", teaserSidebar: "Pełna diagnoza pokaże dowody, wpływ problemu i bezpieczne poprawki.",
+    atsTitle: "ATS / higiena techniczna dokumentu", atsCaption: "Czy plik da się poprawnie odczytać i sparsować. To nie jest ocena treści ani poziomu.", teaserFinding: "WYKRYTY PROBLEM", teaserLocked: "Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.", teaserSidebar: "Pełna diagnoza pokaże dowody, wpływ problemu i bezpieczne poprawki.",
   },
   en: {
     sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
@@ -74,7 +74,7 @@ const copy = {
     deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
     samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV", backHome: "Back to homepage",
     mobileSummary: "Your free result", fullIncludes: "The full report includes",
-    teaserFinding: "DETECTED ISSUE", teaserLocked: "See where it appears, how it affects the reader and what to change.", teaserSidebar: "The full diagnosis shows the evidence, impact and fact-safe improvements.",
+    atsTitle: "ATS / technical document hygiene", atsCaption: "Whether the file parses correctly. This is not an assessment of content or seniority.", teaserFinding: "DETECTED ISSUE", teaserLocked: "See where it appears, how it affects the reader and what to change.", teaserSidebar: "The full diagnosis shows the evidence, impact and fact-safe improvements.",
   },
 } as const;
 
@@ -168,6 +168,10 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
   const trackedPurchaseViews = useRef(new Set<string>());
   const isFree = !paid && !demo;
   const full = paid ? reportData as CVReport : null;
+  // ATS is document hygiene, not a seniority signal, so it is shown apart from
+  // the rubric list. It stays inside overallScore: at senior its weight is 4%,
+  // and removing it would move the result by at most a point.
+  const atsCategory = reportData && "categoryScores" in reportData ? reportData.categoryScores.find((category) => category.key === "ats") : undefined;
   const teaser = !paid ? reportData as TeaserReport : null;
   const data = reportData as CVReport;
   const price = formatPlanPrice(plan, locale);
@@ -412,7 +416,13 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
 
         <section className="report-section">
           <div className="section-heading"><span>03</span><h2>{t.categories}</h2></div>
-          <div className="score-rows">{data.categoryScores.map((category) => <div key={category.key}><b>{category.label}</b><p>{category.rationale}</p><strong>{category.score}<small>/100</small></strong><i><span style={{ width: `${category.score}%` }}/></i></div>)}</div>
+          <div className="score-rows">{data.categoryScores.filter((category) => category.key !== "ats").map((category) => <div key={category.key}><b>{category.label}</b><p>{category.rationale}</p><strong>{category.score}<small>/100</small></strong><i><span style={{ width: `${category.score}%` }}/></i></div>)}</div>
+          {atsCategory ? <div className="ats-panel">
+            <div><b>{t.atsTitle}</b><p>{t.atsCaption}</p></div>
+            <div className="ats-score"><strong>{atsCategory.score}<small>/100</small></strong><i><span style={{ width: `${atsCategory.score}%` }}/></i></div>
+            {atsCategory.rationale ? <p className="ats-rationale">{atsCategory.rationale}</p> : null}
+            {full?.ats?.findings?.length ? <ul className="ats-findings">{full.ats.findings.map((finding) => <li key={finding.title} className={`ats-${finding.type}`}><b>{finding.title}</b><span>{finding.explanation}</span></li>)}</ul> : null}
+          </div> : null}
         </section>
 
         {full ? <>

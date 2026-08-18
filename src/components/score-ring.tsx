@@ -15,7 +15,7 @@ const BANDS = [
   { min: 85, tone: "strong", pl: "Mocny dokument", en: "Strong document" },
   { min: 70, tone: "good", pl: "Dobry kierunek", en: "Good direction" },
   { min: 55, tone: "mixed", pl: "Wymaga dopracowania", en: "Needs work" },
-  { min: 40, tone: "weak", pl: "Dużo do poprawy", en: "Substantial gaps" },
+  { min: 40, tone: "weak", pl: "Sporo do poprawy", en: "Substantial gaps" },
   { min: 0, tone: "critical", pl: "Dokument nie broni poziomu", en: "Does not support the level" },
 ] as const;
 

@@ -114,3 +114,28 @@ describe("free report purchase hierarchy", () => {
     expect(JSON.stringify(analytics.mock.calls)).not.toContain("Zakres ownershipu jest niejasny");
   });
 });
+
+describe("ATS presentation", () => {
+  it("keeps ATS out of the seniority category list and shows it as separate hygiene", () => {
+    const report = createMockReport();
+    const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
+
+    const categoryLabels = [...container.querySelectorAll(".score-rows > div > b")].map((node) => node.textContent);
+    expect(categoryLabels.length).toBe(report.categoryScores.length - 1);
+    expect(categoryLabels.some((label) => label?.includes("ATS"))).toBe(false);
+
+    const panel = container.querySelector(".ats-panel");
+    expect(panel).not.toBeNull();
+    const atsCategory = report.categoryScores.find((category) => category.key === "ats");
+    expect(panel?.textContent).toContain(String(atsCategory?.score));
+    // The separation only means something if it says what ATS is not.
+    expect(panel?.textContent).toContain("To nie jest ocena treści ani poziomu.");
+  });
+
+  it("surfaces the ATS findings the model already produced", () => {
+    const report = createMockReport();
+    const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
+    const findings = container.querySelectorAll(".ats-findings li");
+    expect(findings.length).toBe(report.ats.findings.length);
+  });
+});

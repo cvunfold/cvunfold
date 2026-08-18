@@ -252,7 +252,6 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   --score: 260deg;
   /* A fixed accent made a 51 look like a 92: only the arc length differed. */
   --score-arc: var(--accent);
-  --score-label: var(--accent-deep);
   width: 180px;
   aspect-ratio: 1;
   flex: none;
@@ -272,12 +271,12 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .score-ring > div { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; }
 .score-ring strong { font: 600 66px/1 var(--serif); letter-spacing: -.06em; }
 .score-ring span { font-size: 14px; }
-.score-ring small { flex-basis: 100%; margin-top: 9px; color: var(--score-label); font-size: 12px; font-weight: 750; text-align: center; }
-.score-ring.tone-strong { --score-arc: #4b8b1f; --score-label: #3d7016; }
-.score-ring.tone-good { --score-arc: var(--accent); --score-label: var(--accent-deep); }
-.score-ring.tone-mixed { --score-arc: #d6a400; --score-label: var(--warning); }
-.score-ring.tone-weak { --score-arc: #d97706; --score-label: #9a4a06; }
-.score-ring.tone-critical { --score-arc: #c9483c; --score-label: var(--danger); }
+.score-ring small { flex-basis: 100%; margin-top: 9px; color: var(--score-arc); font-size: 12px; font-weight: 750; text-align: center; }
+.score-ring.tone-strong { --score-arc: #4b8b1f; }
+.score-ring.tone-good { --score-arc: var(--accent); }
+.score-ring.tone-mixed { --score-arc: #d6a400; }
+.score-ring.tone-weak { --score-arc: #d97706; }
+.score-ring.tone-critical { --score-arc: #c9483c; }
 .score-ring.compact { width: 150px; }
 .score-ring.compact strong { font-size: 52px; }
 
@@ -772,6 +771,22 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .score-rows strong small { color: var(--muted); font-size: 12px; font-weight: 500; }
 .score-rows i { height: 4px; background: #e2e4e2; }
 .score-rows i span { display: block; height: 100%; background: var(--accent); }
+.ats-panel { margin-top: 18px; padding: 15px 17px; border: 1px solid var(--line); border-radius: var(--radius); background: #fafbf9; }
+.ats-panel > div:first-child b { display: block; color: var(--ink); font-size: var(--report-small); font-weight: 800; }
+.ats-panel > div:first-child p { margin: 3px 0 0; color: var(--muted); font-size: var(--report-label); }
+.ats-score { display: grid; grid-template-columns: 56px 1fr; align-items: center; gap: 14px; margin-top: 11px; }
+.ats-score strong { font-size: var(--report-small); }
+.ats-score strong small { color: var(--muted); font-size: 12px; font-weight: 500; }
+.ats-score i { height: 4px; background: #e2e4e2; }
+.ats-score i span { display: block; height: 100%; background: var(--muted); }
+.ats-rationale { margin: 10px 0 0; color: var(--muted); font-size: var(--report-label); }
+.ats-findings { margin: 11px 0 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.ats-findings li { display: grid; grid-template-columns: 190px 1fr; gap: 12px; padding-left: 9px; border-left: 2px solid var(--line); font-size: var(--report-label); }
+.ats-findings b { color: var(--ink); font-weight: 700; }
+.ats-findings span { color: var(--muted); }
+.ats-findings li.ats-positive { border-left-color: var(--accent); }
+.ats-findings li.ats-warning { border-left-color: #d6a400; }
+.ats-findings li.ats-error { border-left-color: var(--danger); }
 .report-knowledge { display: flex; align-items: center; gap: 24px; margin-top: 16px; padding: 13px 0 0; border-top: 1px solid var(--line); }
 .report-knowledge > span { flex: none; color: var(--muted); font-size: var(--report-label); font-weight: 800; letter-spacing: .08em; }
 .report-knowledge > div { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -1083,6 +1098,7 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   .report-actions { margin: 20px 0 0; }
   .section-heading { flex-wrap: wrap; }
   .section-knowledge-link { width: 100%; margin: 1px 0 0 29px; }
+  .ats-findings li { grid-template-columns: 1fr; gap: 2px; }
   .report-knowledge { align-items: flex-start; flex-direction: column; gap: 9px; }
   .recruiter-profile > div > p { font-size: 24px; }
   .recruiter-map-locked { align-items: flex-start; }
