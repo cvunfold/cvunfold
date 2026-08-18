@@ -87,15 +87,17 @@ z GA jest więc zaniżona o nieznany współczynnik zgód i nie nadaje się do o
 reklam ani wielkości lejka.
 
 Autorytatywne liczby są w tabeli `funnel_events`, zapisywanej po stronie serwera, bez cookies,
-identyfikatorów i danych osobowych. `upload-flow` dokleja do żądania analizy atrybucję z
+identyfikatorów i danych osobowych. Każdy nowy zapis ma osobną, serwerową etykietę
+`runtime_environment` (`production`, `preview` albo `development`); wpisy sprzed tej zmiany pozostają
+`legacy_unknown` i nie mogą być uznawane za produkcyjne. `upload-flow` dokleja do żądania analizy atrybucję z
 `sessionStorage`, więc `source`, `medium` i `campaign` mamy również dla osób, które zgody nie
 wyraziły.
 
 ```bash
-ADMIN_SECRET=… FUNNEL_BASE_URL=https://cvunfold.com pnpm funnel --days 7
+ADMIN_SECRET=… FUNNEL_BASE_URL=https://cvunfold.com pnpm funnel --days 7 --environment production
 ```
 
-Skrypt czyta `GET /api/admin/diagnostics?days=N` (1–90, domyślnie 1) i drukuje lejek, wskaźniki
+Skrypt czyta `GET /api/admin/diagnostics?days=N&environment=production` (1–90, domyślnie 1) i drukuje lejek, wskaźniki
 konwersji, podział ruchu według `source`/`medium` oraz przyczyny nieudanych analiz. Porównanie
 `analysis_started` z tego raportu z `upload_started` w GA4 daje współczynnik zgód — mnożnik,
 przez który trzeba czytać cały panel GA.

@@ -10,6 +10,7 @@ import {
 } from "@/lib/analytics/anonymous-role-statistics";
 import type { Locale } from "@/lib/i18n";
 import type { Market, Plan } from "@/lib/plans";
+import { runtimeEnvironmentFrom, type RuntimeEnvironment } from "@/lib/runtime-environment";
 import { hashToken } from "@/lib/security/tokens";
 
 export type AnalysisFeedback = { rating: number; accurate: string; issueId?: string; comment?: string };
@@ -106,6 +107,7 @@ export async function saveAnalysis(token: string, analysis: Omit<Analysis, "toke
     access_token_hash: tokenHash, expires_at: analysis.expiresAt.toISOString(), paid_at: analysis.paid ? analysis.createdAt.toISOString() : null,
     completed_at: analysis.createdAt.toISOString(), duration_ms: analysis.durationMs ?? null,
     review_provenance: analysis.provenance ?? null,
+    runtime_environment: runtimeEnvironmentFrom(),
   });
   if (analysisError) throw new Error("SUPABASE_SAVE_FAILED");
   const { error: reportError } = await client.from("reports").insert({ analysis_id: analysis.id, report_version: analysis.report.version, full_report_json: analysis.report });
@@ -296,6 +298,7 @@ export async function recordFunnelEvent(input: {
     event_name: input.name,
     locale: input.locale,
     market: input.market,
+    runtime_environment: runtimeEnvironmentFrom(),
     safe_properties: safeProperties,
     dedupe_key: input.dedupeKey || null,
   });
@@ -352,14 +355,21 @@ export function summarizeTrafficMix(
   return { bySource: tally("source"), byMedium: tally("medium"), paidClicks };
 }
 
-export async function diagnostics(options: { windowDays?: number } = {}) {
+export async function diagnostics(options: { windowDays?: number; runtimeEnvironment?: RuntimeEnvironment } = {}) {
   const windowDays = clampWindowDays(options.windowDays ?? 1);
+  const runtimeEnvironment = options.runtimeEnvironment;
   const client = supabaseClient();
   if (client) {
     const since = new Date(Date.now() - windowDays * 86_400_000).toISOString();
+    const analysesQuery = client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,review_model,review_provenance,attribution,job_description_present,runtime_environment").gte("created_at", since);
+    const eventsQuery = client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since);
+    if (runtimeEnvironment) {
+      analysesQuery.eq("runtime_environment", runtimeEnvironment);
+      eventsQuery.eq("runtime_environment", runtimeEnvironment);
+    }
     const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }, { data: feedbackNoteRows, error: feedbackNotesError }, { data: anonymousRoleRows, error: anonymousRoleError }] = await Promise.all([
-      client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,review_model,review_provenance,attribution,job_description_present").gte("created_at", since),
-      client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since),
+      analysesQuery,
+      eventsQuery,
       client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market,livemode").gte("created_at", since),
       client.from("feedback").select("rating,accurate").gte("created_at", since),
       client.from("feedback_quality_aggregates").select("rating,accurate,response_count"),
@@ -372,7 +382,8 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
     const count = (name: string) => Number(eventCounts[name] || 0);
     const ratio = (numerator: number, denominator: number) => denominator ? Math.round(numerator / denominator * 10_000) / 100 : null;
     const analysisById = new Map((analyses || []).map((analysis) => [analysis.id, analysis]));
-    const paidPayments = (payments || []).filter(isRealPurchase);
+    const scopedPayments = (payments || []).filter((payment) => !runtimeEnvironment || analysisById.get(payment.analysis_id)?.runtime_environment === runtimeEnvironment);
+    const paidPayments = scopedPayments.filter(isRealPurchase);
     const segmentCounts = (values: string[]) => Object.fromEntries([...new Set(values)].sort()
       .map((value) => [value, values.filter((candidate) => candidate === value).length]));
     const analysisSegment = (key: keyof Attribution, fallback: string) => (analyses || []).map((analysis) => {
@@ -395,6 +406,7 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
     return {
       windowDays,
       windowHours: windowDays * 24,
+      runtimeEnvironment: runtimeEnvironment || "all",
       landingSessions: { value: null, sourceOfTruth: "GA4" },
       trafficMix: summarizeTrafficMix((events || []).map((event) => ({
         event_name: event.event_name,
