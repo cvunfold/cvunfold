@@ -250,6 +250,9 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 
 .score-ring {
   --score: 260deg;
+  /* A fixed accent made a 51 look like a 92: only the arc length differed. */
+  --score-arc: var(--accent);
+  --score-label: var(--accent-deep);
   width: 180px;
   aspect-ratio: 1;
   flex: none;
@@ -257,7 +260,7 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: conic-gradient(from -45deg, var(--accent) var(--score), #dfe1df 0);
+  background: conic-gradient(from -45deg, var(--score-arc) var(--score), #dfe1df 0);
   animation: score-reveal .9s cubic-bezier(.2, .78, .25, 1) both;
   transition: transform .28s cubic-bezier(.2, .78, .25, 1), filter .28s ease;
 }
@@ -269,7 +272,12 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .score-ring > div { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; }
 .score-ring strong { font: 600 66px/1 var(--serif); letter-spacing: -.06em; }
 .score-ring span { font-size: 14px; }
-.score-ring small { flex-basis: 100%; margin-top: 9px; color: var(--accent-deep); font-size: 12px; font-weight: 750; text-align: center; }
+.score-ring small { flex-basis: 100%; margin-top: 9px; color: var(--score-label); font-size: 12px; font-weight: 750; text-align: center; }
+.score-ring.tone-strong { --score-arc: #4b8b1f; --score-label: #3d7016; }
+.score-ring.tone-good { --score-arc: var(--accent); --score-label: var(--accent-deep); }
+.score-ring.tone-mixed { --score-arc: #d6a400; --score-label: var(--warning); }
+.score-ring.tone-weak { --score-arc: #d97706; --score-label: #9a4a06; }
+.score-ring.tone-critical { --score-arc: #c9483c; --score-label: var(--danger); }
 .score-ring.compact { width: 150px; }
 .score-ring.compact strong { font-size: 52px; }
 

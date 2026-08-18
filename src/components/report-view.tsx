@@ -370,7 +370,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
         <strong className="perceived-level">{seniorityLabel(data.document.perceivedSeniority)}</strong>
         <span className="overline">{t.first20}</span>
         <strong className={`sidebar-decision ${data.recruiterSimulation.simulatedDecision}`}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong>
-        <div className="secondary-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} statusLabel={locale === "pl" ? "Dobry kierunek" : "Good direction"}/></div>
+        <div className="secondary-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale}/></div>
         <hr/>
         <p className="verdict">{data.summary.oneSentenceVerdict}</p>
         <ul className="report-includes"><li><span>{t.fullIssues}</span><b>{counts.issues}</b></li><li><span>{t.strengths}</span><b>{counts.strengths}</b></li><li><span>{t.nextSteps}</span><b>{counts.nextSteps}</b></li></ul>
@@ -389,7 +389,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
           </div>
         </header>
         <section className="report-mobile-summary" aria-label={!paid && !demo ? t.mobileSummary : t.overall}>
-          <div className="report-mobile-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} statusLabel={locale === "pl" ? "Dobry kierunek" : "Good direction"}/></div>
+          <div className="report-mobile-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale}/></div>
           <div className="report-mobile-summary-copy">
             <span className="report-mobile-summary-title">{!paid && !demo ? t.mobileSummary : t.overall}</span>
             <div className="report-mobile-signals"><div><span>{t.perceivedLevel}</span><strong>{data.document.perceivedRole} · {seniorityLabel(data.document.perceivedSeniority)}</strong></div><div><span>{t.first20}</span><strong className={data.recruiterSimulation.simulatedDecision}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong></div></div>
