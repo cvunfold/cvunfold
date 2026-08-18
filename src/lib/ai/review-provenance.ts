@@ -1,4 +1,5 @@
 import type { ReviewPromptVariant } from "./prompts";
+import type { ResolvedPricing } from "./model-pricing";
 
 // Bump this when the server-side report pipeline changes in a way that can alter
 // a stored report for identical model output — segmentation, evidence
@@ -24,4 +25,5 @@ export type ReviewProvenance = {
     responseFormat: string;
     store: boolean;
   };
+  pricing: ResolvedPricing;
 };

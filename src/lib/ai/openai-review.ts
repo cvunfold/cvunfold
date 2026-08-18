@@ -7,6 +7,7 @@ import { getRubric, RUBRIC_VERSION, type Seniority } from "@/lib/rubrics/technic
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
 import { getReviewPrompt } from "./prompts";
 import { REVIEW_PIPELINE_VERSION, type ReviewProvenance } from "./review-provenance";
+import { estimateCostUsd } from "./model-pricing";
 
 type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSeniority: Seniority; jobDescription?: string; locale: "pl" | "en"; maxOutputTokens?: number };
 export type ReviewTelemetry = { model: string; inputTokens: number; outputTokens: number; estimatedCost: number | null; provenance: ReviewProvenance };
@@ -129,13 +130,8 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
   );
   const inputTokens = response.usage?.input_tokens || 0;
   const outputTokens = response.usage?.output_tokens || 0;
-  const inputRateRaw = process.env.OPENAI_INPUT_COST_PER_MILLION;
-  const outputRateRaw = process.env.OPENAI_OUTPUT_COST_PER_MILLION;
-  const inputRate = Number(inputRateRaw);
-  const outputRate = Number(outputRateRaw);
-  const estimatedCost = inputRateRaw && outputRateRaw && Number.isFinite(inputRate) && Number.isFinite(outputRate)
-    ? (inputTokens * inputRate + outputTokens * outputRate) / 1_000_000
-    : null;
+  // Price the model that actually answered, which is not always the requested one.
+  const { cost: estimatedCost, pricing } = estimateCostUsd(selectedModel, inputTokens, outputTokens);
   const provenance: ReviewProvenance = {
     promptVersion,
     promptVariant,
@@ -151,6 +147,9 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
       responseFormat: "cv_report",
       store: false,
     },
+    // Records whether the cost figure came from the per-model table or a stale
+    // environment rate, so an untrustworthy number is visible as such.
+    pricing,
   };
   return { report, telemetry: { model: selectedModel, inputTokens, outputTokens, estimatedCost, provenance } };
 }

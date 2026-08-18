@@ -80,7 +80,8 @@ export async function POST(request: Request) {
     let telemetry: ReviewTelemetry = { model: "mock", inputTokens: 0, outputTokens: 0, estimatedCost: 0,
       provenance: { promptVersion: "mock", promptVariant: activePromptVariant(), rubricVersion: "mock", pipelineVersion: REVIEW_PIPELINE_VERSION,
         model: "mock", requestedModel: "mock", fallbackUsed: false,
-        modelConfig: { maxOutputTokens: null, timeoutMs: resolveReviewTimeoutMs(), fallbackDisabled: fallbackModelDisabled(), responseFormat: "cv_report", store: false } } };
+        modelConfig: { maxOutputTokens: null, timeoutMs: resolveReviewTimeoutMs(), fallbackDisabled: fallbackModelDisabled(), responseFormat: "cv_report", store: false },
+        pricing: { inputUsdPerMillion: 0, outputUsdPerMillion: 0, source: "unknown" } } };
     if (!mockMode) {
       const quota = await consumeAnalysisQuota(ipKey);
       if (!quota.allowed) return NextResponse.json(

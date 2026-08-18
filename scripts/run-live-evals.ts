@@ -14,6 +14,7 @@ import {
 import type { CVReport } from "../src/lib/ai/schemas/report";
 import { activePromptVariant, getReviewPrompt } from "../src/lib/ai/prompts";
 import { REVIEW_PIPELINE_VERSION } from "../src/lib/ai/review-provenance";
+import { resolveModelPricing } from "../src/lib/ai/model-pricing";
 
 type Result = {
   id: string;
@@ -45,8 +46,11 @@ const plnPerUsd = Number(process.env.OPENAI_EVAL_PLN_PER_USD || 5);
 const costSafetyFactor = Number(process.env.OPENAI_EVAL_COST_SAFETY_FACTOR || 2.5);
 const alreadySpentPln = Number(process.env.OPENAI_EVAL_ALREADY_SPENT_PLN || 0);
 const maxOutputTokens = Number(process.env.OPENAI_EVAL_MAX_OUTPUT_TOKENS || 6_000);
-const inputRate = Number(process.env.OPENAI_INPUT_COST_PER_MILLION);
-const outputRate = Number(process.env.OPENAI_OUTPUT_COST_PER_MILLION);
+// Price the preflight against the model that will actually be called, so the
+// hard cost cap cannot be defeated by a stale environment rate.
+const pricing = resolveModelPricing(process.env.OPENAI_REVIEW_MODEL || "");
+const inputRate = pricing.source === "unknown" ? Number.NaN : pricing.inputUsdPerMillion;
+const outputRate = pricing.source === "unknown" ? Number.NaN : pricing.outputUsdPerMillion;
 
 if (!Number.isFinite(maxCostPln) || maxCostPln <= 0 || maxCostPln > 50) throw new Error("OPENAI_EVAL_MAX_COST_PLN must be between 0 and 50.");
 if (!Number.isFinite(plnPerUsd) || plnPerUsd < 3 || plnPerUsd > 8) throw new Error("OPENAI_EVAL_PLN_PER_USD must be between 3 and 8.");
@@ -72,6 +76,7 @@ const worstCaseCostPln = rawWorstCaseCostPln == null ? null : alreadySpentPln + 
 async function main(): Promise<void> {
   console.log(`CV Unfold live eval preflight: ${cases.length} cases × ${locales.length} locales, ${runnable.length} paid model calls.`);
   console.log(`Mode: ${execute ? "EXECUTE" : "DRY RUN"}. Hard cap: ${maxCostPln.toFixed(2)} PLN.`);
+  console.log(`Pricing: ${pricing.source} ($${pricing.inputUsdPerMillion}/$${pricing.outputUsdPerMillion} per 1M).`);
   console.log(`Prompt variant: ${activePromptVariant()} (${locales.map((locale) => `${locale}=${getReviewPrompt(locale).version}`).join(", ")}). Pipeline: ${REVIEW_PIPELINE_VERSION}.`);
   console.log(`Cost safety factor: ${costSafetyFactor.toFixed(2)}×. Already spent: ${alreadySpentPln.toFixed(2)} PLN.`);
   console.log(worstCaseCostPln == null ? "Worst-case cost unavailable: configure model rates before execution." : `Worst-case cost estimate: ${worstCaseCostPln.toFixed(2)} PLN.`);
