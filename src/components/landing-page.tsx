@@ -21,9 +21,9 @@ const copy = {
     priceLine: `Darmowy wynik wstępny · Pełny raport od ${formatPlanPrice("full_review", "pl")} · Bez konta`,
     trustLine: "Plik źródłowy usuwamy po analizie. Nie dopisujemy faktów, których nie ma w dokumencie.",
     specialty: "Obecnie najmocniej specjalizujemy się w CV Frontend Developerów. Obsługujemy też Backend, Full-stack, Mobile, QA i DevOps / Platform — na różnych etapach kariery.",
-    synthetic: "Dane syntetyczne · przykładowy raport", target: "CEL", targetValue: "Senior Frontend Developer", level: "POSTRZEGANY POZIOM", levelValue: "Mid+ / Senior−", first: "PIERWSZE 20 SEKUND", overall: "Ogólna jakość komunikacji CV",
-    diagnosis: "Wiarygodny technicznie developer. Dokument nie pokazuje jednak jeszcze poziomu odpowiedzialności i wpływu oczekiwanego od Seniora.",
-    scores: [["Techniczna wiarygodność", 86], ["Odpowiedzialność", 54], ["Wpływ i rezultaty", 61]],
+    synthetic: "Dane syntetyczne · przykładowy raport", target: "CEL", targetValue: "Senior Frontend Developer", level: "POSTRZEGANY POZIOM", levelValue: "Senior", first: "PIERWSZE 20 SEKUND", overall: "Ogólna jakość komunikacji CV",
+    diagnosis: "Doświadczony Senior Frontend. Najmocniejsze dowody wydajności i architektury są w starszej roli; najnowsza słabiej pokazuje rezultat i indywidualny ownership.",
+    scores: [["Wiarygodność frontendowa", 86], ["Architektura", 82], ["Ownership i odpowiedzialność", 76]],
     atsEyebrow: "RÓŻNICA W 10 SEKUND", atsTitle: "ATS sprawdza format. My sprawdzamy przekaz.",
     ats: { title: "ATS checker", items: ["Czy system odczyta dokument?", "Czy są odpowiednie słowa kluczowe?", "Czy format jest technicznie poprawny?"] },
     product: { title: brand.name, items: ["Czy najważniejsze doświadczenie jest widoczne?", "Czy widać odpowiedzialność i wpływ?", "Co człowiek zrozumie w pierwszych 20 sekundach?", "Który fragment CV jest dowodem diagnozy?"] },
@@ -78,9 +78,9 @@ const copy = {
     priceLine: `Free initial result · Full report from ${formatPlanPrice("full_review", "en")} · No account`,
     trustLine: "We delete the source file after analysis. We never add facts that are not in the document.",
     specialty: "We currently specialise most deeply in Frontend Developer CVs. Backend, Full-stack, Mobile, QA and DevOps / Platform are also supported across different career stages.",
-    synthetic: "Synthetic data · sample report", target: "TARGET", targetValue: "Senior Frontend Developer", level: "PERCEIVED LEVEL", levelValue: "Mid+ / Senior−", first: "FIRST 20 SECONDS", overall: "Overall CV communication quality",
-    diagnosis: "Technically credible developer. The document does not yet show the level of responsibility and impact expected from a Senior.",
-    scores: [["Technical credibility", 86], ["Responsibility", 54], ["Impact and outcomes", 61]],
+    synthetic: "Synthetic data · sample report", target: "TARGET", targetValue: "Senior Frontend Developer", level: "PERCEIVED LEVEL", levelValue: "Senior", first: "FIRST 20 SECONDS", overall: "Overall CV communication quality",
+    diagnosis: "An experienced Senior Frontend profile. Performance and architecture evidence is strongest in the earlier role; the latest role shows results and individual ownership less clearly.",
+    scores: [["Frontend credibility", 86], ["Architecture", 82], ["Ownership and responsibility", 76]],
     atsEyebrow: "THE DIFFERENCE IN 10 SECONDS", atsTitle: "ATS checks format. We check the message.",
     ats: { title: "ATS checker", items: ["Can the system read the document?", "Are the right keywords present?", "Is the format technically sound?"] },
     product: { title: brand.name, items: ["Is the most relevant experience visible?", "Are responsibility and impact clear?", "What will a person understand in the first 20 seconds?", "Which CV excerpt supports each finding?"] },
@@ -151,7 +151,7 @@ export function LandingPage({ locale }: { locale: Locale }) {
     <PublicHeader locale={locale} languageHref={switchPath} homePage/>
 
     <section className="launch-hero container"><div className="hero-copy"><h1>{t.title}</h1><p>{t.description}</p><div className="hero-actions"><Link className="button" href={analysisPath(locale)} data-analytics-event="hero_cta_clicked" data-analytics-placement="hero">{t.primary}<ArrowIcon/></Link><Link className="secondary-button" href={reportUrl}>{t.secondary}</Link></div><strong className="launch-price-line">{t.priceLine}</strong><p className="launch-trust"><LockIcon/>{t.trustLine}</p><small className="launch-specialty">{t.specialty}</small></div>
-      <article className="level-demo" aria-label={t.synthetic}><header><span>{t.synthetic}</span><small>01 / 04</small></header><div className="level-demo-main"><div><small>{t.target}</small><strong>{t.targetValue}</strong></div><div><small>{t.level}</small><strong>{t.levelValue}</strong></div><div><small>{t.first}</small><strong className="maybe">MAYBE</strong></div></div><p>{t.diagnosis}</p><div className="level-score-list">{t.scores.map(([label, score]) => <div key={label}><span>{label}</span><i><b style={{width: `${score}%`}}/></i><strong>{score}</strong></div>)}</div><footer><span>{t.overall}</span><ScoreRing score={72} compact ariaLabel={locale === "pl" ? "Wynik 72 na 100" : "Score 72 out of 100"} locale={locale}/></footer></article>
+      <article className="level-demo" aria-label={t.synthetic}><header><span>{t.synthetic}</span><small>01 / 04</small></header><div className="level-demo-main"><div><small>{t.target}</small><strong>{t.targetValue}</strong></div><div><small>{t.level}</small><strong>{t.levelValue}</strong></div><div><small>{t.first}</small><strong className="interview">INTERVIEW</strong></div></div><p>{t.diagnosis}</p><div className="level-score-list">{t.scores.map(([label, score]) => <div key={label}><span>{label}</span><i><b style={{width: `${score}%`}}/></i><strong>{score}</strong></div>)}</div><footer><span>{t.overall}</span><ScoreRing score={79} compact ariaLabel={locale === "pl" ? "Wynik 79 na 100" : "Score 79 out of 100"} locale={locale}/></footer></article>
     </section>
 
     <section id={sectionIds[0]} className="ats-section"><div className="container"><header className="launch-section-head"><span>{t.atsEyebrow}</span><h2>{t.atsTitle}</h2></header><div className="ats-compare"><article><h3>{t.ats.title}</h3><ul>{t.ats.items.map((item) => <li key={item}>{item}</li>)}</ul></article><article className="product-compare"><h3>{t.product.title}</h3><ul>{t.product.items.map((item) => <li key={item}><CheckIcon/>{item}</li>)}</ul></article></div></div></section>

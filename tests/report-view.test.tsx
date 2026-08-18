@@ -141,19 +141,92 @@ describe("ATS presentation", () => {
 });
 
 describe("report header", () => {
-  it("states the selected target level instead of repeating the perceived one", () => {
+  it("keeps the overall-quality label below the score ring", () => {
+    const { container } = render(<ReportView paid data={createMockReport()} mockMode={false} locale="pl"/>);
+    const mobileScore = container.querySelector(".report-mobile-score");
+    const desktopScore = container.querySelector(".secondary-score");
+
+    expect(mobileScore?.firstElementChild?.classList.contains("score-ring-with-caption")).toBe(true);
+    expect(mobileScore?.lastElementChild?.textContent).toBe("OGÓLNA JAKOŚĆ KOMUNIKACJI CV");
+    expect(desktopScore?.firstElementChild?.classList.contains("score-ring-with-caption")).toBe(true);
+    expect(desktopScore?.lastElementChild?.textContent).toBe("OGÓLNA JAKOŚĆ KOMUNIKACJI CV");
+    expect(mobileScore?.querySelector(".score-ring-caption")?.textContent).toBe("Wymaga dopracowania");
+  });
+
+  it("places perceived and target labels on the seniority ladder without repeating the level", () => {
     const report = createMockReport("senior");
     const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
 
     const heading = container.querySelector(".report-title h2");
-    // perceivedRole already carries the level; the suffix was a third repetition.
     expect(heading?.textContent).toBe(report.document.perceivedRole);
-    expect(container.querySelector(".report-target")?.textContent).toBe("Aplikuje na poziom: Senior");
+    expect(container.querySelector(".report-target")).toBeNull();
+    expect(container.querySelector(".report-sidebar > .perceived-level")).toBeNull();
+    expect(container.querySelector(".seniority-track .is-perceived")?.textContent).toContain("Wrażenie");
+    expect(container.querySelector(".seniority-track .is-target")?.textContent).toContain("Aplikujesz na");
+  });
+
+  it("shows separate dots when the document impression differs from the target", () => {
+    const { container } = render(<ReportView paid data={createMockReport("mid")} mockMode={false} locale="pl"/>);
+    const track = container.querySelector(".seniority-track");
+
+    expect(track?.querySelectorAll(".is-perceived i, .is-target i")).toHaveLength(2);
+    expect(track?.querySelector(".is-perceived")?.textContent).toContain("WrażenieSenior");
+    expect(track?.querySelector(".is-target")?.textContent).toContain("MidAplikujesz");
   });
 
   it("says the level was inferred when no target was chosen", () => {
     const report = createMockReport("auto");
     const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
-    expect(container.querySelector(".report-target")?.textContent).toBe("Poziom wykrywany z treści CV");
+    expect(container.querySelector(".seniority-auto")?.textContent).toBe("Poziom wykrywany z treści CV");
+  });
+
+  it("uses one concise role in the profile heading", () => {
+    const report = createMockReport("senior");
+    report.document.perceivedRole = "Senior Frontend Engineer / Frontend Developer specjalizujący się w React";
+    const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
+
+    expect(container.querySelector(".report-title h2")?.textContent).toBe("Senior Frontend Engineer");
+    expect(container.querySelector(".report-mobile-signals strong")?.textContent).toBe("Senior Frontend Engineer");
+  });
+});
+
+describe("full report clarity", () => {
+  it("keeps the finding hierarchy as diagnosis, solution, proposed wording and evidence", () => {
+    const report = createMockReport();
+    report.issues[0].suggestion!.proposed = "Przykładowy bezpieczny zapis oparty wyłącznie na faktach z CV.";
+    const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
+    const issues = container.querySelectorAll(".issues article");
+
+    const proposed = issues[0].querySelector(".issue-proposed");
+    const evidence = issues[0].querySelector(".issue-evidence");
+    expect(proposed?.textContent).toContain("PROPONOWANY ZAPIS");
+    const proposedBeforeEvidence = proposed && evidence ? Boolean(proposed.compareDocumentPosition(evidence) & Node.DOCUMENT_POSITION_FOLLOWING) : false;
+    expect(proposedBeforeEvidence).toBe(true);
+    expect(evidence?.textContent).toContain("DOWODY Z CV");
+    expect(issues[1].querySelector(".issue-evidence")).toBeNull();
+  });
+
+  it("sets evidence-card columns from the evidence count, capped at three", () => {
+    const report = createMockReport();
+    report.issues[1].evidenceRefs = ["seg_exp_1", "seg_summary"];
+    report.issues[2].evidenceRefs = ["seg_exp_1", "seg_summary", "seg_project_1", "missing"];
+    const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
+    const evidence = container.querySelectorAll<HTMLElement>(".issue-evidence");
+
+    expect(evidence[0].dataset.evidenceCount).toBe("1");
+    expect(evidence[1].dataset.evidenceCount).toBe("2");
+    expect(evidence[2].dataset.evidenceCount).toBe("3");
+  });
+
+  it("opens report articles in a new tab without exposing report data in the URL", () => {
+    const { container } = render(<ReportView paid data={createMockReport()} mockMode={false} locale="pl"/>);
+    const articleLinks = container.querySelectorAll<HTMLAnchorElement>(".report-knowledge a");
+
+    expect(articleLinks.length).toBeGreaterThan(0);
+    articleLinks.forEach((link) => {
+      expect(link.target).toBe("_blank");
+      expect(link.rel).toContain("noopener");
+      expect(link.href).not.toContain("report");
+    });
   });
 });

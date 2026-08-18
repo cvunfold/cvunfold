@@ -357,15 +357,16 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
   const client = supabaseClient();
   if (client) {
     const since = new Date(Date.now() - windowDays * 86_400_000).toISOString();
-    const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }, { data: anonymousRoleRows, error: anonymousRoleError }] = await Promise.all([
+    const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }, { data: feedbackNoteRows, error: feedbackNotesError }, { data: anonymousRoleRows, error: anonymousRoleError }] = await Promise.all([
       client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,review_model,review_provenance,attribution,job_description_present").gte("created_at", since),
       client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since),
       client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market,livemode").gte("created_at", since),
-      client.from("feedback").select("rating,accurate,issue_id,comment").gte("created_at", since).order("created_at", { ascending: false }),
+      client.from("feedback").select("rating,accurate").gte("created_at", since),
       client.from("feedback_quality_aggregates").select("rating,accurate,response_count"),
+      client.from("feedback_notes").select("rating,accurate,comment").gte("created_at", since).order("created_at", { ascending: false }),
       client.from("anonymous_role_aggregates").select("role_category,source_bucket,analysis_count"),
     ]);
-    if (analysesError || eventsError || paymentsError || feedbackError || feedbackAggregateError || anonymousRoleError) throw new Error("SUPABASE_DIAGNOSTICS_FAILED");
+    if (analysesError || eventsError || paymentsError || feedbackError || feedbackAggregateError || feedbackNotesError || anonymousRoleError) throw new Error("SUPABASE_DIAGNOSTICS_FAILED");
     const eventCounts = Object.fromEntries([...new Set((events || []).map((event) => event.event_name))]
       .map((name) => [name, (events || []).filter((event) => event.event_name === name).length]));
     const count = (name: string) => Number(eventCounts[name] || 0);
@@ -441,11 +442,11 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
         last24Hours: { count: feedbackRows?.length || 0, averageRating: feedbackRows?.length ? Math.round(feedbackRows.reduce((sum, item) => sum + item.rating, 0) / feedbackRows.length * 100) / 100 : null,
           accuracy: Object.fromEntries(["yes", "partly", "no"].map((value) => [value, (feedbackRows || []).filter((item) => item.accurate === value).length])) },
         retainedAggregate: summarizeFeedbackCounts(feedbackAggregateRows || []),
-        // Ratings alone say a report was wrong, never why. The written answers
-        // already exist for as long as the report does; without this they expire
-        // unread. Carries no analysis id, CV text or report content.
-        recentComments: (feedbackRows || [])
-          .map((item) => ({ rating: item.rating, accurate: item.accurate, issueId: item.issue_id || null, comment: String(item.comment || "").trim() }))
+        // Comments have a short, independent retention window so product
+        // feedback can be reviewed after a report disappears. They carry no
+        // analysis id, issue id, CV text or report content.
+        recentComments: (feedbackNoteRows || [])
+          .map((item) => ({ rating: item.rating, accurate: item.accurate, comment: String(item.comment || "").trim() }))
           .filter((item) => item.comment.length > 0)
           .slice(0, 50),
       },
