@@ -18,6 +18,8 @@ The live prompt is chosen in exactly one place: `src/lib/ai/prompts/index.ts`. N
 | `v1.6-rc2` | en | `review-en-v1.3.0` (unchanged) | `prompts/review-en-v1.ts` |
 | `v1.6-rc3` | pl | `v1.6-rc3` | `prompts/review-pl-v1_6-rc3.ts` |
 | `v1.6-rc3` | en | `review-en-v2.0.0` | `prompts/review-en-v2.ts` |
+| `v1.6-rc4` | pl | `v1.6-rc4` | `prompts/review-pl-v1_6-rc4.ts` |
+| `v1.6-rc4` | en | `review-en-v3.0.0` | `prompts/review-en-v3.ts` |
 
 Select a variant with the `CV_REVIEW_PROMPT_VARIANT` environment variable. It defaults to `stable`, and an unrecognised value also resolves to `stable`, so production cannot be switched by a typo.
 
@@ -44,9 +46,29 @@ Analyses created before this field existed keep `null` and are reported as `lega
 
 ## Current candidate and the Natalie baseline
 
-The candidate under test is **`v1.6-rc3`**, now covering both locales: for Polish, `v1.6-rc2` plus one scope rule stating that `ats.findings` covers parsing and structure only, never matching against a specific job posting. Models filed "no job description was supplied" as an ATS warning in five separate runs, each worded differently. That is neither document hygiene nor a flaw in what a `full_review` reader bought, since the offer comparison is a separately paid plan.
+The candidate under test is **`v1.6-rc4`**, now covering both locales. Each step added one thing on top of the last, and every earlier version stays byte-for-byte intact — analyses are already attributed to each:
 
-The server-side filter in `validate-report` stays in place regardless of the prompt, because this text is user-visible and commercially sensitive, and prompt rules have repeatedly proven model-dependent. The filter drops such findings only when no offer was supplied: with one, a keyword-gap finding against it is legitimate and `job_match` keeps it.
+- `v1.6-rc1`: the initial rewrite (see below).
+- `v1.6-rc2`: rc1 plus a mandatory score-calibration procedure.
+- `v1.6-rc3`: rc2 plus a scope rule confining `ats.findings` to parsing and structure, never matching against a job posting.
+- `v1.6-rc4`: rc3 plus an EXPOSE attribution rule (see the bug writeup below).
+
+The `ats.findings` scope rule (rc3) exists because models filed "no job description was supplied" as an ATS warning in five separate runs, each worded differently. That is neither document hygiene nor a flaw in what a `full_review` reader bought, since the offer comparison is a separately paid plan. The server-side filter in `validate-report` stays in place regardless of the prompt, because this text is user-visible and commercially sensitive, and prompt rules have repeatedly proven model-dependent — it drops such findings only when no offer was supplied, so a real keyword gap against a `job_match` offer is kept.
+
+## A production-affecting bug found while reviewing rc3 output
+
+An rc3 run scored issue "Najmocniejszy dowód seniority jest zakopany w starszej roli" as `QUESTION` with the generic fallback action "Doprecyzuj brakujące fakty…", even though the model's own action plan already stated the correct fix (move the Railbird result higher). The `factualityNote` matched the hardcoded downgrade string in `validate-report.ts` exactly — this was never the model's choice of type. The model most likely returned `EXPOSE`; the server's own guard vetoed it.
+
+`excessiveSemanticNovelty` flagged the proposal's tokens as unsupported by the cited evidence. Reproducing it with the run's actual evidence and a faithful paraphrase (see `tests/expose-novelty-guard.test.ts`) isolated two independent causes:
+
+- **Polish inflection**: `zmniejszenie`/`zmniejszyła`, `ograniczenie`/`ograniczyła`, `najnowszego`/`najnowsza` are the same fact in different grammatical forms, but the guard compared exact token spellings, so every inflected form counted as "new". Fixed with a 6-character-prefix stem comparison — a near no-op for English, which barely inflects.
+- **Restructuring vocabulary**: EXPOSE inherently writes new connective language when it repositions a fact ("warto wyeksponować obok najnowszego doświadczenia" — "worth surfacing next to the most recent role"). None of those words are facts, but none were in the cited evidence either. Added a `repositioningStopwords` list (both locales) so this class of words no longer counts against novelty.
+
+Both fixes together took the reproduction's novel-token count from 9 to 0, while the existing fabrication-detection tests (a genuinely invented "mentoring" claim, a fabricated headcount number) still trigger the downgrade correctly — the fix narrows the guard, it does not disable it.
+
+This lives in shared code (`validate-report.ts`), not in any prompt file, so it affects **every** prompt including the `stable` one currently in production — a live bug independent of the v1.6 canary. `REVIEW_PIPELINE_VERSION` moved to `report-pipeline-v4` accordingly.
+
+The QUESTION-vs-EXPOSE distinction itself was not added to the prompt: the model's classification was already correct in the case that exposed this, so a prompt patch aimed at that choice would not have fixed the observed defect. `v1.6-rc4` does add one narrower, independently-motivated rule: preserve employer/time-period attribution when EXPOSE moves an achievement toward the top of the document, so repositioning cannot make an older role's result look like it belongs to the current one.
 
 `v1.6-rc2` was: the verbatim `v1.6-rc1` text plus a mandatory score-calibration procedure inserted as section 19 (the three trailing sections are renumbered). `v1.6-rc1` is left byte-for-byte intact, because four analyses are already attributed to it.
 

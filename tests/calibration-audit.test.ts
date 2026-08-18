@@ -130,3 +130,24 @@ describe("English review prompt", () => {
     });
   });
 });
+
+describe("v1.6-rc4 prompt", () => {
+  it("keeps rc3 intact and adds the EXPOSE attribution rule for both locales", () => {
+    const original = process.env.CV_REVIEW_PROMPT_VARIANT;
+    process.env.CV_REVIEW_PROMPT_VARIANT = "v1.6-rc4";
+    try {
+      const pl = getReviewPrompt("pl");
+      expect(pl.version).toBe("v1.6-rc4");
+      expect(pl.systemPrompt).toContain("KALIBRACJA SCORE — PROCEDURA OBOWIĄZKOWA");
+      expect(pl.systemPrompt).toContain("zachowaj jego przypisanie do pracodawcy i okresu zatrudnienia");
+
+      const en = getReviewPrompt("en");
+      expect(en.version).toBe("review-en-v3.0.0");
+      expect(en.systemPrompt).toContain("MANDATORY SCORE CALIBRATION PROCEDURE");
+      expect(en.systemPrompt).toContain("preserve its employer and time-period attribution");
+    } finally {
+      if (original === undefined) delete process.env.CV_REVIEW_PROMPT_VARIANT;
+      else process.env.CV_REVIEW_PROMPT_VARIANT = original;
+    }
+  });
+});
