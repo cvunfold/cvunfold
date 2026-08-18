@@ -84,3 +84,49 @@ function getReviewPromptFor(variant: string): string {
   else process.env.CV_REVIEW_PROMPT_VARIANT = previous;
   return prompt;
 }
+
+describe("English review prompt", () => {
+  const withVariant = (variant: string | undefined, run: () => void) => {
+    const original = process.env.CV_REVIEW_PROMPT_VARIANT;
+    if (variant === undefined) delete process.env.CV_REVIEW_PROMPT_VARIANT;
+    else process.env.CV_REVIEW_PROMPT_VARIANT = variant;
+    try { run(); } finally {
+      if (original === undefined) delete process.env.CV_REVIEW_PROMPT_VARIANT;
+      else process.env.CV_REVIEW_PROMPT_VARIANT = original;
+    }
+  };
+
+  it("stays on the stable EN prompt for rc1 and rc2, isolating the Polish canary", () => {
+    for (const variant of ["v1.6-rc1", "v1.6-rc2"]) {
+      withVariant(variant, () => {
+        const resolved = getReviewPrompt("en");
+        expect(resolved.variant).toBe("stable");
+        expect(resolved.version).toBe("review-en-v1.3.0");
+      });
+    }
+  });
+
+  it("switches to review-en-v2 once the candidate reaches rc3", () => {
+    withVariant("v1.6-rc3", () => {
+      const resolved = getReviewPrompt("en");
+      expect(resolved.variant).toBe("v1.6-rc3");
+      expect(resolved.version).toBe("review-en-v2.0.0");
+      expect(resolved.systemPrompt).toContain("MANDATORY SCORE CALIBRATION PROCEDURE");
+      expect(resolved.systemPrompt).toContain("ats.findings field concerns only the document's parseability");
+    });
+  });
+
+  it("keeps PL on rc3 and EN on v2 simultaneously, not one overwriting the other", () => {
+    withVariant("v1.6-rc3", () => {
+      expect(getReviewPrompt("pl").version).toBe("v1.6-rc3");
+      expect(getReviewPrompt("en").version).toBe("review-en-v2.0.0");
+    });
+  });
+
+  it("defaults both locales to their stable prompt outside any variant", () => {
+    withVariant(undefined, () => {
+      expect(getReviewPrompt("pl").variant).toBe("stable");
+      expect(getReviewPrompt("en").variant).toBe("stable");
+    });
+  });
+});

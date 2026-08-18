@@ -1,5 +1,6 @@
 import { PROMPT_VERSION, SYSTEM_PROMPT } from "./review-pl-v3";
 import { EN_PROMPT_VERSION, EN_SYSTEM_PROMPT } from "./review-en-v1";
+import { EN2_PROMPT_VERSION, EN2_SYSTEM_PROMPT } from "./review-en-v2";
 import { PL_RC_PROMPT_VERSION, PL_RC_SYSTEM_PROMPT } from "./review-pl-v1_6-rc1";
 import { PL_RC2_PROMPT_VERSION, PL_RC2_SYSTEM_PROMPT } from "./review-pl-v1_6-rc2";
 import { PL_RC3_PROMPT_VERSION, PL_RC3_SYSTEM_PROMPT } from "./review-pl-v1_6-rc3";
@@ -25,10 +26,15 @@ export function activePromptVariant(): ReviewPromptVariant {
 }
 
 export function getReviewPrompt(locale: Locale): ResolvedReviewPrompt {
-  // v1.6-rc1 is Polish-only. English stays on its own stable prompt so a canary
-  // measures the Polish rewrite alone instead of swapping both locales at once.
-  if (locale === "en") return { version: EN_PROMPT_VERSION, systemPrompt: EN_SYSTEM_PROMPT, variant: "stable" };
   const variant = activePromptVariant();
+  if (locale === "en") {
+    // v1.6-rc1/rc2 were Polish-only canaries, deliberately: English stayed on
+    // its stable prompt so each measured the Polish rewrite alone. rc3 is where
+    // review-en-v2 catches up, so from rc3 onward both locales move together
+    // under the same variant selector.
+    if (variant === "v1.6-rc3") return { version: EN2_PROMPT_VERSION, systemPrompt: EN2_SYSTEM_PROMPT, variant };
+    return { version: EN_PROMPT_VERSION, systemPrompt: EN_SYSTEM_PROMPT, variant: "stable" };
+  }
   if (variant === "v1.6-rc3") return { version: PL_RC3_PROMPT_VERSION, systemPrompt: PL_RC3_SYSTEM_PROMPT, variant };
   if (variant === "v1.6-rc2") return { version: PL_RC2_PROMPT_VERSION, systemPrompt: PL_RC2_SYSTEM_PROMPT, variant };
   if (variant === "v1.6-rc1") return { version: PL_RC_PROMPT_VERSION, systemPrompt: PL_RC_SYSTEM_PROMPT, variant };
