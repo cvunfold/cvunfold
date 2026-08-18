@@ -45,11 +45,21 @@ const repositioningStopwords = new Set([
   "warto", "eksponować", "wyeksponować", "eksponuj", "wyeksponuj", "podkreślić", "podkreśl",
   "przenieś", "przenieść", "przesunąć", "przesuń", "wcześniej", "wyżej", "obok", "bliżej",
   "kluczowy", "kluczowe", "kluczowa", "najważniejszy", "najważniejsze", "najważniejsza",
+  "najmocniejszy", "najmocniejsze", "najmocniejsza",
   "doświadczenie", "doświadczenia", "doświadczeniu", "doświadczeniem",
   "osiągnięcie", "osiągnięcia", "osiągnięte", "osiągnięty",
   "podsumowanie", "podsumowaniu", "podsumowania", "sekcja", "sekcji", "sekcję",
+  "dowód", "dowody", "dowodów", "dokument", "dokumencie", "dokumentu",
+  "wraz", "także", "również", "seniority", "redukcja", "redukcji",
+  // Vocabulary the rc4 attribution rule itself asks the model to write when it
+  // moves a fact and names where it came from — "role" is a structural word,
+  // not a claim, and "preserving attribution" describes complying with the
+  // rule, not a new fact about the candidate.
+  "zachować", "zachowując", "zachowuje", "przypisanie", "przypisać", "przypisania",
+  "rola", "roli", "rolę",
   "surface", "highlight", "highlighting", "worth", "move", "moved", "moving", "earlier", "above", "near", "closer",
   "key", "important", "summary", "achieved", "achievement", "achievements", "experience", "section",
+  "evidence", "document", "strongest", "reduction", "also", "role", "preserve", "preserving", "attribution",
 ]);
 
 // A Polish inflected form (zmniejszenie/zmniejszyła, ograniczenie/ograniczyła,
@@ -127,7 +137,12 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
       // admits the omission, but retaining that ref makes the gap look like a
       // supported claim. Keep the boundary deterministic on the server.
       const evidenceRefs = item.suggestion?.type === "gap" ? [] : keep(item.evidenceRefs);
-      const sources = [...evidenceRefs.map((ref) => evidence[ref] || ""), item.suggestion?.original || ""];
+      // Grounded against the whole CV, not just this issue's own evidenceRefs.
+      // EXPOSE routinely needs a fact attributed elsewhere in the document — an
+      // employer name from the role header, say — that the issue's own evidence
+      // never had reason to cite. The prompt's own rule is "facts from the CV",
+      // not "facts already listed on this issue".
+      const sources = [...Object.values(evidence), item.suggestion?.original || ""];
       const guardedSuggestion = item.suggestion?.type === "rewrite" || item.suggestion?.type === "expose";
       // A GAP or QUESTION never has replacement text by design — the reader is
       // meant to supply the missing fact, not receive a drafted one. Drop

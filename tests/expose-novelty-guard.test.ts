@@ -60,3 +60,50 @@ describe("EXPOSE/REWRITE novelty guard", () => {
     expect(report.issues[0].suggestion?.type).toBe("question");
   });
 });
+
+// A second real v1.6-rc4 case, from the same run: an EXPOSE synthesising six
+// cited segments plus the employer name — which the new rc4 attribution rule
+// asks the model to state, but which lives in the role header, not in any of
+// this issue's own evidenceRefs.
+describe("EXPOSE grounded against the whole CV, not just one issue's evidenceRefs", () => {
+  const wideEvidenceMap = {
+    ...evidenceMap,
+    seg_5: "Pomagała stworzyć współdzieloną bibliotekę 28 komponentów, używaną obecnie w kilku obszarach produktu.",
+    seg_6: "Zaplanowała i dostarczyła migrację ekranów onboardingu ze starszych wzorców Redux do hooks, React Query i bardziej modularnej struktury frontendu.",
+    seg_c: "Napisała RFC dotyczące podziału dużej aplikacji frontendowej na moduły domenowe i doprowadziła do uzgodnienia rozwiązania z zespołami backendowymi i platformowymi przed wdrożeniem.",
+    // Cited by no issue directly, but present in the real CV as the role header.
+    seg_role_header: "Senior Frontend Engineer, Railbird Mobility, sty 2022 - gru 2024.",
+  };
+  const wideProposed = "Redukcja p75 LCP procesu rezerwacji z 4,4 s do 2,5 s wraz z ograniczeniem porzuceń mobilnych o 10%, a także RFC podziału aplikacji na moduły domenowe uzgodnione z zespołami backendowymi i platformowymi, to najmocniejsze dowody seniority w dokumencie i warto je przenieść bliżej podsumowania, zachowując ich przypisanie do roli w Railbird Mobility.";
+
+  it("keeps the EXPOSE when it names an employer from elsewhere in the CV, per the rc4 attribution rule", () => {
+    const input = createMockReport();
+    input.evidenceMap = wideEvidenceMap;
+    input.issues = [{
+      ...input.issues[0], id: "iss_3", severity: "important", confidence: "high", category: "clarity",
+      title: "Najmocniejsze dowody są słabiej eksponowane względem najnowszej roli",
+      evidenceRefs: ["seg_4", "seg_5", "seg_6", "seg_8", "seg_b", "seg_c"],
+      action: "Przenieś rezultat LCP i RFC bliżej podsumowania, zachowując przypisanie do Railbird Mobility.",
+      suggestion: { type: "expose", original: evidenceMap.seg_b, proposed: wideProposed, factualityNote: "Wykorzystuje istniejące fakty; zmienia się ich ekspozycja." },
+    }];
+    const report = validateEvidence(input, new Set(Object.keys(wideEvidenceMap)), wideEvidenceMap);
+    expect(report.issues[0].suggestion?.type).toBe("expose");
+    expect(report.issues[0].suggestion?.proposed).toBe(wideProposed);
+  });
+
+  it("still downgrades a company name invented nowhere in the CV, even with the wider source pool", () => {
+    const input = createMockReport();
+    input.evidenceMap = wideEvidenceMap;
+    input.issues = [{
+      ...input.issues[0], id: "iss_3", severity: "important", confidence: "high", category: "clarity",
+      title: "Test", evidenceRefs: ["seg_4", "seg_b"],
+      suggestion: {
+        type: "expose", original: evidenceMap.seg_b,
+        proposed: "Redukcja p75 LCP z 4,4 s do 2,5 s, osiągnięta podczas pracy w Skyline Retail Group, to najmocniejszy dowód.",
+        factualityNote: "",
+      },
+    }];
+    const report = validateEvidence(input, new Set(Object.keys(wideEvidenceMap)), wideEvidenceMap);
+    expect(report.issues[0].suggestion?.type).toBe("question");
+  });
+});
