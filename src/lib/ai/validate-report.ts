@@ -54,6 +54,19 @@ function excessiveSemanticNovelty(proposed: string, sources: string[]): boolean 
   return proposedTokens.filter((token) => !sourceTokens.has(token)).length > 2;
 }
 
+// Models keep filing "no job description was supplied" as an ATS warning. It is
+// wrong twice over: matching against an offer is not document hygiene, and the
+// offer comparison is a separately paid plan, so its absence reads as a defect
+// in what the reader actually bought. Dropped only when no offer was supplied —
+// with one, a keyword-gap finding against it is legitimate.
+const offerMention = /(?:job description|job posting|job ad|ogłoszen|ofert)/i;
+const absenceFraming = /(?:\bbrak\b|nie przekazano|nie podano|nie została|nie można ocenić|not (?:provided|supplied|available)|no job description|without a job)/i;
+
+export function isMissingOfferFinding(finding: { title: string; explanation: string }): boolean {
+  const text = `${finding.title} ${finding.explanation}`;
+  return offerMention.test(text) && absenceFraming.test(text);
+}
+
 export type CalibrationViolation = { category: string; score: number; severity: "important" | "critical"; cap: number };
 
 // The prompt caps a category touched by a material issue. Models honour that
@@ -76,8 +89,9 @@ export function auditCalibration(report: Pick<CVReport, "categoryScores" | "issu
   });
 }
 
-export function validateEvidence(report: ModelReport, validRefs: Set<string>, evidence: EvidenceMap = {}): CVReport {
+export function validateEvidence(report: ModelReport, validRefs: Set<string>, evidence: EvidenceMap = {}, { jobDescriptionProvided = false }: { jobDescriptionProvided?: boolean } = {}): CVReport {
   const parsed = reportSchema.parse(report);
+  const ats = jobDescriptionProvided ? parsed.ats : { ...parsed.ats, findings: parsed.ats.findings.filter((finding) => !isMissingOfferFinding(finding)) };
   const keep = (refs: string[]) => refs.filter((ref) => validRefs.has(ref));
   const categoryScores = parsed.categoryScores.map((category) => ({ ...category, evidenceRefs: keep(category.evidenceRefs) }));
   const strengths = parsed.strengths.filter((item) => keep(item.evidenceRefs).length > 0).map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) }));
@@ -139,7 +153,7 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
   const evidenceMap = Object.fromEntries([...usedRefs]
     .filter((ref) => validRefs.has(ref) && typeof evidence[ref] === "string")
     .map((ref) => [ref, evidence[ref].trim().slice(0, 600)]));
-  return { ...parsed, evidenceMap, recruiterPerspective, categoryScores, strengths, issues, summary: { ...parsed.summary, overallScore: calculateOverall(categoryScores) } };
+  return { ...parsed, ats, evidenceMap, recruiterPerspective, categoryScores, strengths, issues, summary: { ...parsed.summary, overallScore: calculateOverall(categoryScores) } };
 }
 
 export function withRecruiterPerspective(report: CVReport): CVReport {

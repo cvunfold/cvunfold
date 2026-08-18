@@ -127,6 +127,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     normalized,
     new Set(input.segments.map((segment) => segment.id)),
     Object.fromEntries(input.segments.map((segment) => [segment.id, segment.text])),
+    { jobDescriptionProvided: Boolean(input.jobDescription?.trim()) },
   );
   const inputTokens = response.usage?.input_tokens || 0;
   const outputTokens = response.usage?.output_tokens || 0;

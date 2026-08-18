@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       }
       const mock = createMockReport(seniority, jobDescription.length > 0, targetRole, locale);
       const mockEvidence = mock.evidenceMap || {};
-      report = validateEvidence(mock, new Set(Object.keys(mockEvidence)), mockEvidence);
+      report = validateEvidence(mock, new Set(Object.keys(mockEvidence)), mockEvidence, { jobDescriptionProvided: jobDescription.length > 0 });
     }
     const retentionDays = Number(process.env.REPORT_RETENTION_DAYS || 30);
     const { token, analysisId } = await saveAnalysisWithRetry(() => ({
