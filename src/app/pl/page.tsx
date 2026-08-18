@@ -139,7 +139,12 @@ const landingStructuredData = {
 };
 
 const aiCareerArticleSlug = "jak-nie-dac-sie-zastapic-przez-ai";
-const featuredArticles = articles.filter((article) => article.slug !== aiCareerArticleSlug).slice(0, 3);
+const featuredArticleSlugs = new Set([
+  "dlaczego-ownership-jest-wazny-dla-pracodawcow",
+  "obowiazki-to-nie-rezultaty-jak-opisywac-wplyw",
+  "wiarygodnosc-techniczna-w-cv",
+]);
+const featuredArticles = articles.filter((article) => featuredArticleSlugs.has(article.slug));
 
 function NumberedSection({
   number,

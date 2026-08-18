@@ -2,13 +2,15 @@
 // These counts come from funnel_events, which is written on the server and does not
 // depend on analytics consent, so they cover visitors GA4 never sees.
 //
-//   ADMIN_SECRET=… node scripts/funnel-report.mjs --days 7
+//   ADMIN_SECRET=… node scripts/funnel-report.mjs --days 7 --environment production
 //   FUNNEL_BASE_URL=https://cvunfold.com ADMIN_SECRET=… node scripts/funnel-report.mjs
 
 const baseURL = (process.env.FUNNEL_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000").replace(/\/$/, "");
 const secret = process.env.ADMIN_SECRET;
 const daysArgument = process.argv.includes("--days") ? process.argv[process.argv.indexOf("--days") + 1] : "7";
 const days = Number(daysArgument);
+const environmentArgument = process.argv.includes("--environment") ? process.argv[process.argv.indexOf("--environment") + 1] : "production";
+const runtimeEnvironments = new Set(["production", "preview", "development", "legacy_unknown"]);
 
 if (!secret) {
   console.error("Set ADMIN_SECRET (the value from your deployment environment) before running this.");
@@ -18,8 +20,12 @@ if (!Number.isInteger(days) || days < 1 || days > 90) {
   console.error(`--days must be a whole number between 1 and 90, received "${daysArgument}".`);
   process.exit(1);
 }
+if (!runtimeEnvironments.has(environmentArgument)) {
+  console.error(`--environment must be one of ${[...runtimeEnvironments].join(", ")}, received "${environmentArgument}".`);
+  process.exit(1);
+}
 
-const response = await fetch(`${baseURL}/api/admin/diagnostics?days=${days}`, {
+const response = await fetch(`${baseURL}/api/admin/diagnostics?days=${days}&environment=${encodeURIComponent(environmentArgument)}`, {
   headers: { authorization: `Bearer ${secret}` },
 });
 if (!response.ok) {
@@ -50,7 +56,7 @@ const table = (entries, emptyNote) => {
 };
 
 console.log(`\nCV Unfold — funnel from the server, last ${report.windowDays ?? days} day(s)`);
-console.log(`Source: ${baseURL}/api/admin/diagnostics · consent-independent`);
+console.log(`Source: ${baseURL}/api/admin/diagnostics · ${report.runtimeEnvironment || environmentArgument} only · consent-independent`);
 
 console.log(heading("Funnel"));
 for (const [label, name] of [

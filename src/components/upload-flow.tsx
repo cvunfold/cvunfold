@@ -37,6 +37,7 @@ const copy = {
     plan: { full_review: "Pełny raport", job_match: "Raport + dopasowanie do oferty" }, free: "Wynik wstępny", freePrice: "Darmowe", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
     statusIdle: "Dowód przed opinią", statusIdleCopy: "Każda ważna uwaga wskazuje konkretny fragment dokumentu.", statusLoading: "Analizujemy Twoje CV", statusLoadingCopy: "Przechodzimy przez dokument krok po kroku.",
     statusRedirecting: "Już za chwilę zostaniesz przekierowany do raportu", statusRedirectingCopy: "Analiza jest gotowa. Bezpiecznie otwieramy Twój wynik.",
+    longWait: "To może chwilę potrwać — sprawdzamy każdy dowód, zanim coś napiszemy.",
     evidenceTitle: "Raport nie zgaduje", evidenceCopy: "Jeśli informacji nie ma w CV, zobaczysz lukę lub pytanie — nie fałszywy fakt.",
     genericError: "Nie udało się rozpocząć analizy. Spróbuj ponownie.",
     stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam odpowiedzialność i wpływ", "Szukam dowodów, nie słów kluczowych"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
@@ -60,6 +61,7 @@ const copy = {
     plan: { full_review: "Full report", job_match: "Report + job matching" }, free: "Initial result", freePrice: "Free", full: "Full report", oneTime: "one-time payment · no subscription",
     statusIdle: "Evidence before opinion", statusIdleCopy: "Every important finding points to a specific part of the document.", statusLoading: "Analysing your CV", statusLoadingCopy: "We move through the document step by step.",
     statusRedirecting: "You’ll be redirected to your report in just a moment", statusRedirectingCopy: "Your analysis is ready. We are securely opening your result.",
+    longWait: "This can take a little longer — we check every piece of evidence before writing anything.",
     evidenceTitle: "The report does not guess", evidenceCopy: "If information is missing, you see a gap or a question — never an invented fact.",
     genericError: "We could not start the analysis. Please try again.",
     stages: [["Reading the CV structure", "Text, sections and order"], ["Identifying experience and projects", "Without following instructions in the document"], ["Assessing responsibility and impact", "Looking for evidence, not just keywords"], ["Simulating the first 20 seconds", "The impression created by the document alone"], ["Building the report", "Validating evidence and fact-safe suggestions"]],
@@ -88,6 +90,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
   const [file, setFile] = useState<File | null>(() => mockMode && typeof File !== "undefined" ? new File([fixtureBytes], "synthetic-cv.pdf", { type: "application/pdf" }) : null);
   const [phase, setPhase] = useState<AnalysisPhase>("idle");
   const [activeStage, setActiveStage] = useState(0);
+  const [longWait, setLongWait] = useState(false);
   const [error, setError] = useState("");
   const [consent, setConsent] = useState(false);
   const [role, setRole] = useState<TargetRoleId>(initialRole);
@@ -110,6 +113,15 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
     const timer = window.setInterval(() => setActiveStage((value) => Math.min(value + 1, t.stages.length - 1)), 3200);
     return () => window.clearInterval(timer);
   }, [phase, t.stages.length]);
+
+  useEffect(() => {
+    if (phase !== "analyzing") { setLongWait(false); return; }
+    // A slower model can genuinely still be working well past this; the
+    // reassurance is timed off the wall clock, not off the fixed-interval
+    // stepper above, which stalls on the last step long before this fires.
+    const timer = window.setTimeout(() => setLongWait(true), 25_000);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
 
   useEffect(() => {
     if (!busy) return;
@@ -334,6 +346,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
         <div className="analysis-status" role="status" aria-live="polite" aria-atomic="true">
           {phase === "redirecting" ? <span className="status-complete" aria-hidden="true"><CheckIcon/></span> : <span className="status-orbit active" aria-hidden="true"/>}
           <div><h2 id="analysis-progress-title" className={phase === "redirecting" ? "redirecting-message" : undefined}>{phase === "redirecting" ? t.statusRedirecting : t.statusLoading}</h2><p>{phase === "redirecting" ? t.statusRedirectingCopy : t.statusLoadingCopy}</p></div>
+          {longWait && phase === "analyzing" ? <p className="analysis-long-wait" role="status">{t.longWait}</p> : null}
         </div>
         <ol>{t.stages.map(([step, detail], index) => {
           const complete = phase === "redirecting" || index < activeStage;
