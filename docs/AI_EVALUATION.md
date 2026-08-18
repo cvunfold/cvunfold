@@ -28,7 +28,10 @@ Each analysis stores its provenance in `analyses.review_provenance` (JSONB, serv
 - `rubricVersion`
 - `pipelineVersion` — the server-side report pipeline (`REVIEW_PIPELINE_VERSION` in `src/lib/ai/review-provenance.ts`). Bump it when segmentation, evidence validation, suggestion downgrades or action normalisation change, because those alter a stored report even for identical model output.
 - `model`, `requestedModel`, `fallbackUsed` — the fallback model can silently replace the requested one on a retryable error
-- `modelConfig` — `maxOutputTokens`, `responseFormat`, `store`
+- `modelConfig` — `maxOutputTokens`, `timeoutMs`, `fallbackDisabled`, `responseFormat`, `store`
+- `pricing` — the resolved per-model rate and whether it came from the table, the environment or nothing
+- `calibrationViolations` — categories scored above the cap their own issues imply
+- `droppedAtsFindings` — out-of-scope ATS findings the server removed, counted against raw model output. Without it a silent filter is indistinguishable from a prompt that stopped generating them; watch it fall to zero on `v1.6-rc3`. Read the aggregate in diagnostics under `atsScope`.
 
 Read it back per environment with `GET /api/admin/diagnostics`, field `reviewProvenance`: one row per distinct prompt/model/pipeline combination.
 

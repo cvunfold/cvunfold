@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { reportSchema, type CVReport } from "./schemas/report";
-import { applyServerRubric, auditCalibration, validateEvidence } from "./validate-report";
+import { applyServerRubric, auditCalibration, isMissingOfferFinding, validateEvidence } from "./validate-report";
 import type { Segment } from "@/lib/document-parsing";
 import { getRubric, RUBRIC_VERSION, type Seniority } from "@/lib/rubrics/technical-v1";
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
@@ -123,12 +123,16 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
       targetSeniority: input.targetSeniority,
     },
   }, rubric);
+  const jobDescriptionProvided = Boolean(input.jobDescription?.trim());
   const report = validateEvidence(
     normalized,
     new Set(input.segments.map((segment) => segment.id)),
     Object.fromEntries(input.segments.map((segment) => [segment.id, segment.text])),
-    { jobDescriptionProvided: Boolean(input.jobDescription?.trim()) },
+    { jobDescriptionProvided },
   );
+  // Counted against the raw model output, so this measures what the prompt
+  // produced rather than what survived the filter.
+  const droppedAtsFindings = jobDescriptionProvided ? 0 : normalized.ats.findings.filter(isMissingOfferFinding).length;
   const inputTokens = response.usage?.input_tokens || 0;
   const outputTokens = response.usage?.output_tokens || 0;
   // Price the model that actually answered, which is not always the requested one.
@@ -152,6 +156,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     // environment rate, so an untrustworthy number is visible as such.
     pricing,
     calibrationViolations: auditCalibration(report),
+    droppedAtsFindings,
   };
   return { report, telemetry: { model: selectedModel, inputTokens, outputTokens, estimatedCost, provenance } };
 }

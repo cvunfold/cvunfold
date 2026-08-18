@@ -35,6 +35,16 @@ describe("ATS findings", () => {
     expect(JSON.stringify(report.ats.findings)).not.toContain("job description");
   });
 
+  it("counts what the filter removed, so a silent filter cannot be mistaken for a fixed prompt", () => {
+    const raw = [...genuineHygiene, ...missingOffer].map((finding) => ({ ...finding, type: "warning" as const }));
+    // The provenance counter is computed the same way, against raw model output.
+    expect(raw.filter(isMissingOfferFinding)).toHaveLength(missingOffer.length);
+    const input = createMockReport();
+    input.ats.findings = raw;
+    const report = validateEvidence(input, new Set(["seg_exp_1"]), input.evidenceMap);
+    expect(raw.length - report.ats.findings.length).toBe(missingOffer.length);
+  });
+
   it("keeps offer-related findings for a paid job match, where they are legitimate", () => {
     const input = createMockReport();
     // A real keyword gap against an offer that was actually supplied.

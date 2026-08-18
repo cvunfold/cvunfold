@@ -463,6 +463,18 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
           violationsByCategory: segmentCounts(violations.map((violation) => `${violation.category} (${violation.severity}, cap ${violation.cap})`)),
         };
       })(),
+      // Measured against raw model output, so a drop to zero means the prompt
+      // stopped generating out-of-scope ATS findings — not that the filter got
+      // better at hiding them.
+      atsScope: (() => {
+        const rows = (analyses || []).map((item) => (item.review_provenance as ReviewProvenance | null)?.droppedAtsFindings)
+          .filter((value): value is number => typeof value === "number");
+        return {
+          analysesAudited: rows.length,
+          analysesWithDroppedFindings: rows.filter((value) => value > 0).length,
+          droppedFindings: rows.reduce((sum, value) => sum + value, 0),
+        };
+      })(),
       anonymousAudienceRoles: summarizeAnonymousRoleStatistics((anonymousRoleRows || []) as AnonymousRoleAggregateRow[]),
       topErrorCategories: Object.fromEntries([...new Set(errorCategories)].map((category) => [category, errorCategories.filter((item) => item === category).length])),
       events: eventCounts,
