@@ -449,6 +449,20 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
           .filter((item) => item.comment.length > 0)
           .slice(0, 50),
       },
+      // Calibration is a prompt rule the models honour unevenly, so it is measured
+      // rather than assumed. A rising count means the active prompt or model is
+      // scoring categories above the cap its own issues imply.
+      calibration: (() => {
+        const violations = (analyses || []).flatMap((item) => {
+          const provenance = item.review_provenance as ReviewProvenance | null;
+          return provenance?.calibrationViolations || [];
+        });
+        return {
+          analysesWithViolations: (analyses || []).filter((item) => ((item.review_provenance as ReviewProvenance | null)?.calibrationViolations || []).length > 0).length,
+          analysesAudited: (analyses || []).filter((item) => Array.isArray((item.review_provenance as ReviewProvenance | null)?.calibrationViolations)).length,
+          violationsByCategory: segmentCounts(violations.map((violation) => `${violation.category} (${violation.severity}, cap ${violation.cap})`)),
+        };
+      })(),
       anonymousAudienceRoles: summarizeAnonymousRoleStatistics((anonymousRoleRows || []) as AnonymousRoleAggregateRow[]),
       topErrorCategories: Object.fromEntries([...new Set(errorCategories)].map((category) => [category, errorCategories.filter((item) => item === category).length])),
       events: eventCounts,

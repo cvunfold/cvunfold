@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       provenance: { promptVersion: "mock", promptVariant: activePromptVariant(), rubricVersion: "mock", pipelineVersion: REVIEW_PIPELINE_VERSION,
         model: "mock", requestedModel: "mock", fallbackUsed: false,
         modelConfig: { maxOutputTokens: null, timeoutMs: resolveReviewTimeoutMs(), fallbackDisabled: fallbackModelDisabled(), responseFormat: "cv_report", store: false },
-        pricing: { inputUsdPerMillion: 0, outputUsdPerMillion: 0, source: "unknown" } } };
+        pricing: { inputUsdPerMillion: 0, outputUsdPerMillion: 0, source: "unknown" }, calibrationViolations: [] } };
     if (!mockMode) {
       const quota = await consumeAnalysisQuota(ipKey);
       if (!quota.allowed) return NextResponse.json(

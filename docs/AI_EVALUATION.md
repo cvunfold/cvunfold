@@ -13,6 +13,7 @@ The live prompt is chosen in exactly one place: `src/lib/ai/prompts/index.ts`. N
 | `stable` (default) | pl | `review-pl-v3.3.0` | `prompts/review-pl-v3.ts` |
 | `stable` (default) | en | `review-en-v1.3.0` | `prompts/review-en-v1.ts` |
 | `v1.6-rc1` | pl | `v1.6-rc1` | `prompts/review-pl-v1_6-rc1.ts` |
+| `v1.6-rc2` | pl | `v1.6-rc2` | `prompts/review-pl-v1_6-rc2.ts` |
 
 Select a variant with the `CV_REVIEW_PROMPT_VARIANT` environment variable. It defaults to `stable`, and an unrecognised value also resolves to `stable`, so production cannot be switched by a typo. `v1.6-rc1` is Polish-only on purpose: English stays on its stable prompt so a canary measures the Polish rewrite alone.
 
@@ -34,7 +35,16 @@ Analyses created before this field existed keep `null` and are reported as `lega
 
 ## Current candidate and the Natalie baseline
 
-The candidate under test is **`v1.6-rc1`**.
+The candidate under test is **`v1.6-rc2`**: the verbatim `v1.6-rc1` text plus a mandatory score-calibration procedure inserted as section 19 (the three trailing sections are renumbered). `v1.6-rc1` is left byte-for-byte intact, because four analyses are already attributed to it.
+
+`v1.6-rc2` ships together with two changes that make its central rule enforceable rather than aspirational:
+
+- `issue.category` is now an enum over the seven rubric keys. As a free string, models answered with invented labels — `gpt-5.6-luna` returned `"Design systemy i wpływ na produkt"`, a category that does not exist — which silently broke every rule tying an issue to its category. Structured Outputs enforces the enum at generation time.
+- `auditCalibration` records every category scored above the cap its own issues imply (79 for `important`, 65 for `critical`) into `review_provenance.calibrationViolations`, aggregated in diagnostics under `calibration`. It reports; it does not clamp. Clamping would change results instead of measuring them.
+
+Because the schema changed, `REVIEW_PIPELINE_VERSION` moves to `report-pipeline-v3`. An rc1 run and an rc2 run therefore differ in prompt *and* pipeline — inherent to this change, and visible in provenance rather than hidden.
+
+Measured on one CV, four models on `v1.6-rc1`, calibration diverged far more than expected: overall 77 (`gpt-5.6-terra`) to 89 (`gpt-5.4-mini`), with `gpt-5.4-mini` scoring `ownership` 86 while carrying an `important` ownership issue — a direct breach of the rule the prompt already stated. That measurement is what `v1.6-rc2` and the audit exist to move.
 
 The Natalie Kerrigan baseline was produced by the **old prompt** (`review-pl-v3.3.0`), before the v1.6-rc1 rewrite. That baseline also predates provenance recording, so its stored row has no `review_provenance`. Treat it as `legacy/unknown` metadata with a known prompt version, not as a fully attributed run.
 
@@ -44,8 +54,16 @@ The baseline was additionally read *after* the report-pipeline fixes of 2026-08-
 
 | Label | Prompt | Pipeline | Model | Status |
 | --- | --- | --- | --- | --- |
-| `natalie / old-prompt / fixed-code / baseline` | `review-pl-v3.3.0` | `report-pipeline-v2` | as deployed at the time | recorded, qualitative only |
-| `natalie / v1.6-rc1 / <model> / run-1` | `v1.6-rc1` | `report-pipeline-v2` | resolved at run time | not yet run |
+| `natalie / old-prompt / fixed-code / baseline` | `review-pl-v3.3.0` | `report-pipeline-v2` | `gpt-5.4-mini` | recorded, qualitative only |
+| `natalie / v1.6-rc1 / gpt-5.4-mini / run-1` | `v1.6-rc1` | `report-pipeline-v2` | `gpt-5.4-mini` | overall 89, ownership 86 with an important ownership issue → cap breach |
+| `natalie / v1.6-rc1 / gpt-5.6-sol / run-1` | `v1.6-rc1` | `report-pipeline-v2` | `gpt-5.6-sol` | overall 82; ran 90.9s against the then-90s timeout |
+| `natalie / v1.6-rc1 / gpt-5.6-terra / run-1` | `v1.6-rc1` | `report-pipeline-v2` | `gpt-5.6-terra` | overall 77, the strictest calibration of the four |
+| `natalie / v1.6-rc1 / gpt-5.6-luna / run-1` | `v1.6-rc1` | `report-pipeline-v3`* | `gpt-5.6-luna` | overall 84; invented a category outside the rubric |
+| `natalie / v1.6-rc2 / <model> / run-1` | `v1.6-rc2` | `report-pipeline-v3` | resolved at run time | not yet run |
+
+\* The luna run predates the pipeline bump; its stored provenance reads `report-pipeline-v2`. Only the four rc1 rows above share a comparable pipeline.
+
+Category cap breaches are only verifiable for `gpt-5.4-mini`: the other three returned free-text category names, which is exactly what the enum now prevents.
 
 Fill `<model>` from the run's own `promptVersions`/`model` output rather than from the environment variable, so a silent fallback to `OPENAI_REVIEW_FALLBACK_MODEL` is visible in the label.
 

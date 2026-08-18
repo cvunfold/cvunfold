@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { reportSchema, type CVReport } from "./schemas/report";
-import { applyServerRubric, validateEvidence } from "./validate-report";
+import { applyServerRubric, auditCalibration, validateEvidence } from "./validate-report";
 import type { Segment } from "@/lib/document-parsing";
 import { getRubric, RUBRIC_VERSION, type Seniority } from "@/lib/rubrics/technical-v1";
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
@@ -150,6 +150,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     // Records whether the cost figure came from the per-model table or a stale
     // environment rate, so an untrustworthy number is visible as such.
     pricing,
+    calibrationViolations: auditCalibration(report),
   };
   return { report, telemetry: { model: selectedModel, inputTokens, outputTokens, estimatedCost, provenance } };
 }

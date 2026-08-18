@@ -2,6 +2,12 @@ import { z } from "zod";
 
 const evidenceRef = z.string().regex(/^seg_[a-z0-9_]+$/);
 const confidence = z.enum(["low", "medium", "high"]);
+// Must stay in sync with the rubric keys in @/lib/rubrics/technical-v1. A free
+// string here let models answer with invented labels ("Design systemy i wpływ na
+// produkt"), which silently broke every rule that ties an issue to its category.
+export const RUBRIC_CATEGORY_KEYS = ["impact", "ownership", "credibility", "architecture", "collaboration", "clarity", "ats"] as const;
+export type RubricCategoryKey = (typeof RUBRIC_CATEGORY_KEYS)[number];
+const rubricCategoryKey = z.enum(RUBRIC_CATEGORY_KEYS);
 const perspectiveSignal = z.object({
   title: z.string(),
   explanation: z.string(),
@@ -52,7 +58,7 @@ export const reportSchema = z.object({
   }),
   strengths: z.array(z.object({ id: z.string(), title: z.string(), explanation: z.string(), evidenceRefs: z.array(evidenceRef) })),
   issues: z.array(z.object({
-    id: z.string(), severity: z.enum(["minor", "important", "critical"]), category: z.string(), title: z.string(),
+    id: z.string(), severity: z.enum(["minor", "important", "critical"]), category: rubricCategoryKey, title: z.string(),
     explanation: z.string(), whyItMatters: z.string(), evidenceRefs: z.array(evidenceRef), confidence,
     action: z.string().describe("A complete, document-specific instruction. Never a suggestion type label such as Rewrite, Expose, Gap or Question."),
     suggestion: z.object({

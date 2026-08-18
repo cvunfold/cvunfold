@@ -1,11 +1,12 @@
 import type { ReviewPromptVariant } from "./prompts";
 import type { ResolvedPricing } from "./model-pricing";
+import type { CalibrationViolation } from "./validate-report";
 
 // Bump this when the server-side report pipeline changes in a way that can alter
 // a stored report for identical model output — segmentation, evidence
 // validation, suggestion downgrades or action normalisation. Without it, two
 // runs of the same prompt and model are not necessarily comparable.
-export const REVIEW_PIPELINE_VERSION = "report-pipeline-v2";
+export const REVIEW_PIPELINE_VERSION = "report-pipeline-v3";
 
 // Everything needed to answer "which prompt, model and code produced this
 // report". Persisted server-side only; never part of the report payload the
@@ -26,4 +27,6 @@ export type ReviewProvenance = {
     store: boolean;
   };
   pricing: ResolvedPricing;
+  // Empty when the model respected its own calibration caps.
+  calibrationViolations: CalibrationViolation[];
 };

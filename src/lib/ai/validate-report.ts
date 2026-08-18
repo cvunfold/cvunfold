@@ -54,6 +54,28 @@ function excessiveSemanticNovelty(proposed: string, sources: string[]): boolean 
   return proposedTokens.filter((token) => !sourceTokens.has(token)).length > 2;
 }
 
+export type CalibrationViolation = { category: string; score: number; severity: "important" | "critical"; cap: number };
+
+// The prompt caps a category touched by a material issue. Models honour that
+// unevenly — the same CV scored 77 to 89 across four of them — so record every
+// breach instead of trusting the instruction. Reported, not corrected: clamping
+// scores server-side would change results rather than measure them.
+const CALIBRATION_CAPS = { important: 79, critical: 65 } as const;
+
+export function auditCalibration(report: Pick<CVReport, "categoryScores" | "issues">): CalibrationViolation[] {
+  const scores = new Map(report.categoryScores.map((category) => [category.key, category.score]));
+  const strictest = new Map<string, "important" | "critical">();
+  for (const issue of report.issues) {
+    if (issue.severity === "minor") continue;
+    if (strictest.get(issue.category) !== "critical") strictest.set(issue.category, issue.severity);
+  }
+  return [...strictest].flatMap(([category, severity]) => {
+    const score = scores.get(category);
+    const cap = CALIBRATION_CAPS[severity];
+    return score !== undefined && score > cap ? [{ category, score, severity, cap }] : [];
+  });
+}
+
 export function validateEvidence(report: ModelReport, validRefs: Set<string>, evidence: EvidenceMap = {}): CVReport {
   const parsed = reportSchema.parse(report);
   const keep = (refs: string[]) => refs.filter((ref) => validRefs.has(ref));
