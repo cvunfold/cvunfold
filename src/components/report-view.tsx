@@ -45,11 +45,11 @@ const copy = {
     simulated: "SYMULOWANY WYNIK", improve: { reached: "Co najbardziej wzmocniłoby ten wynik?", pending: "Co najbardziej mogłoby przesunąć wynik w stronę Interview?" },
     disclaimer: "To symulacja pierwszego wrażenia na podstawie samego dokumentu, a nie prawdziwa decyzja rekrutacyjna ani przewidywanie wyniku konkretnej rekrutacji.",
     categories: "Sygnały poziomu w kategoriach", featured: "Najważniejsze ustalenie darmowej analizy", problem: "PROBLEM",
-    evidence: "DOWÓD Z CV", matters: "DLACZEGO TO WAŻNE", action: "CO ZROBIĆ", confidence: "Pewność",
+    evidence: "DOWODY Z CV", matters: "DLACZEGO TO WAŻNE", action: "CO ZROBIĆ", proposedRewrite: "PROPONOWANY ZAPIS", confidence: "Pewność", perceptionMarker: "Wrażenie", targetMarker: "Aplikujesz na",
     fullIssues: "Co osłabia odbiór — dowód przed opinią", strengths: "Mocne sygnały", nextSteps: "Plan działania",
     lockedTitle: "Pełna anatomia problemów jest w raporcie", lockedCopy: "Odblokuj wszystkie dowody, priorytety i bezpieczne sugestie bez dopisywania faktów.",
     unlock: "Odblokuj pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji", paymentMethodsLabel: "Obsługiwane płatności", paymentMethods: ["Karta", "BLIK", "Apple Pay", "Google Pay"], feedback: "Czy analiza była trafna?",
-    rating: "Ocena", accuracy: "Trafność", comment: "Komentarz", issueScope: "Czego dotyczy uwaga?", issueScopeAll: "Całego raportu", send: "Wyślij feedback", thanks: "Dziękujemy — ta informacja pomaga poprawiać kolejne wersje.", feedbackPrivacy: "Komentarz zniknie razem z raportem. Zachowamy wyłącznie zbiorcze statystyki oceny bez identyfikatora analizy i treści dokumentu.",
+    rating: "Ocena", accuracy: "Trafność", comment: "Komentarz", issueScope: "Czego dotyczy uwaga?", issueScopeAll: "Całego raportu", send: "Wyślij feedback", thanks: "Dziękujemy — ta informacja pomaga poprawiać kolejne wersje.", feedbackPrivacy: "Komentarz przechowamy do 90 dni bez identyfikatora raportu ani treści CV. Nie wpisuj w nim danych kontaktowych ani fragmentów CV.",
     accurate: ["Tak", "Częściowo", "Nie"], copied: "Link skopiowany", copyFailed: "Nie udało się skopiować linku.",
     deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
     samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV", backHome: "Wróć do strony głównej",
@@ -65,11 +65,11 @@ const copy = {
     simulated: "SIMULATED OUTCOME", improve: { reached: "What would most strengthen this outcome?", pending: "What could most improve the outcome towards Interview?" },
     disclaimer: "This is a simulation of the first impression created by the document, not a real hiring decision or a prediction for a specific application.",
     categories: "Seniority signals by category", featured: "The most important finding from your free analysis", problem: "PROBLEM",
-    evidence: "EVIDENCE FROM YOUR CV", matters: "WHY IT MATTERS", action: "WHAT TO DO", confidence: "Confidence",
+    evidence: "EVIDENCE FROM THE CV", matters: "WHY IT MATTERS", action: "WHAT TO DO", proposedRewrite: "SUGGESTED WORDING", confidence: "Confidence", perceptionMarker: "Impression", targetMarker: "Applying for",
     fullIssues: "What weakens the document — evidence before opinion", strengths: "Strong signals", nextSteps: "Action plan",
     lockedTitle: "The full anatomy of the issues is in your report", lockedCopy: "Unlock every evidence reference, priority and fact-safe suggestion.",
     unlock: "Unlock the full report", oneTime: "one-time payment · no subscription", paymentMethodsLabel: "Supported payments", paymentMethods: ["Cards", "Apple Pay", "Google Pay"], feedback: "Was the analysis accurate?",
-    rating: "Rating", accuracy: "Accuracy", comment: "Comment", issueScope: "What is this about?", issueScopeAll: "The whole report", send: "Send feedback", thanks: "Thank you — this helps us improve the next version.", feedbackPrivacy: "The comment is deleted with the report. We retain only cumulative rating statistics without an analysis identifier or document content.",
+    rating: "Rating", accuracy: "Accuracy", comment: "Comment", issueScope: "What is this about?", issueScopeAll: "The whole report", send: "Send feedback", thanks: "Thank you — this helps us improve the next version.", feedbackPrivacy: "We retain your comment for up to 90 days without a report identifier or CV content. Please do not include contact details or CV excerpts.",
     accurate: ["Yes", "Partly", "No"], copied: "Link copied", copyFailed: "We could not copy the link.",
     deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
     samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV", backHome: "Back to homepage",
@@ -78,8 +78,13 @@ const copy = {
   },
 } as const;
 
-const seniorityLabel = (value: CVReport["document"]["perceivedSeniority"]) => value === "unclear" ? "—" : value[0].toUpperCase() + value.slice(1);
+const seniorityLabel = (value: string) => value === "unclear" ? "—" : value[0].toUpperCase() + value.slice(1);
+const senioritySteps = ["junior", "mid", "senior", "lead"] as const;
 const decisionLabel = { interview: "INTERVIEW", maybe: "MAYBE", reject: "REJECT" } as const;
+const primaryProfileRole = (perceivedRole: string, targetRole: string) => {
+  const firstRole = perceivedRole.split(/\s*[\/|]\s*/)[0]?.trim() || targetRole;
+  return firstRole.split(/\s+(?:specjaliz\w*|speciali[sz]\w*)/i)[0]?.trim() || targetRole;
+};
 const confidenceLabel = {
   pl: { low: "niska", medium: "średnia", high: "wysoka" },
   en: { low: "low", medium: "medium", high: "high" },
@@ -171,17 +176,11 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
   // ATS is document hygiene, not a seniority signal, so it is shown apart from
   // the rubric list. It stays inside overallScore: at senior its weight is 4%,
   // and removing it would move the result by at most a point.
-  // perceivedRole already reads like "Senior Frontend Engineer ...", so appending
-  // the perceived seniority repeated it a third time — it is also shown in the
-  // sidebar and the recruiter profile. The selected target was missing instead,
-  // and it is the thing the whole report compares the document against.
   const targetSeniority = reportData && "document" in reportData ? reportData.document.targetSeniority : undefined;
-  const targetLevelLine = !targetSeniority ? null
-    : targetSeniority === "auto" ? t.targetAuto
-    : `${t.targetLevel}: ${seniorityLabel(targetSeniority)}`;
   const atsCategory = reportData && "categoryScores" in reportData ? reportData.categoryScores.find((category) => category.key === "ats") : undefined;
   const teaser = !paid ? reportData as TeaserReport : null;
   const data = reportData as CVReport;
+  const profileRole = "document" in reportData ? primaryProfileRole(data.document.perceivedRole, data.document.targetRole) : "";
   const price = formatPlanPrice(plan, locale);
 
   useEffect(() => {
@@ -378,11 +377,16 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
     <div className="report-layout">
       <aside className="report-sidebar">
         <Logo locale={locale}/>
-        <span className="overline">{t.perceivedLevel}</span>
-        <strong className="perceived-level">{seniorityLabel(data.document.perceivedSeniority)}</strong>
+        <div className="seniority-track" aria-label={`${t.perceivedLevel}: ${seniorityLabel(data.document.perceivedSeniority)}${targetSeniority && targetSeniority !== "auto" ? `; ${t.targetLevel}: ${seniorityLabel(targetSeniority)}` : ""}`}>
+          <ol>{senioritySteps.map((level) => {
+            const isPerceived = level === data.document.perceivedSeniority;
+            const isTarget = targetSeniority !== "auto" && level === targetSeniority;
+            return <li key={level} className={`${isPerceived ? "is-perceived " : ""}${isTarget ? "is-target" : ""}`}><b className="perception-marker">{isPerceived ? t.perceptionMarker : null}</b><i aria-hidden="true"/><strong>{seniorityLabel(level)}</strong><b className="target-marker">{isTarget ? t.targetMarker : null}</b></li>;
+          })}</ol>{targetSeniority === "auto" ? <p className="seniority-auto">{t.targetAuto}</p> : null}
+        </div>
         <span className="overline">{t.first20}</span>
         <strong className={`sidebar-decision ${data.recruiterSimulation.simulatedDecision}`}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong>
-        <div className="secondary-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale}/></div>
+        <div className="secondary-score"><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale} captionBelow/><span>{t.overall}</span></div>
         <hr/>
         <p className="verdict">{data.summary.oneSentenceVerdict}</p>
         <ul className="report-includes"><li><span>{t.fullIssues}</span><b>{counts.issues}</b></li><li><span>{t.strengths}</span><b>{counts.strengths}</b></li><li><span>{t.nextSteps}</span><b>{counts.nextSteps}</b></li></ul>
@@ -393,7 +397,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
       <div className="report-content">
         {demo ? <div className="sample-disclosure"><div><b>{t.sample}</b><small>{t.samplePrivate}</small></div><p>{demo.note}</p><Link className="sample-home-link" href={homePath(locale)}>{t.backHome}<ArrowIcon/></Link></div> : null}
         <header className="report-title">
-          <div><h1>{demo ? t.sampleReport : t.yourReport}</h1><h2>{demo ? `${demo.name} · ` : ""}{data.document.perceivedRole}</h2><p className="report-target">{targetLevelLine}</p><span>{t.documentPerception}</span><p>{locale === "pl" ? "Na podstawie treści i struktury CV. To nie jest ocena osoby." : "Based on the CV's content and structure. This is not an assessment of the person."}</p></div>
+          <div><h1>{demo ? t.sampleReport : t.yourReport}</h1><h2>{demo ? `${demo.name} · ` : ""}{profileRole}</h2><span>{t.documentPerception}</span><p>{locale === "pl" ? "Na podstawie treści i struktury CV. To nie jest ocena osoby." : "Based on the CV's content and structure. This is not an assessment of the person."}</p></div>
           <div className="report-actions">
             {demo || paid ? <button className="report-download" onClick={() => window.print()}>{t.print}</button> : null}
             {!demo ? <button className="report-download" onClick={copySecureLink}>{linkState === "copied" ? t.copied : linkState === "error" ? t.copyFailed : t.copyLink}</button> : null}
@@ -401,10 +405,10 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
           </div>
         </header>
         <section className="report-mobile-summary" aria-label={!paid && !demo ? t.mobileSummary : t.overall}>
-          <div className="report-mobile-score"><span>{t.overall}</span><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale}/></div>
-          <div className="report-mobile-summary-copy">
+          <div className="report-mobile-score"><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale} captionBelow/><span>{t.overall}</span></div>
+            <div className="report-mobile-summary-copy">
             <span className="report-mobile-summary-title">{!paid && !demo ? t.mobileSummary : t.overall}</span>
-            <div className="report-mobile-signals"><div><span>{t.perceivedLevel}</span><strong>{data.document.perceivedRole} · {seniorityLabel(data.document.perceivedSeniority)}</strong></div><div><span>{t.first20}</span><strong className={data.recruiterSimulation.simulatedDecision}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong></div></div>
+            <div className="report-mobile-signals"><div><span>{t.perceivedLevel}</span><strong>{profileRole}</strong></div>{targetSeniority && targetSeniority !== "auto" ? <div><span>{t.targetLevel}</span><strong>{seniorityLabel(targetSeniority)}</strong></div> : null}<div><span>{t.first20}</span><strong className={data.recruiterSimulation.simulatedDecision}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong></div></div>
             <p className="verdict">{data.summary.oneSentenceVerdict}</p>
           </div>
         </section>
@@ -434,12 +438,15 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
         </section>
 
         {full ? <>
-          <section className="report-section"><div className="section-heading"><span>04</span><h2>{t.fullIssues}</h2></div><div className="issues">{full.issues.map((issue, index) => <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{issue.severity}</span><span>{issue.suggestion?.type.toUpperCase()}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.evidence}</small>{issue.evidenceRefs.length ? issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>) : <p>{locale === "pl" ? "Brak bezpośredniego dowodu — luka lub pytanie." : "No direct evidence — this is a gap or question."}</p>}</div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: issue.action, suggestionType: issue.suggestion?.type, title: issue.title, locale, factualityNote: issue.suggestion?.factualityNote })}</p>{issue.suggestion?.proposed ? <blockquote>{issue.suggestion.proposed}</blockquote> : null}</div></div><footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>)}</div></section>
+          <section className="report-section"><div className="section-heading"><span>04</span><h2>{t.fullIssues}</h2></div><div className="issues">{full.issues.map((issue, index) => {
+            const hasEvidence = issue.suggestion?.type.toUpperCase() !== "GAP" && issue.evidenceRefs.length > 0;
+            return <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{issue.severity}</span><span>{issue.suggestion?.type.toUpperCase()}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: issue.action, suggestionType: issue.suggestion?.type, title: issue.title, locale, factualityNote: issue.suggestion?.factualityNote })}</p></div></div>{issue.suggestion?.proposed ? <div className="issue-proposed"><small>{t.proposedRewrite}</small><blockquote>{issue.suggestion.proposed}</blockquote></div> : null}{hasEvidence ? <div className="issue-evidence" data-evidence-count={Math.min(issue.evidenceRefs.length, 3)}><small>{t.evidence}</small><div>{issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>)}</div></div> : null}<footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>;
+          })}</div></section>
           <section className="report-section report-summary-grid"><div><h2>{t.strengths}</h2>{full.strengths.map((item) => <article key={item.id}><CheckIcon/><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h2>{t.nextSteps}</h2>{full.nextSteps.toSorted((a, b) => a.priority - b.priority).map((item) => <article key={item.priority}><span>{item.priority}</span><div><b>{item.title}</b><p>{item.action}</p></div></article>)}</div></section>
           {demo ? <section className="report-section sample-cta"><div><h2>{locale === "pl" ? "Co mówi Twoje CV?" : "What does your CV communicate?"}</h2><p>{locale === "pl" ? "Zobacz bezpłatny wynik i najważniejszy dowód." : "See your free result and most important evidence."}</p></div><Link className="button" href={analysisPath(locale)}>{t.analyze}<ArrowIcon/></Link></section> : <section className="report-section feedback"><h2>{t.feedback}</h2>{sent ? <p>{t.thanks}</p> : <form onSubmit={feedback}><label>{t.rating}<select name="rating" defaultValue="5">{[5,4,3,2,1].map((value) => <option key={value} value={value}>{value}</option>)}</select></label><label>{t.accuracy}<select name="accurate" defaultValue="yes"><option value="yes">{t.accurate[0]}</option><option value="partly">{t.accurate[1]}</option><option value="no">{t.accurate[2]}</option></select></label>{full.issues.length ? <label>{t.issueScope}<select name="issueId" defaultValue=""><option value="">{t.issueScopeAll}</option>{full.issues.map((issue, index) => <option key={issue.id} value={issue.id}>{String(index + 1).padStart(2, "0")} · {issue.title}</option>)}</select></label> : null}<label>{t.comment}<textarea name="comment" maxLength={1000}/></label><small>{t.feedbackPrivacy}</small><button className="button">{t.send}</button></form>}</section>}
         </> : <section ref={paywall} className="locked"><LockIcon/><h2>{t.lockedTitle}</h2><p>{t.lockedCopy}</p><div className="locked-counts"><span>{counts.issues} {locale === "pl" ? "problemów" : "issues"}</span><span>{counts.strengths} {locale === "pl" ? "mocnych stron" : "strengths"}</span><span>{counts.nextSteps} {locale === "pl" ? "priorytetów" : "priorities"}</span></div><div className={`locked-payment-actions${expressWalletAvailable ? " wallet-ready" : ""}`}><button ref={paywallCta} onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setExpressWalletAvailable}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>}
 
-        <nav className="report-knowledge"><span>{t.viewArticles}</span><div>{topicKeys.map((key) => { const [label, slug] = reportTopics[locale][key]; return <Link key={key} href={`${articlesPath(locale)}/${slug}`}>{label}<ArrowIcon/></Link>; })}<Link href={articlesPath(locale)}>{locale === "pl" ? "Wszystkie" : "All"}<ArrowIcon/></Link></div></nav>
+        <nav className="report-knowledge"><span>{t.viewArticles}</span><div>{topicKeys.map((key) => { const [label, slug] = reportTopics[locale][key]; return <Link key={key} href={`${articlesPath(locale)}/${slug}`} target="_blank" rel="noopener noreferrer">{label}<ArrowIcon/></Link>; })}<Link href={articlesPath(locale)} target="_blank" rel="noopener noreferrer">{locale === "pl" ? "Wszystkie" : "All"}<ArrowIcon/></Link></div></nav>
       </div>
     </div>
     {mockMode ? <span className="dev-badge">DEV MOCK</span> : null}

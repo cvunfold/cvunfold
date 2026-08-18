@@ -6,6 +6,7 @@ type ScoreRingProps = {
   ariaLabel?: string;
   locale?: Locale;
   statusLabel?: string;
+  captionBelow?: boolean;
 };
 
 // Bands follow the prompt's own score calibration, so the ring cannot tell the
@@ -29,10 +30,13 @@ export function ScoreRing({
   locale = "pl",
   ariaLabel = `Wynik ${score} na 100`,
   statusLabel,
+  captionBelow = false,
 }: ScoreRingProps) {
   const band = scoreBand(score);
   const style = { "--score": `${score * 3.6}deg` } as React.CSSProperties;
-  return <div className={`score-ring${compact ? " compact" : ""} tone-${band.tone}`} style={style} aria-label={ariaLabel}>
-    <div><strong>{score}</strong><span>/100</span><small>{statusLabel ?? (locale === "en" ? band.en : band.pl)}</small></div>
+  const status = statusLabel ?? (locale === "en" ? band.en : band.pl);
+  const ring = <div className={`score-ring${compact ? " compact" : ""} tone-${band.tone}`} style={style} aria-label={ariaLabel}>
+    <div><strong>{score}</strong><span>/100</span>{!captionBelow ? <small>{status}</small> : null}</div>
   </div>;
+  return captionBelow ? <div className={`score-ring-with-caption tone-${band.tone}`}>{ring}<small className="score-ring-caption">{status}</small></div> : ring;
 }
