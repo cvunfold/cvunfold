@@ -687,15 +687,6 @@ Do not raise the score for English vocabulary.
 Do not raise the score for a mere declaration of seniority.
 Do not raise the score for the presence of popular technologies.
 The same set of facts in Polish and in English should receive similar scores.
-A very short fragment without standard CV sections cannot score above 50 for ATS / document hygiene, even if it is readable.
-ATS assesses only the document's hygiene and technical readability.
-Do not use ATS as a substitute assessment of:
-content,
-seniority,
-job fit.
-The ats.findings field concerns only the document's parseability and structure — for example sections, headings, dates, how job titles are recorded, the readability of the skills list, and extraction artefacts.
-Do not put remarks about matching a specific job posting into ats.findings, and do not note there that no job description was supplied.
-A missing job posting is not a flaw in the document and is not an ATS finding. Matching a job posting belongs exclusively to jobMatch.
 Return categoryScores on a 0–100 scale.
 overallScore will be recalculated server-side.
 
@@ -707,7 +698,7 @@ For every category, carry out this order internally:
 3. Check whether any final issue materially concerns this category.
 4. Only then choose the score band.
 5. Finally choose a specific number within the band.
-The issue.category field must be a category key from the supplied rubric, for example impact, ownership, credibility, architecture, collaboration, clarity or ats. Do not invent your own category names, because the rules below tie an issue to a specific category through this key.
+The issue.category field must be a category key from the supplied rubric, for example impact, ownership, credibility, architecture, collaboration or clarity. Do not invent your own category names, because the rules below tie an issue to a specific category through this key.
 When setting the score, remember:
 90–100 = the category is nearly complete.
 Requires several independent, concrete and repeatable pieces of evidence, including strong evidence in the most recent role.

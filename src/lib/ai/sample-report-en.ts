@@ -32,7 +32,6 @@ const scores: Record<string, number> = {
   architecture: 82,
   collaboration: 82,
   clarity: 72,
-  ats: 94,
 };
 
 const rationales: Record<string, string> = {
@@ -42,7 +41,6 @@ const rationales: Record<string, string> = {
   architecture: "The RFC on domain modules, the migration to a more modular structure and the shared component library show systems thinking. VertexPay, however, lacks detail on component boundaries, the library's API or the reasoning behind key trade-offs.",
   collaboration: "The CV shows collaboration with product, design, backend, QA and platform teams, plus work on a solution used by three product teams. Some bullets, however, do not specify what impact the applicant had on agreements and decisions.",
   clarity: "The CV has clear sections, chronology and distinct specialisations, but the best evidence — concrete performance results and the RFC — sits with the earlier role. The most recent role and its initiatives are more generic, so the signal hierarchy does not maximise how seniority is read.",
-  ats: "The document has standard headings, a chronological employment history, dates, job titles, locations and clearly grouped competencies. There are no extraction artefacts or parsing issues visible.",
 };
 
 const categoryEvidenceRefs: Record<string, string[]> = {
@@ -52,7 +50,6 @@ const categoryEvidenceRefs: Record<string, string[]> = {
   architecture: ["seg_c", "seg_6", "seg_5"],
   collaboration: ["seg_4", "seg_9"],
   clarity: ["seg_b", "seg_c", "seg_8"],
-  ats: ["seg_summary"],
 };
 
 const categoryScores = getRubric("senior", "frontend_developer", "en").map((category) => ({
@@ -273,12 +270,11 @@ export const sampleReportEn: CVReport = {
     },
   ],
   ats: {
-    score: 94,
-    findings: [
-      { type: "positive", title: "A readable document structure", explanation: "The CV contains recognisable sections for summary, skills, experience, initiatives, education and languages." },
-      { type: "positive", title: "Consistent dates and job titles", explanation: "Roles include employer names, locations and unambiguous employment periods in a month–year format." },
-      { type: "positive", title: "A parseable list of technical skills", explanation: "Technologies are grouped by area, such as frontend, architecture, quality and delivery." },
-      { type: "warning", title: "Mixed terminology language", explanation: "The document mixes narrative in one language with English technical terms and job titles; this reads fine, but it is worth keeping a consistent style for headings and descriptions." },
+    score: 100,
+    checks: [
+      { id: "text_layer", status: "pass" }, { id: "reading_order", status: "pass" }, { id: "sections", status: "pass" },
+      { id: "dates_titles", status: "pass" }, { id: "contact_info", status: "pass" }, { id: "layout_columns", status: "pass" },
+      { id: "glyph_artifacts", status: "pass" }, { id: "date_format", status: "pass" },
     ],
   },
   jobMatch: null,

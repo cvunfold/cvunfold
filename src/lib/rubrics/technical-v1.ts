@@ -10,34 +10,35 @@ const commonLabels: Record<string, string> = {
   ownership: "Ownership i odpowiedzialność",
   collaboration: "Współpraca",
   clarity: "Jasność i hierarchia sygnałów",
-  ats: "ATS / higiena dokumentu",
 };
 const commonLabelsEn: Record<string, string> = {
   impact: "Impact and outcomes",
   ownership: "Ownership and responsibility",
   collaboration: "Collaboration",
   clarity: "Clarity and signal hierarchy",
-  ats: "ATS / document hygiene",
 };
 
+// ats was removed and its weight redistributed proportionally across the
+// remaining categories in each row (each row still sums to 1). Document
+// hygiene is now the deterministic checker in @/lib/ats-checker, shown
+// alongside the report rather than folded into overallScore.
 const weights: Record<Exclude<Seniority, "auto">, Record<string, number>> = {
-  junior: { impact: .10, ownership: .08, credibility: .25, architecture: .05, collaboration: .15, clarity: .27, ats: .10 },
-  mid: { impact: .17, ownership: .16, credibility: .25, architecture: .10, collaboration: .10, clarity: .15, ats: .07 },
-  senior: { impact: .22, ownership: .22, credibility: .18, architecture: .16, collaboration: .10, clarity: .08, ats: .04 },
-  lead: { impact: .20, ownership: .22, credibility: .12, architecture: .22, collaboration: .17, clarity: .05, ats: .02 },
+  junior: { impact: .11, ownership: .09, credibility: .28, architecture: .05, collaboration: .17, clarity: .30 },
+  mid: { impact: .18, ownership: .17, credibility: .27, architecture: .11, collaboration: .11, clarity: .16 },
+  senior: { impact: .23, ownership: .23, credibility: .19, architecture: .17, collaboration: .10, clarity: .08 },
+  lead: { impact: .20, ownership: .23, credibility: .12, architecture: .23, collaboration: .17, clarity: .05 },
 };
 
 const genericAutoWeights: Record<string, number> = {
-  impact: .20,
-  ownership: .18,
-  credibility: .18,
-  architecture: .12,
-  collaboration: .12,
-  clarity: .13,
-  ats: .07,
+  impact: .22,
+  ownership: .19,
+  credibility: .19,
+  architecture: .13,
+  collaboration: .13,
+  clarity: .14,
 };
 
-export const RUBRIC_VERSION = "technical-v1.1.0";
+export const RUBRIC_VERSION = "technical-v1.2.0";
 
 export function parseSeniority(value: unknown): Seniority | null {
   return SENIORITIES.includes(value as Seniority) ? value as Seniority : null;

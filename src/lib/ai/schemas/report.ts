@@ -1,11 +1,14 @@
 import { z } from "zod";
+import type { AtsCheckResult } from "@/lib/ats-checker/types";
 
 const evidenceRef = z.string().regex(/^seg_[a-z0-9_]+$/);
 const confidence = z.enum(["low", "medium", "high"]);
 // Must stay in sync with the rubric keys in @/lib/rubrics/technical-v1. A free
 // string here let models answer with invented labels ("Design systemy i wpływ na
 // produkt"), which silently broke every rule that ties an issue to its category.
-export const RUBRIC_CATEGORY_KEYS = ["impact", "ownership", "credibility", "architecture", "collaboration", "clarity", "ats"] as const;
+// "ats" is deliberately absent: document hygiene is now a deterministic check
+// (@/lib/ats-checker), not a model-scored rubric category.
+export const RUBRIC_CATEGORY_KEYS = ["impact", "ownership", "credibility", "architecture", "collaboration", "clarity"] as const;
 export type RubricCategoryKey = (typeof RUBRIC_CATEGORY_KEYS)[number];
 const rubricCategoryKey = z.enum(RUBRIC_CATEGORY_KEYS);
 const perspectiveSignal = z.object({
@@ -66,9 +69,6 @@ export const reportSchema = z.object({
       proposed: z.string().nullable(), factualityNote: z.string(),
     }).nullable(),
   })),
-  ats: z.object({ score: z.number().min(0).max(100), findings: z.array(z.object({
-    type: z.enum(["positive", "warning", "error"]), title: z.string(), explanation: z.string(),
-  })) }),
   jobMatch: z.object({ score: z.number().min(0).max(100), strongestMatches: z.array(z.string()),
     missingEvidence: z.array(z.string()), misplacedEvidence: z.array(z.string()), recommendations: z.array(z.string()) }).nullable(),
   nextSteps: z.array(z.object({ priority: z.number().int().positive(), title: z.string(), action: z.string().describe("A concrete next step written as a complete instruction, not a category label."), expectedImpact: z.enum(["low", "medium", "high"]) })),
@@ -79,13 +79,18 @@ export type ModelReport = z.infer<typeof reportSchema>;
 export type EvidenceMap = Record<string, string>;
 // evidenceMap is server-enriched. It is optional only for reports created before
 // the launch migration; every new report receives a map built from parsed CV segments.
-export type CVReport = ModelReport & { evidenceMap?: EvidenceMap };
+// ats is server-computed by the deterministic checker (@/lib/ats-checker), not
+// part of the model's own Zod-validated output, and rides along in the same
+// stored JSON blob. Optional only for reports created before this field existed.
+export type CVReport = ModelReport & { evidenceMap?: EvidenceMap; ats?: AtsCheckResult };
 
 export type TeaserSeverityCounts = { critical: number; important: number; minor: number };
 
 // This is the complete unpaid boundary. Keep it intentionally small: it must be
 // safe to serialize to an unpaid browser session without exposing the report's
 // other issues, recommendations, evidence references, or recruiter rationale.
+// ats is the one exception — deterministic document hygiene, not a subjective
+// content judgement, so it is safe (and the point) to show in full for free.
 export type TeaserReport = Pick<CVReport, "version" | "locale"> & {
   profileSummary: string;
   firstImpression: string;
@@ -97,4 +102,5 @@ export type TeaserReport = Pick<CVReport, "version" | "locale"> & {
     interpretation: string;
     actionDirection: string;
   } | null;
+  ats?: AtsCheckResult;
 };

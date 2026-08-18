@@ -5,7 +5,7 @@ export type CVDetectionResult = {
   signals: string[];
 };
 
-const sectionSignals = [
+export const sectionSignals = [
   { key: "experience", weight: 3, pattern: /\b(do(?:ś|s)wiadczenie(?: zawodowe)?|historia zatrudnienia|przebieg kariery|experience|employment|work history|professional experience)\b/i },
   { key: "education", weight: 1, pattern: /\b(wykszta(?:ł|l)cenie|edukacja|studia|uczelnia|education|university|college|degree)\b/i },
   { key: "skills", weight: 2, pattern: /\b(umiej(?:ę|e)tno(?:ś|s)ci|kompetencje|technologie|stack technologiczny|skills|competencies|technologies|tech stack)\b/i },
@@ -14,11 +14,16 @@ const sectionSignals = [
   { key: "languages", weight: 1, pattern: /\b(j(?:ę|e)zyki|znajomo(?:ś|s)ć j(?:ę|e)zyków|languages|language skills)\b/i },
 ] as const;
 
-const yearPattern = /\b(?:19|20)\d{2}\b/g;
-const dateRangePattern = /\b(?:19|20)\d{2}\s*(?:[-–—]|do|to)\s*(?:(?:19|20)\d{2}|obecnie|present|current)\b/gi;
-const jobTitlePattern = /\b(developer(?:ka)?|engineer|in(?:ż|z)ynier(?:ka)?|manager(?:ka)?|kierownik|specjalist(?:a|ka)|analityk|analityczka|consultant|konsultant(?:ka)?|designer|projektant(?:ka)?|administrator|architect|architekt(?:ka)?|director|dyrektor(?:ka)?|lead|intern|sta(?:ż|z)yst(?:a|ka))\b/i;
+export const yearPattern = /\b(?:19|20)\d{2}\b/g;
+export const dateRangePattern = /\b(?:19|20)\d{2}\s*(?:[-–—]|do|to)\s*(?:(?:19|20)\d{2}|obecnie|present|current)\b/gi;
+export const jobTitlePattern = /\b(developer(?:ka)?|engineer|in(?:ż|z)ynier(?:ka)?|manager(?:ka)?|kierownik|specjalist(?:a|ka)|analityk|analityczka|consultant|konsultant(?:ka)?|designer|projektant(?:ka)?|administrator|architect|architekt(?:ka)?|director|dyrektor(?:ka)?|lead|intern|sta(?:ż|z)yst(?:a|ka))\b/i;
 const bulletLinePattern = /^\s*(?:[-•●▪◦]|\d+[.)])\s+\S+/gm;
 const minimumStructuredCvChars = 180;
+
+/** Section keys the text visibly signals, in `sectionSignals` order. Shared with the ATS checker so "which sections did we recognize" has one source of truth. */
+export function matchedSectionKeys(text: string): string[] {
+  return sectionSignals.filter(({ pattern }) => pattern.test(text)).map(({ key }) => key);
+}
 
 export function detectLikelyCv(text: string): CVDetectionResult {
   const normalized = text.replace(/\s+/g, " ").trim();

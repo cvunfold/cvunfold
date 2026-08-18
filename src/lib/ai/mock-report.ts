@@ -1,4 +1,5 @@
 import type { CVReport } from "./schemas/report";
+import type { AtsCheckResult } from "@/lib/ats-checker/types";
 import { getRubric, RUBRIC_VERSION, type Seniority } from "@/lib/rubrics/technical-v1";
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
 import { PROMPT_VERSION } from "./prompts/review-pl-v3";
@@ -6,7 +7,15 @@ import type { Locale } from "@/lib/i18n";
 import { sampleReportEn } from "./sample-report-en";
 import { calculateOverall } from "./validate-report";
 
-const scores: Record<string, number> = { impact: 58, ownership: 68, credibility: 82, architecture: 65, collaboration: 74, clarity: 76, ats: 78 };
+const scores: Record<string, number> = { impact: 58, ownership: 68, credibility: 82, architecture: 65, collaboration: 74, clarity: 76 };
+const mockAts: AtsCheckResult = {
+  score: 88,
+  checks: [
+    { id: "text_layer", status: "pass" }, { id: "reading_order", status: "pass" }, { id: "sections", status: "pass" },
+    { id: "dates_titles", status: "pass" }, { id: "contact_info", status: "pass" }, { id: "layout_columns", status: "pass" },
+    { id: "glyph_artifacts", status: "warning" }, { id: "date_format", status: "pass" },
+  ],
+};
 
 export function createMockReport(targetSeniority: Seniority = "auto", withJob = false, targetRole: TargetRoleId = "frontend_developer", locale: Locale = "pl"): CVReport {
   const role = getTargetRoleProfile(targetRole, locale);
@@ -91,10 +100,7 @@ export function createMockReport(targetSeniority: Seniority = "auto", withJob = 
         evidenceRefs: ["seg_project_1"], confidence: "high", action: "Przenieś ten punkt wyżej w obrębie stanowiska.",
         suggestion: { type: "expose", original: null, proposed: null, factualityNote: "Zmiana kolejności nie dodaje nowych informacji." } },
     ],
-    ats: { score: 78, findings: [
-      { type: "positive", title: "Czytelne nagłówki", explanation: "Sekcje mają standardowe, rozpoznawalne nazwy." },
-      { type: "warning", title: "Technologie bez kontekstu", explanation: "Część słów kluczowych nie jest powiązana z doświadczeniem." },
-    ] },
+    ats: mockAts,
     jobMatch: null,
     nextSteps: [
       { priority: 1, title: "Pokaż rezultaty", action: "Dodaj zweryfikowany rezultat do dwóch najważniejszych punktów doświadczenia.", expectedImpact: "high" },

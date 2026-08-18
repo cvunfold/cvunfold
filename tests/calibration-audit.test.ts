@@ -40,7 +40,7 @@ describe("calibration audit", () => {
 });
 
 describe("v1.6-rc3 prompt", () => {
-  it("keeps rc2's calibration procedure and adds the ats.findings scope rule", () => {
+  it("keeps rc2's calibration procedure", () => {
     const original = process.env.CV_REVIEW_PROMPT_VARIANT;
     process.env.CV_REVIEW_PROMPT_VARIANT = "v1.6-rc3";
     try {
@@ -48,8 +48,7 @@ describe("v1.6-rc3 prompt", () => {
       expect(resolved.variant).toBe("v1.6-rc3");
       expect(resolved.version).toBe("v1.6-rc3");
       expect(resolved.systemPrompt).toContain("KALIBRACJA SCORE — PROCEDURA OBOWIĄZKOWA");
-      expect(resolved.systemPrompt).toContain("Brak oferty nie jest wadą dokumentu");
-      expect(resolved.systemPrompt).toContain("Dopasowanie do oferty należy wyłącznie do jobMatch");
+      expect(resolved.systemPrompt).not.toContain("ats.findings");
     } finally {
       if (original === undefined) delete process.env.CV_REVIEW_PROMPT_VARIANT;
       else process.env.CV_REVIEW_PROMPT_VARIANT = original;
@@ -101,7 +100,7 @@ describe("English review prompt", () => {
       withVariant(variant, () => {
         const resolved = getReviewPrompt("en");
         expect(resolved.variant).toBe("stable");
-        expect(resolved.version).toBe("review-en-v1.3.0");
+        expect(resolved.version).toBe("review-en-v1.4.0");
       });
     }
   });
@@ -112,7 +111,6 @@ describe("English review prompt", () => {
       expect(resolved.variant).toBe("v1.6-rc3");
       expect(resolved.version).toBe("review-en-v2.0.0");
       expect(resolved.systemPrompt).toContain("MANDATORY SCORE CALIBRATION PROCEDURE");
-      expect(resolved.systemPrompt).toContain("ats.findings field concerns only the document's parseability");
     });
   });
 
@@ -137,12 +135,12 @@ describe("v1.6-rc4 prompt", () => {
     process.env.CV_REVIEW_PROMPT_VARIANT = "v1.6-rc4";
     try {
       const pl = getReviewPrompt("pl");
-      expect(pl.version).toBe("v1.6-rc4");
+      expect(pl.version).toBe("v1.6-rc4.1");
       expect(pl.systemPrompt).toContain("KALIBRACJA SCORE — PROCEDURA OBOWIĄZKOWA");
       expect(pl.systemPrompt).toContain("zachowaj jego przypisanie do pracodawcy i okresu zatrudnienia");
 
       const en = getReviewPrompt("en");
-      expect(en.version).toBe("review-en-v3.0.0");
+      expect(en.version).toBe("review-en-v3.1.0");
       expect(en.systemPrompt).toContain("MANDATORY SCORE CALIBRATION PROCEDURE");
       expect(en.systemPrompt).toContain("preserve its employer and time-period attribution");
     } finally {

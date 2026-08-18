@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { CVReport, TeaserReport } from "@/lib/ai/schemas/report";
+import type { AtsCheckId, AtsCheckResult, AtsCheckStatus } from "@/lib/ats-checker";
 import type { Purchase } from "@/lib/data/store";
 import type { Plan } from "@/lib/plans";
 import { formatPlanPrice } from "@/lib/plans";
@@ -42,19 +43,19 @@ const copy = {
     documentPerception: "PERCEPCJA DOKUMENTU", targetLevel: "Aplikuje na poziom", targetAuto: "Poziom wykrywany z treści CV", print: "Drukuj / zapisz PDF", copyLink: "Skopiuj bezpieczny link",
     delete: "Usuń raport", expires: "Raport wygasa", profile: "Jak dokument buduje Twój profil", signals: "Co buduje ten obraz",
     reservations: "Co budzi rezerwę", questions: "O co mogą zapytać", after: ["Po 5 sekundach", "Po 10 sekundach", "Po 20 sekundach"],
-    simulated: "SYMULOWANY WYNIK", improve: { reached: "Co najbardziej wzmocniłoby ten wynik?", pending: "Co najbardziej mogłoby przesunąć wynik w stronę Interview?" },
+    simulated: "SYMULOWANY WYNIK", improve: { reached: "Co najbardziej wzmocniłoby ten wynik?", pending: "Co najbardziej mogłoby przesunąć wynik w stronę rozmowy?" },
     disclaimer: "To symulacja pierwszego wrażenia na podstawie samego dokumentu, a nie prawdziwa decyzja rekrutacyjna ani przewidywanie wyniku konkretnej rekrutacji.",
     categories: "Sygnały poziomu w kategoriach", featured: "Najważniejsze ustalenie darmowej analizy", problem: "PROBLEM",
-    evidence: "DOWODY Z CV", matters: "DLACZEGO TO WAŻNE", action: "CO ZROBIĆ", proposedRewrite: "PROPONOWANY ZAPIS", confidence: "Pewność", perceptionMarker: "Wrażenie", targetMarker: "Aplikujesz na",
+    matters: "DLACZEGO TO WAŻNE", action: "CO ZROBIĆ", proposedRewrite: "PROPONOWANY ZAPIS", confidence: "Pewność", perceptionMarker: "Wrażenie", targetMarker: "Aplikujesz na",
     fullIssues: "Co osłabia odbiór — dowód przed opinią", strengths: "Mocne sygnały", nextSteps: "Plan działania",
-    lockedTitle: "Pełna anatomia problemów jest w raporcie", lockedCopy: "Odblokuj wszystkie dowody, priorytety i bezpieczne sugestie bez dopisywania faktów.",
+    lockedTitle: "Pełna anatomia problemów jest w raporcie", lockedCopy: "Odblokuj wszystkie dowody, priorytety i bezpieczne sugestie bez dopisywania faktów.", lockedOutcome: "Zobacz, co poprawić najpierw i dlaczego.",
     unlock: "Odblokuj pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji", paymentMethodsLabel: "Obsługiwane płatności", paymentMethods: ["Karta", "BLIK", "Apple Pay", "Google Pay"], feedback: "Czy analiza była trafna?",
     rating: "Ocena", accuracy: "Trafność", comment: "Komentarz", issueScope: "Czego dotyczy uwaga?", issueScopeAll: "Całego raportu", send: "Wyślij feedback", thanks: "Dziękujemy — ta informacja pomaga poprawiać kolejne wersje.", feedbackPrivacy: "Komentarz przechowamy do 90 dni bez identyfikatora raportu ani treści CV. Nie wpisuj w nim danych kontaktowych ani fragmentów CV.",
     accurate: ["Tak", "Częściowo", "Nie"], copied: "Link skopiowany", copyFailed: "Nie udało się skopiować linku.",
     deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
     samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV", backHome: "Wróć do strony głównej",
     mobileSummary: "Twój bezpłatny wynik", fullIncludes: "Pełny raport zawiera",
-    atsTitle: "ATS / higiena techniczna dokumentu", atsCaption: "Czy plik da się poprawnie odczytać i sparsować. To nie jest ocena treści ani poziomu.", teaserFinding: "WYKRYTY PROBLEM", teaserLocked: "Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.", teaserSidebar: "Pełna diagnoza pokaże dowody, wpływ problemu i bezpieczne poprawki.",
+    atsTitle: "ATS / higiena techniczna dokumentu", atsCaption: "Czy plik da się poprawnie odczytać i sparsować. To nie jest ocena treści ani poziomu.", atsShowAll: "Pokaż wszystkie kontrole", atsCollapse: "Zwiń kontrole", teaserFinding: "WYKRYTY PROBLEM", teaserLocked: "Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.", teaserSidebar: "Pełna diagnoza pokaże dowody, wpływ problemu i bezpieczne poprawki.",
   },
   en: {
     sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
@@ -65,18 +66,133 @@ const copy = {
     simulated: "SIMULATED OUTCOME", improve: { reached: "What would most strengthen this outcome?", pending: "What could most improve the outcome towards Interview?" },
     disclaimer: "This is a simulation of the first impression created by the document, not a real hiring decision or a prediction for a specific application.",
     categories: "Seniority signals by category", featured: "The most important finding from your free analysis", problem: "PROBLEM",
-    evidence: "EVIDENCE FROM THE CV", matters: "WHY IT MATTERS", action: "WHAT TO DO", proposedRewrite: "SUGGESTED WORDING", confidence: "Confidence", perceptionMarker: "Impression", targetMarker: "Applying for",
+    matters: "WHY IT MATTERS", action: "WHAT TO DO", proposedRewrite: "SUGGESTED WORDING", confidence: "Confidence", perceptionMarker: "Impression", targetMarker: "Applying for",
     fullIssues: "What weakens the document — evidence before opinion", strengths: "Strong signals", nextSteps: "Action plan",
-    lockedTitle: "The full anatomy of the issues is in your report", lockedCopy: "Unlock every evidence reference, priority and fact-safe suggestion.",
+    lockedTitle: "The full anatomy of the issues is in your report", lockedCopy: "Unlock every evidence reference, priority and fact-safe suggestion.", lockedOutcome: "See what to fix first and why.",
     unlock: "Unlock the full report", oneTime: "one-time payment · no subscription", paymentMethodsLabel: "Supported payments", paymentMethods: ["Cards", "Apple Pay", "Google Pay"], feedback: "Was the analysis accurate?",
     rating: "Rating", accuracy: "Accuracy", comment: "Comment", issueScope: "What is this about?", issueScopeAll: "The whole report", send: "Send feedback", thanks: "Thank you — this helps us improve the next version.", feedbackPrivacy: "We retain your comment for up to 90 days without a report identifier or CV content. Please do not include contact details or CV excerpts.",
     accurate: ["Yes", "Partly", "No"], copied: "Link copied", copyFailed: "We could not copy the link.",
     deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
     samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV", backHome: "Back to homepage",
     mobileSummary: "Your free result", fullIncludes: "The full report includes",
-    atsTitle: "ATS / technical document hygiene", atsCaption: "Whether the file parses correctly. This is not an assessment of content or seniority.", teaserFinding: "DETECTED ISSUE", teaserLocked: "See where it appears, how it affects the reader and what to change.", teaserSidebar: "The full diagnosis shows the evidence, impact and fact-safe improvements.",
+    atsTitle: "ATS / technical document hygiene", atsCaption: "Whether the file parses correctly. This is not an assessment of content or seniority.", atsShowAll: "Show all checks", atsCollapse: "Collapse checks", teaserFinding: "DETECTED ISSUE", teaserLocked: "See where it appears, how it affects the reader and what to change.", teaserSidebar: "The full diagnosis shows the evidence, impact and fact-safe improvements.",
   },
 } as const;
+
+// One deterministic finding per check (@/lib/ats-checker), not model output, so
+// the copy is fixed here rather than coming back with the report.
+const ATS_CHECK_COPY: Record<Locale, Record<AtsCheckId, Record<Exclude<AtsCheckStatus, "not_applicable">, { title: string; caption: string }>>> = {
+  pl: {
+    text_layer: {
+      pass: { title: "Dokument ma prawdziwą warstwę tekstową", caption: "Tekst da się poprawnie wyodrębnić z pliku, więc systemy ATS mogą go odczytać." },
+      warning: { title: "Część stron może być zeskanowanym obrazem", caption: "Niektóre strony mają mało lub brak tekstu do wyodrębnienia." },
+      fail: { title: "Dokument wygląda na zeskanowany obraz", caption: "Większość stron nie ma warstwy tekstowej, więc ATS prawdopodobnie nic nie odczyta." },
+    },
+    reading_order: {
+      pass: { title: "Tekst wyciąga się w naturalnej kolejności", caption: "Kolejność odczytu odpowiada wizualnemu układowi dokumentu." },
+      warning: { title: "Kolejność odczytu miejscami odbiega od układu", caption: "Część tekstu może pojawić się w nieoczekiwanym miejscu po wyodrębnieniu." },
+      fail: { title: "Kolejność odczytu jest zaburzona", caption: "Tekst prawdopodobnie wyodrębni się w losowej kolejności, myląc systemy ATS." },
+    },
+    sections: {
+      pass: { title: "Standardowe sekcje są rozpoznawalne", caption: "Doświadczenie, umiejętności i wykształcenie mają rozpoznawalne nagłówki." },
+      warning: { title: "Część standardowych sekcji jest trudna do rozpoznania", caption: "Tylko część typowych nagłówków sekcji jest widoczna." },
+      fail: { title: "Brak rozpoznawalnych standardowych sekcji", caption: "ATS może nie rozpoznać, gdzie zaczyna się doświadczenie, umiejętności czy wykształcenie." },
+    },
+    dates_titles: {
+      pass: { title: "Stanowiska i daty są czytelne", caption: "Nazwy stanowisk i przedziały dat mają standardowy, rozpoznawalny zapis." },
+      warning: { title: "Część stanowisk lub dat może być trudna do odczytania", caption: "Rozpoznano tylko część standardowych dat lub nazw stanowisk." },
+      fail: { title: "Stanowiska i daty są trudne do odczytania", caption: "Nie znaleziono standardowych przedziałów dat ani nazw stanowisk." },
+    },
+    contact_info: {
+      pass: { title: "Dane kontaktowe są parsowalne", caption: "Adres e-mail ma standardowy, rozpoznawalny format." },
+      warning: { title: "Znaleziono tylko telefon, brak e-maila", caption: "ATS i rekruterzy zwykle oczekują też adresu e-mail." },
+      fail: { title: "Nie znaleziono parsowalnych danych kontaktowych", caption: "Nie wykryto standardowego adresu e-mail ani numeru telefonu." },
+    },
+    layout_columns: {
+      pass: { title: "Układ jednokolumnowy", caption: "Brak wykrytych kolumn ani tabel mogących rozbić kolejność tekstu." },
+      warning: { title: "Wykryto układ wielokolumnowy", caption: "Kolumny lub tabele mogą sprawić, że ATS wymiesza tekst z różnych sekcji." },
+      fail: { title: "Układ silnie utrudnia odczyt kolejności", caption: "Kolumny lub tabele prawdopodobnie rozbijają kolejność tekstu dla ATS." },
+    },
+    glyph_artifacts: {
+      pass: { title: "Brak dziwnych znaków czy ikon zastępujących tekst", caption: "Nie wykryto artefaktów ekstrakcji ani znaków zastępczych." },
+      warning: { title: "Wykryto pojedyncze nietypowe znaki", caption: "Może to być ikona czcionkowa zapisana jako niedrukowalny znak." },
+      fail: { title: "Wykryto uszkodzone lub zastępcze znaki", caption: "Część tekstu mogła zamienić się w nieczytelne znaki podczas ekstrakcji." },
+    },
+    date_format: {
+      pass: { title: "Zapis dat jest jednoznaczny", caption: "Daty używają formatu, który nie budzi wątpliwości interpretacyjnych." },
+      warning: { title: "W dokumencie mieszają się różne formaty dat", caption: "Różne zapisy dat utrudniają automatyczne odczytanie chronologii." },
+      fail: { title: "Część dat jest zapisana niejednoznacznie", caption: "Format dnia i miesiąca (np. 03/04/2021) można odczytać na dwa sposoby." },
+    },
+  },
+  en: {
+    text_layer: {
+      pass: { title: "Real text layer detected", caption: "Text can be extracted from the file, so ATS systems can read it." },
+      warning: { title: "Some pages may be scanned images", caption: "Some pages have little or no extractable text." },
+      fail: { title: "Document looks like a scanned image", caption: "Most pages have no text layer, so an ATS will likely read nothing." },
+    },
+    reading_order: {
+      pass: { title: "Text extracts in a natural order", caption: "Extraction order matches the document's visual layout." },
+      warning: { title: "Reading order is slightly off in places", caption: "Some text may appear out of place once extracted." },
+      fail: { title: "Reading order is scrambled", caption: "Text likely extracts in a jumbled order, confusing ATS systems." },
+    },
+    sections: {
+      pass: { title: "Standard sections are recognizable", caption: "Experience, skills and education have recognizable headings." },
+      warning: { title: "Some standard sections are hard to recognize", caption: "Only some typical section headings are visible." },
+      fail: { title: "No recognizable standard sections", caption: "An ATS may not recognize where experience, skills or education begin." },
+    },
+    dates_titles: {
+      pass: { title: "Job titles and dates are readable", caption: "Job titles and date ranges use a standard, recognizable format." },
+      warning: { title: "Some titles or dates may be hard to parse", caption: "Only some standard dates or job titles were recognized." },
+      fail: { title: "Job titles and dates are hard to parse", caption: "No standard date ranges or job titles were found." },
+    },
+    contact_info: {
+      pass: { title: "Contact info is parsable", caption: "The email address is in a standard, recognizable format." },
+      warning: { title: "Only a phone number was found, no email", caption: "ATS systems and recruiters usually expect an email address too." },
+      fail: { title: "No parsable contact info found", caption: "No standard email address or phone number was detected." },
+    },
+    layout_columns: {
+      pass: { title: "Single-column layout", caption: "No columns or tables detected that could break text order." },
+      warning: { title: "Multi-column layout detected", caption: "Columns or tables may cause an ATS to interleave text from different sections." },
+      fail: { title: "Layout severely disrupts reading order", caption: "Columns or tables likely break text order for an ATS." },
+    },
+    glyph_artifacts: {
+      pass: { title: "No stray characters or icon glyphs", caption: "No extraction artifacts or replacement characters detected." },
+      warning: { title: "A few unusual characters detected", caption: "This may be an icon-font glyph stored as a non-printable character." },
+      fail: { title: "Corrupted or replacement characters detected", caption: "Some text may have turned into unreadable characters during extraction." },
+    },
+    date_format: {
+      pass: { title: "Date notation is unambiguous", caption: "Dates use a format that leaves no room for misinterpretation." },
+      warning: { title: "Multiple date formats are mixed", caption: "Mixed date formats make it harder to parse the timeline automatically." },
+      fail: { title: "Some dates are notated ambiguously", caption: "A day/month format (e.g. 03/04/2021) can be read two different ways." },
+    },
+  },
+};
+
+const ATS_STATUS_CLASS: Record<Exclude<AtsCheckStatus, "not_applicable">, string> = { pass: "ats-positive", warning: "ats-warning", fail: "ats-error" };
+// Warnings and failures are the actionable ones, so the collapsed preview leads
+// with those instead of the first three checks in checker order.
+const ATS_STATUS_PRIORITY: Record<Exclude<AtsCheckStatus, "not_applicable">, number> = { fail: 0, warning: 1, pass: 2 };
+const ATS_PREVIEW_SIZE = 3;
+
+/** Same panel in the free and paid report: deterministic document hygiene, not a subjective content judgement, so there is nothing to withhold behind the paywall. Collapsed by default everywhere so it never outweighs the first real insight. */
+function AtsPanel({ ats, locale }: { ats?: AtsCheckResult; locale: Locale }) {
+  const t = copy[locale];
+  const [expanded, setExpanded] = useState(false);
+  if (!ats) return null;
+  const visibleChecks = ats.checks.filter((check): check is typeof check & { status: Exclude<AtsCheckStatus, "not_applicable"> } => check.status !== "not_applicable");
+  const previewChecks = [...visibleChecks].sort((a, b) => ATS_STATUS_PRIORITY[a.status] - ATS_STATUS_PRIORITY[b.status]).slice(0, ATS_PREVIEW_SIZE);
+  const canToggle = visibleChecks.length > previewChecks.length;
+  const checksToShow = expanded ? visibleChecks : previewChecks;
+  return <div className="ats-panel">
+    <div><b>{t.atsTitle}</b><p>{t.atsCaption}</p></div>
+    <div className="ats-score"><strong>{ats.score}<small>/100</small></strong><i><span style={{ width: `${ats.score}%` }}/></i></div>
+    {checksToShow.length ? <ul className="ats-findings">{checksToShow.map((check) => {
+      const checkCopy = ATS_CHECK_COPY[locale][check.id][check.status];
+      return <li key={check.id} className={ATS_STATUS_CLASS[check.status]}><b>{checkCopy.title}</b><span>{checkCopy.caption}</span></li>;
+    })}</ul> : null}
+    {canToggle ? <button type="button" className="ats-toggle" onClick={() => setExpanded((value) => !value)}>{expanded ? t.atsCollapse : t.atsShowAll}</button> : null}
+  </div>;
+}
 
 const seniorityLabel = (value: string) => value === "unclear" ? "—" : value[0].toUpperCase() + value.slice(1);
 const senioritySteps = ["junior", "mid", "senior", "lead"] as const;
@@ -138,6 +254,11 @@ function severitySummary(teaser: TeaserReport, locale: Locale) {
   return parts.filter(({ count }) => count > 0).map(({ count, forms }) => `${count} ${polishLabel(count, forms)}`).join(" · ");
 }
 
+function evidenceLabel(count: number, locale: Locale) {
+  if (locale === "en") return "EVIDENCE FROM THE CV";
+  return count === 1 ? "DOWÓD Z CV" : "DOWODY Z CV";
+}
+
 // The teaser exposes one finding; everything else stays behind the paywall, so the
 // mobile offer states that split instead of repeating the severity breakdown.
 function teaserOfferCounts(teaser: TeaserReport, locale: Locale) {
@@ -188,11 +309,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
   const trackedPurchaseViews = useRef(new Set<string>());
   const isFree = !paid && !demo;
   const full = paid ? reportData as CVReport : null;
-  // ATS is document hygiene, not a seniority signal, so it is shown apart from
-  // the rubric list. It stays inside overallScore: at senior its weight is 4%,
-  // and removing it would move the result by at most a point.
   const targetSeniority = reportData && "document" in reportData ? reportData.document.targetSeniority : undefined;
-  const atsCategory = reportData && "categoryScores" in reportData ? reportData.categoryScores.find((category) => category.key === "ats") : undefined;
   const teaser = !paid ? reportData as TeaserReport : null;
   const data = reportData as CVReport;
   const profileRole = "document" in reportData ? primaryProfileRole(data.document.perceivedRole, data.document.targetRole) : "";
@@ -361,19 +478,21 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
             <p>{teaser?.firstImpression}</p>
           </section>
 
+          <AtsPanel ats={teaser?.ats} locale={locale}/>
+
           <section ref={featuredIssue} className="report-section teaser-featured-issue">
             <span>{t.teaserFinding}</span>
             <h2>{teaserTitle(teaser?.issueCount || 0, locale)}</h2>
             {teaser ? <p className="teaser-severity">{severitySummary(teaser, locale)}</p> : null}
             {teaser?.featuredIssue ? <article className="teaser-finding">
               <div><small>{t.problem}</small><h3>{teaser.featuredIssue.title}</h3></div>
-              <div><small>{t.evidence}</small><blockquote>{teaser.featuredIssue.evidence}</blockquote></div>
+              <div><small>{evidenceLabel(1, locale)}</small><blockquote>{teaser.featuredIssue.evidence}</blockquote></div>
               <div><small>{locale === "pl" ? "JAK MOŻE TO ZOSTAĆ ODCZYTANE" : "HOW THIS MAY BE READ"}</small><p>{teaser.featuredIssue.interpretation}</p></div>
               <div><small>{locale === "pl" ? "KIERUNEK POPRAWY" : "DIRECTION FOR IMPROVEMENT"}</small><p>{teaser.featuredIssue.actionDirection}</p></div>
             </article> : <div className="teaser-lock"><LockIcon/><span>{locale === "pl" ? "Pełny raport zawiera diagnozy wraz z dowodami i priorytetami." : "The full report contains diagnoses with evidence and priorities."}</span></div>}
           </section>
 
-          <section ref={paywall} className="locked"><LockIcon/><h2>{locale === "pl" ? `To tylko 1 z ${teaser?.issueCount || 0} wykrytych problemów.` : `This is only 1 of ${teaser?.issueCount || 0} detected issues.`}</h2><p>{locale === "pl" ? "Pełny raport pokazuje pozostałe diagnozy, wszystkie dowody, ich wpływ na odbiór CV oraz kolejność poprawek." : "The full report shows the remaining diagnoses, all evidence, their effect on how your CV is received, and the order of improvements."}</p><ul className="locked-value"><li>{locale === "pl" ? "wszystkie wykryte problemy" : "all detected issues"}</li><li>{locale === "pl" ? "dowody z dokumentu i priorytety" : "document evidence and priorities"}</li><li>{locale === "pl" ? "bezpieczne sugestie bez dopisywania faktów" : "fact-safe suggestions"}</li><li>{locale === "pl" ? "pełne pierwsze 20 sekund" : "the full first 20 seconds"}</li></ul><div className={`locked-payment-actions${expressWalletAvailable ? " wallet-ready" : ""}`}><button ref={paywallCta} onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setExpressWalletAvailable}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
+          <section ref={paywall} className="locked"><LockIcon/><h2>{locale === "pl" ? `To tylko 1 z ${teaser?.issueCount || 0} wykrytych problemów.` : `This is only 1 of ${teaser?.issueCount || 0} detected issues.`}</h2><p>{locale === "pl" ? "Pełny raport pokazuje pozostałe diagnozy, wszystkie dowody, ich wpływ na odbiór CV oraz kolejność poprawek." : "The full report shows the remaining diagnoses, all evidence, their effect on how your CV is received, and the order of improvements."}</p><p><b>{t.lockedOutcome}</b></p><ul className="locked-value"><li>{locale === "pl" ? "wszystkie wykryte problemy" : "all detected issues"}</li><li>{locale === "pl" ? "dowody z dokumentu i priorytety" : "document evidence and priorities"}</li><li>{locale === "pl" ? "bezpieczne sugestie bez dopisywania faktów" : "fact-safe suggestions"}</li><li>{locale === "pl" ? "pełne pierwsze 20 sekund" : "the full first 20 seconds"}</li></ul><div className={`locked-payment-actions${expressWalletAvailable ? " wallet-ready" : ""}`}><button ref={paywallCta} onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={setExpressWalletAvailable}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
         </div>
       </div>
       <button className="report-mobile-sticky-cta" data-visible={mobileStickyVisible ? "true" : "false"} data-purchase-surface="mobile_sticky" data-payment-method="standard" aria-hidden={!mobileStickyVisible} tabIndex={mobileStickyVisible ? 0 : -1} disabled={busy} onClick={() => void unlock("mobile_sticky")}><span><LockIcon/>{busy ? "…" : t.unlock}</span><strong>{price}</strong></button>
@@ -443,19 +562,14 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
 
         <section className="report-section">
           <div className="section-heading"><span>03</span><h2>{t.categories}</h2></div>
-          <div className="score-rows">{data.categoryScores.filter((category) => category.key !== "ats").map((category) => <div key={category.key}><b>{category.label}</b><p>{category.rationale}</p><strong>{category.score}<small>/100</small></strong><i><span style={{ width: `${category.score}%` }}/></i></div>)}</div>
-          {atsCategory ? <div className="ats-panel">
-            <div><b>{t.atsTitle}</b><p>{t.atsCaption}</p></div>
-            <div className="ats-score"><strong>{atsCategory.score}<small>/100</small></strong><i><span style={{ width: `${atsCategory.score}%` }}/></i></div>
-            {atsCategory.rationale ? <p className="ats-rationale">{atsCategory.rationale}</p> : null}
-            {full?.ats?.findings?.length ? <ul className="ats-findings">{full.ats.findings.map((finding) => <li key={finding.title} className={`ats-${finding.type}`}><b>{finding.title}</b><span>{finding.explanation}</span></li>)}</ul> : null}
-          </div> : null}
+          <div className="score-rows">{data.categoryScores.map((category) => <div key={category.key}><b>{category.label}</b><p>{category.rationale}</p><strong>{category.score}<small>/100</small></strong><i><span style={{ width: `${category.score}%` }}/></i></div>)}</div>
+          <AtsPanel ats={data.ats} locale={locale}/>
         </section>
 
         {full ? <>
           <section className="report-section"><div className="section-heading"><span>04</span><h2>{t.fullIssues}</h2></div><div className="issues">{full.issues.map((issue, index) => {
             const hasEvidence = issue.suggestion?.type.toUpperCase() !== "GAP" && issue.evidenceRefs.length > 0;
-            return <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{severityLabel[locale][issue.severity]}</span><span>{issue.suggestion ? suggestionTypeLabel[locale][issue.suggestion.type] : ""}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: issue.action, suggestionType: issue.suggestion?.type, title: issue.title, locale, factualityNote: issue.suggestion?.factualityNote })}</p></div></div>{issue.suggestion?.proposed ? <div className="issue-proposed"><small>{t.proposedRewrite}</small><blockquote>{issue.suggestion.proposed}</blockquote></div> : null}{hasEvidence ? <div className="issue-evidence" data-evidence-count={Math.min(issue.evidenceRefs.length, 3)}><small>{t.evidence}</small><div>{issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>)}</div></div> : null}<footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>;
+            return <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{severityLabel[locale][issue.severity]}</span><span>{issue.suggestion ? suggestionTypeLabel[locale][issue.suggestion.type] : ""}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: issue.action, suggestionType: issue.suggestion?.type, title: issue.title, locale, factualityNote: issue.suggestion?.factualityNote })}</p></div></div>{issue.suggestion?.proposed ? <div className="issue-proposed"><small>{t.proposedRewrite}</small><blockquote>{issue.suggestion.proposed}</blockquote></div> : null}{hasEvidence ? <div className="issue-evidence" data-evidence-count={Math.min(issue.evidenceRefs.length, 3)}><small>{evidenceLabel(issue.evidenceRefs.length, locale)}</small><div>{issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>)}</div></div> : null}<footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>;
           })}</div></section>
           <section className="report-section report-summary-grid"><div><h2>{t.strengths}</h2>{full.strengths.map((item) => <article key={item.id}><CheckIcon/><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h2>{t.nextSteps}</h2>{full.nextSteps.toSorted((a, b) => a.priority - b.priority).map((item) => <article key={item.priority}><span>{item.priority}</span><div><b>{item.title}</b><p>{item.action}</p></div></article>)}</div></section>
           {demo ? <section className="report-section sample-cta"><div><h2>{locale === "pl" ? "Co mówi Twoje CV?" : "What does your CV communicate?"}</h2><p>{locale === "pl" ? "Zobacz bezpłatny wynik i najważniejszy dowód." : "See your free result and most important evidence."}</p></div><Link className="button" href={analysisPath(locale)}>{t.analyze}<ArrowIcon/></Link></section> : <section className="report-section feedback"><h2>{t.feedback}</h2>{sent ? <p>{t.thanks}</p> : <form onSubmit={feedback}><label>{t.rating}<select name="rating" defaultValue="5">{[5,4,3,2,1].map((value) => <option key={value} value={value}>{value}</option>)}</select></label><label>{t.accuracy}<select name="accurate" defaultValue="yes"><option value="yes">{t.accurate[0]}</option><option value="partly">{t.accurate[1]}</option><option value="no">{t.accurate[2]}</option></select></label>{full.issues.length ? <label>{t.issueScope}<select name="issueId" defaultValue=""><option value="">{t.issueScopeAll}</option>{full.issues.map((issue, index) => <option key={issue.id} value={issue.id}>{String(index + 1).padStart(2, "0")} · {issue.title}</option>)}</select></label> : null}<label>{t.comment}<textarea name="comment" maxLength={1000}/></label><small>{t.feedbackPrivacy}</small><button className="button">{t.send}</button></form>}</section>}

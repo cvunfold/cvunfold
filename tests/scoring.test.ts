@@ -6,14 +6,14 @@ describe("deterministic scoring",()=>{
   it("weights each category",()=>{const categories=getRubric("senior").map(c=>({...c,score:80,rationale:"",evidenceRefs:[]}));expect(calculateOverall(categories)).toBe(80)});
   it("rejects invalid total weights",()=>expect(()=>calculateOverall([{key:"x",label:"x",score:80,weight:.5,rationale:"",evidenceRefs:[]}])).toThrow("INVALID_RUBRIC_WEIGHTS"));
   it("uses different expectations by seniority",()=>expect(getRubric("junior").find(x=>x.key==="ownership")?.weight).toBeLessThan(getRubric("lead").find(x=>x.key==="ownership")!.weight));
-  it("treats ATS as hygiene rather than the core senior signal",()=>{const rubric=getRubric("senior");expect(rubric.find(x=>x.key==="ats")!.weight).toBeLessThan(rubric.find(x=>x.key==="ownership")!.weight);expect(rubric.reduce((sum,item)=>sum+item.weight,0)).toBeCloseTo(1)});
+  it("keeps ATS out of the rubric entirely — it is a deterministic checker, not a model-scored category",()=>{const rubric=getRubric("senior");expect(rubric.find(x=>x.key==="ats")).toBeUndefined();expect(rubric.reduce((sum,item)=>sum+item.weight,0)).toBeCloseTo(1)});
   it("adapts specialist categories to the selected role",()=>{
     expect(getRubric("senior","qa_test_automation").find(x=>x.key==="architecture")?.label).toContain("ryzyku");
     expect(getRubric("senior","devops_platform").find(x=>x.key==="credibility")?.label).toContain("operacyjna");
   });
   it("uses balanced general criteria for an automatically inferred experimental role",()=>{
     const rubric=getRubric("auto","other");
-    expect(rubric.find(x=>x.key==="ownership")?.weight).toBe(.18);
+    expect(rubric.find(x=>x.key==="ownership")?.weight).toBe(.19);
     expect(rubric.find(x=>x.key==="credibility")?.label).toBe("Wiarygodność zawodowa");
     expect(rubric.find(x=>x.key==="architecture")?.label).toContain("Zakres");
     expect(rubric.reduce((sum,item)=>sum+item.weight,0)).toBeCloseTo(1);
