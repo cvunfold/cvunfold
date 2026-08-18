@@ -642,11 +642,17 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .analysis-progress-card li.active > span,
 .analysis-progress-card li.complete > svg,
 .status-complete { border-color: var(--accent); background: var(--accent); color: var(--ink); }
+/* The active step's own animation, not just the number: a step can sit here for a
+   long stretch when the model is slower than the fixed per-step interval, and a
+   static number reads as frozen rather than "still working". */
+.analysis-progress-card li.active { animation: status-pulse 1.25s ease-in-out infinite; }
 .analysis-progress-card li b,
 .analysis-progress-card li small { display: block; }
 .analysis-progress-card li b { font-size: 14px; }
 .analysis-progress-card li small { margin-top: 2px; color: rgba(255, 255, 255, .58); font-size: 13px; }
 .analysis-progress-card > .evidence-preview { align-self: end; margin-top: 15px; }
+.analysis-long-wait { margin: 0 0 0 auto; padding-left: 24px; max-width: 240px; color: rgba(255, 255, 255, .72); font-size: 13px; line-height: 1.5; text-align: right; animation: long-wait-in .6s ease-out both; }
+@keyframes long-wait-in { from { opacity: 0; transform: translateY(4px); } }
 .status-complete { display: grid; place-items: center; }
 .redirecting-message { animation: status-pulse 1.25s ease-in-out infinite; }
 @keyframes status-pulse { 50% { opacity: .58; } }

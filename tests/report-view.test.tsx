@@ -71,7 +71,7 @@ describe("free report purchase hierarchy", () => {
     expect(hook?.textContent).toContain(teaser.featuredIssue?.title);
     expect(hook?.textContent).toContain(teaser.featuredIssue?.evidence);
     expect(hook?.textContent).toContain(teaser.featuredIssue?.actionDirection);
-    expect(hook?.textContent).toContain("1 istotny · 1 umiarkowany · 1 drobny");
+    expect(hook?.textContent).toContain("1 kluczowy · 1 istotny · 1 drobny");
     expect(paywall).not.toBeNull();
     expect(Boolean(hook!.compareDocumentPosition(paywall!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
     expect(container.textContent).toContain("Najmocniejsze doświadczenie jest opisane jako wykonywane czynności");
@@ -86,7 +86,7 @@ describe("free report purchase hierarchy", () => {
     const teaser = { ...toTeaser(createMockReport()), issueCount: 5, severityCounts: { critical: 1, important: 3, minor: 1 } };
     render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
     expect(screen.getByRole("heading", { name: "Wykryliśmy 5 problemów, które mogą osłabiać odbiór Twojego CV." })).toBeTruthy();
-    expect(screen.getByText("1 istotny · 3 umiarkowane · 1 drobny")).toBeTruthy();
+    expect(screen.getByText("1 kluczowy · 3 istotne · 1 drobny")).toBeTruthy();
   });
 
   it("tracks the paywall CTA after the hook", () => {
@@ -228,5 +228,16 @@ describe("full report clarity", () => {
       expect(link.rel).toContain("noopener");
       expect(link.href).not.toContain("report");
     });
+  });
+});
+
+describe("severity wording matches between teaser and full report", () => {
+  it("labels an important issue the same way the free teaser already called it", () => {
+    const report = createMockReport();
+    report.issues = report.issues.map((issue) => ({ ...issue, severity: "important" as const }));
+    const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
+    const badges = [...container.querySelectorAll(".issues header > span.severity")].map((node) => node.textContent);
+    expect(badges).toEqual(badges.map(() => "Istotny"));
+    expect(badges.some((text) => text?.toLowerCase() === "important")).toBe(false);
   });
 });

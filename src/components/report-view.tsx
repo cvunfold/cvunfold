@@ -80,7 +80,22 @@ const copy = {
 
 const seniorityLabel = (value: string) => value === "unclear" ? "—" : value[0].toUpperCase() + value.slice(1);
 const senioritySteps = ["junior", "mid", "senior", "lead"] as const;
-const decisionLabel = { interview: "INTERVIEW", maybe: "MAYBE", reject: "REJECT" } as const;
+const decisionLabel = {
+  pl: { interview: "DO ROZMOWY", maybe: "DO ROZWAŻENIA", reject: "RACZEJ NIE" },
+  en: { interview: "INTERVIEW", maybe: "MAYBE", reject: "REJECT" },
+} as const;
+// Matches the free teaser's wording (severitySummary below) so the same issue
+// is never called something different before payment than after it.
+const severityLabel = {
+  pl: { critical: "Kluczowy", important: "Istotny", minor: "Drobny" },
+  en: { critical: "High impact", important: "Important", minor: "Minor" },
+} as const;
+// What kind of change each issue proposes — same reader-facing wording
+// regardless of locale, instead of the raw schema enum ("gap", "question"…).
+const suggestionTypeLabel = {
+  pl: { rewrite: "Lepszy zapis", expose: "Do wyróżnienia", gap: "Brak dowodu", question: "Do doprecyzowania" },
+  en: { rewrite: "Rewrite", expose: "Highlight", gap: "Missing evidence", question: "Needs clarification" },
+} as const;
 const primaryProfileRole = (perceivedRole: string, targetRole: string) => {
   const firstRole = perceivedRole.split(/\s*[\/|]\s*/)[0]?.trim() || targetRole;
   return firstRole.split(/\s+(?:specjaliz\w*|speciali[sz]\w*)/i)[0]?.trim() || targetRole;
@@ -112,12 +127,12 @@ function polishLabel(count: number, forms: [string, string, string]) {
 
 function severitySummary(teaser: TeaserReport, locale: Locale) {
   if (locale === "en") {
-    return [[teaser.severityCounts.critical, "significant"], [teaser.severityCounts.important, "moderate"], [teaser.severityCounts.minor, "minor"]]
+    return [[teaser.severityCounts.critical, "high impact"], [teaser.severityCounts.important, "important"], [teaser.severityCounts.minor, "minor"]]
       .filter(([count]) => Number(count) > 0).map(([count, label]) => `${count} ${label}`).join(" · ");
   }
   const parts: Array<{ count: number; forms: [string, string, string] }> = [
-    { count: teaser.severityCounts.critical, forms: ["istotny", "istotne", "istotnych"] },
-    { count: teaser.severityCounts.important, forms: ["umiarkowany", "umiarkowane", "umiarkowanych"] },
+    { count: teaser.severityCounts.critical, forms: ["kluczowy", "kluczowe", "kluczowych"] },
+    { count: teaser.severityCounts.important, forms: ["istotny", "istotne", "istotnych"] },
     { count: teaser.severityCounts.minor, forms: ["drobny", "drobne", "drobnych"] },
   ];
   return parts.filter(({ count }) => count > 0).map(({ count, forms }) => `${count} ${polishLabel(count, forms)}`).join(" · ");
@@ -385,7 +400,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
           })}</ol>{targetSeniority === "auto" ? <p className="seniority-auto">{t.targetAuto}</p> : null}
         </div>
         <span className="overline">{t.first20}</span>
-        <strong className={`sidebar-decision ${data.recruiterSimulation.simulatedDecision}`}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong>
+        <strong className={`sidebar-decision ${data.recruiterSimulation.simulatedDecision}`}>{decisionLabel[locale][data.recruiterSimulation.simulatedDecision]}</strong>
         <div className="secondary-score"><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale} captionBelow/><span>{t.overall}</span></div>
         <hr/>
         <p className="verdict">{data.summary.oneSentenceVerdict}</p>
@@ -408,7 +423,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
           <div className="report-mobile-score"><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale} captionBelow/><span>{t.overall}</span></div>
             <div className="report-mobile-summary-copy">
             <span className="report-mobile-summary-title">{!paid && !demo ? t.mobileSummary : t.overall}</span>
-            <div className="report-mobile-signals"><div><span>{t.perceivedLevel}</span><strong>{profileRole}</strong></div>{targetSeniority && targetSeniority !== "auto" ? <div><span>{t.targetLevel}</span><strong>{seniorityLabel(targetSeniority)}</strong></div> : null}<div><span>{t.first20}</span><strong className={data.recruiterSimulation.simulatedDecision}>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong></div></div>
+            <div className="report-mobile-signals"><div><span>{t.perceivedLevel}</span><strong>{profileRole}</strong></div>{targetSeniority && targetSeniority !== "auto" ? <div><span>{t.targetLevel}</span><strong>{seniorityLabel(targetSeniority)}</strong></div> : null}<div><span>{t.first20}</span><strong className={data.recruiterSimulation.simulatedDecision}>{decisionLabel[locale][data.recruiterSimulation.simulatedDecision]}</strong></div></div>
             <p className="verdict">{data.summary.oneSentenceVerdict}</p>
           </div>
         </section>
@@ -422,7 +437,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
 
         <section className="report-section timeline">
           <div className="section-heading"><span>02</span><h2>{t.first20}</h2></div>
-          <div className="timeline-grid">{[data.recruiterSimulation.after5Seconds, data.recruiterSimulation.after10Seconds, data.recruiterSimulation.after20Seconds].map((text, index) => <article key={t.after[index]}><b>{index + 1}</b><div><h3>{t.after[index]}</h3><p>{text}</p></div></article>)}<div className={`decision ${data.recruiterSimulation.simulatedDecision}`}><span>{t.simulated}</span><strong>{decisionLabel[data.recruiterSimulation.simulatedDecision]}</strong></div></div>
+          <div className="timeline-grid">{[data.recruiterSimulation.after5Seconds, data.recruiterSimulation.after10Seconds, data.recruiterSimulation.after20Seconds].map((text, index) => <article key={t.after[index]}><b>{index + 1}</b><div><h3>{t.after[index]}</h3><p>{text}</p></div></article>)}<div className={`decision ${data.recruiterSimulation.simulatedDecision}`}><span>{t.simulated}</span><strong>{decisionLabel[locale][data.recruiterSimulation.simulatedDecision]}</strong></div></div>
           <p className="disclaimer">{t.disclaimer}</p><div className="improve"><b>{data.recruiterSimulation.simulatedDecision === "interview" ? t.improve.reached : t.improve.pending}</b><ul>{data.recruiterSimulation.whatCouldImproveDecision.map((item) => <li key={item}>{item}</li>)}</ul></div>
         </section>
 
@@ -440,7 +455,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
         {full ? <>
           <section className="report-section"><div className="section-heading"><span>04</span><h2>{t.fullIssues}</h2></div><div className="issues">{full.issues.map((issue, index) => {
             const hasEvidence = issue.suggestion?.type.toUpperCase() !== "GAP" && issue.evidenceRefs.length > 0;
-            return <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{issue.severity}</span><span>{issue.suggestion?.type.toUpperCase()}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: issue.action, suggestionType: issue.suggestion?.type, title: issue.title, locale, factualityNote: issue.suggestion?.factualityNote })}</p></div></div>{issue.suggestion?.proposed ? <div className="issue-proposed"><small>{t.proposedRewrite}</small><blockquote>{issue.suggestion.proposed}</blockquote></div> : null}{hasEvidence ? <div className="issue-evidence" data-evidence-count={Math.min(issue.evidenceRefs.length, 3)}><small>{t.evidence}</small><div>{issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>)}</div></div> : null}<footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>;
+            return <article key={issue.id}><header><span className={`severity ${issue.severity}`}>{severityLabel[locale][issue.severity]}</span><span>{issue.suggestion ? suggestionTypeLabel[locale][issue.suggestion.type] : ""}</span><b>{String(index + 1).padStart(2, "0")}</b></header><h3>{issue.title}</h3><div className="issue-grid"><div><small>{t.problem}</small><p>{issue.explanation}</p></div><div><small>{t.matters}</small><p>{issue.whyItMatters}</p></div><div><small>{t.action}</small><p>{normalizeIssueAction({ action: issue.action, suggestionType: issue.suggestion?.type, title: issue.title, locale, factualityNote: issue.suggestion?.factualityNote })}</p></div></div>{issue.suggestion?.proposed ? <div className="issue-proposed"><small>{t.proposedRewrite}</small><blockquote>{issue.suggestion.proposed}</blockquote></div> : null}{hasEvidence ? <div className="issue-evidence" data-evidence-count={Math.min(issue.evidenceRefs.length, 3)}><small>{t.evidence}</small><div>{issue.evidenceRefs.map((ref) => <blockquote className="evidence-quote" key={ref}>{full.evidenceMap?.[ref] || (demo ? demo.evidence[ref] : null) || (locale === "pl" ? "Dowód niedostępny w starszej wersji raportu." : "Evidence unavailable in this legacy report.")}</blockquote>)}</div></div> : null}<footer>{t.confidence}: <b>{confidenceLabel[locale][issue.confidence]}</b> · {issue.suggestion?.factualityNote}</footer></article>;
           })}</div></section>
           <section className="report-section report-summary-grid"><div><h2>{t.strengths}</h2>{full.strengths.map((item) => <article key={item.id}><CheckIcon/><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h2>{t.nextSteps}</h2>{full.nextSteps.toSorted((a, b) => a.priority - b.priority).map((item) => <article key={item.priority}><span>{item.priority}</span><div><b>{item.title}</b><p>{item.action}</p></div></article>)}</div></section>
           {demo ? <section className="report-section sample-cta"><div><h2>{locale === "pl" ? "Co mówi Twoje CV?" : "What does your CV communicate?"}</h2><p>{locale === "pl" ? "Zobacz bezpłatny wynik i najważniejszy dowód." : "See your free result and most important evidence."}</p></div><Link className="button" href={analysisPath(locale)}>{t.analyze}<ArrowIcon/></Link></section> : <section className="report-section feedback"><h2>{t.feedback}</h2>{sent ? <p>{t.thanks}</p> : <form onSubmit={feedback}><label>{t.rating}<select name="rating" defaultValue="5">{[5,4,3,2,1].map((value) => <option key={value} value={value}>{value}</option>)}</select></label><label>{t.accuracy}<select name="accurate" defaultValue="yes"><option value="yes">{t.accurate[0]}</option><option value="partly">{t.accurate[1]}</option><option value="no">{t.accurate[2]}</option></select></label>{full.issues.length ? <label>{t.issueScope}<select name="issueId" defaultValue=""><option value="">{t.issueScopeAll}</option>{full.issues.map((issue, index) => <option key={issue.id} value={issue.id}>{String(index + 1).padStart(2, "0")} · {issue.title}</option>)}</select></label> : null}<label>{t.comment}<textarea name="comment" maxLength={1000}/></label><small>{t.feedbackPrivacy}</small><button className="button">{t.send}</button></form>}</section>}
