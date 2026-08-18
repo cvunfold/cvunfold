@@ -10,7 +10,7 @@ import { consumeAnalysisQuota, rateLimit } from "@/lib/security/rate-limit";
 import { validateSignature, validateUpload } from "@/lib/security/upload";
 import { parseSeniority } from "@/lib/rubrics/technical-v1";
 import { parseTargetRoleId } from "@/lib/roles";
-import { reviewWithOpenAI, toSafeOpenAIErrorCode } from "@/lib/ai/openai-review";
+import { fallbackModelDisabled, resolveReviewTimeoutMs, reviewWithOpenAI, toSafeOpenAIErrorCode } from "@/lib/ai/openai-review";
 import { activePromptVariant } from "@/lib/ai/prompts";
 import { REVIEW_PIPELINE_VERSION } from "@/lib/ai/review-provenance";
 import { isLocale, reportPath, type Locale } from "@/lib/i18n";
@@ -22,6 +22,10 @@ import { clickAttributionPresent, DEFAULT_LANDING_VARIANT } from "@/lib/audience
 import { buildSafeAnalysisFailureLog } from "@/lib/observability/analysis-failure";
 
 export const runtime = "nodejs";
+// The review call may legitimately run for minutes on a slower model. Without an
+// explicit ceiling the platform default can kill the function before the model
+// answers, losing a paid generation and reporting a generic failure.
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   const startedAt = Date.now();
@@ -75,7 +79,8 @@ export async function POST(request: Request) {
     let report;
     let telemetry: ReviewTelemetry = { model: "mock", inputTokens: 0, outputTokens: 0, estimatedCost: 0,
       provenance: { promptVersion: "mock", promptVariant: activePromptVariant(), rubricVersion: "mock", pipelineVersion: REVIEW_PIPELINE_VERSION,
-        model: "mock", requestedModel: "mock", fallbackUsed: false, modelConfig: { maxOutputTokens: null, responseFormat: "cv_report", store: false } } };
+        model: "mock", requestedModel: "mock", fallbackUsed: false,
+        modelConfig: { maxOutputTokens: null, timeoutMs: resolveReviewTimeoutMs(), fallbackDisabled: fallbackModelDisabled(), responseFormat: "cv_report", store: false } } };
     if (!mockMode) {
       const quota = await consumeAnalysisQuota(ipKey);
       if (!quota.allowed) return NextResponse.json(

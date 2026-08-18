@@ -19,6 +19,8 @@ export type ReviewProvenance = {
   fallbackUsed: boolean;
   modelConfig: {
     maxOutputTokens: number | null;
+    timeoutMs: number;
+    fallbackDisabled: boolean;
     responseFormat: string;
     store: boolean;
   };

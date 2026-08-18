@@ -12,6 +12,22 @@ type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSenior
 export type ReviewTelemetry = { model: string; inputTokens: number; outputTokens: number; estimatedCost: number | null; provenance: ReviewProvenance };
 
 const retryableStatuses = new Set([408, 409, 429, 500, 502, 503, 504, 520]);
+const DEFAULT_REVIEW_TIMEOUT_MS = 90_000;
+
+// A slow model can finish just under the timeout. Once it tips over, the timeout
+// counts as retryable and the fallback model silently takes over — which makes a
+// prompt or model comparison unattributable. Both knobs are recorded in
+// provenance so a run always explains its own outcome.
+export function resolveReviewTimeoutMs(): number {
+  const requested = Number(process.env.OPENAI_REVIEW_TIMEOUT_MS);
+  // Below 30s legitimate reports get cut off; above 280s the request would
+  // outlive the serverless function and fail without a stored result anyway.
+  return Number.isFinite(requested) && requested >= 30_000 && requested <= 280_000 ? requested : DEFAULT_REVIEW_TIMEOUT_MS;
+}
+
+export function fallbackModelDisabled(): boolean {
+  return process.env.OPENAI_REVIEW_DISABLE_FALLBACK === "true";
+}
 
 export function isRetryableOpenAIError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
@@ -53,8 +69,10 @@ export function getSafeOpenAIErrorDiagnostic(error: unknown): Record<string, str
 export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CVReport; telemetry: ReviewTelemetry }> {
   const apiKey = process.env.OPENAI_API_KEY; const model = process.env.OPENAI_REVIEW_MODEL;
   if (!apiKey || !model) throw new Error("OPENAI_NOT_CONFIGURED");
-  const fallbackModel = process.env.OPENAI_REVIEW_FALLBACK_MODEL?.trim();
-  const client = new OpenAI({ apiKey, timeout: 90_000, maxRetries: 2 });
+  const fallbackDisabled = fallbackModelDisabled();
+  const fallbackModel = fallbackDisabled ? undefined : process.env.OPENAI_REVIEW_FALLBACK_MODEL?.trim();
+  const timeoutMs = resolveReviewTimeoutMs();
+  const client = new OpenAI({ apiKey, timeout: timeoutMs, maxRetries: 2 });
   const roleProfile = getTargetRoleProfile(input.targetRole, input.locale);
   const rubric = getRubric(input.targetSeniority, input.targetRole, input.locale);
   const { version: promptVersion, systemPrompt, variant: promptVariant } = getReviewPrompt(input.locale);
@@ -128,6 +146,8 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     fallbackUsed: selectedModel !== model,
     modelConfig: {
       maxOutputTokens: input.maxOutputTokens ?? null,
+      timeoutMs,
+      fallbackDisabled,
       responseFormat: "cv_report",
       store: false,
     },
