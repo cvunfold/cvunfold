@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { CVReport } from "@/lib/ai/schemas/report";
+import type { ReviewProvenance } from "@/lib/ai/review-provenance";
 import type { Attribution } from "@/lib/analytics/attribution";
 import {
   classifyAnonymousRole,
@@ -17,6 +18,7 @@ export type Analysis = {
   paid: boolean; plan: Plan; locale: Locale; market: Market; attribution: Attribution;
   report: CVReport; feedback: AnalysisFeedback[]; durationMs?: number; purchase?: Purchase;
   model?: string; inputTokens?: number; outputTokens?: number; estimatedAiCost?: number | null;
+  provenance?: ReviewProvenance;
 };
 export type Purchase = { transactionId: string; value: number; currency: string; plan: Plan };
 export type PendingPayment = {
@@ -103,6 +105,7 @@ export async function saveAnalysis(token: string, analysis: Omit<Analysis, "toke
     input_token_count: analysis.inputTokens ?? null, output_token_count: analysis.outputTokens ?? null, estimated_ai_cost: analysis.estimatedAiCost ?? null,
     access_token_hash: tokenHash, expires_at: analysis.expiresAt.toISOString(), paid_at: analysis.paid ? analysis.createdAt.toISOString() : null,
     completed_at: analysis.createdAt.toISOString(), duration_ms: analysis.durationMs ?? null,
+    review_provenance: analysis.provenance ?? null,
   });
   if (analysisError) throw new Error("SUPABASE_SAVE_FAILED");
   const { error: reportError } = await client.from("reports").insert({ analysis_id: analysis.id, report_version: analysis.report.version, full_report_json: analysis.report });
@@ -355,7 +358,7 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
   if (client) {
     const since = new Date(Date.now() - windowDays * 86_400_000).toISOString();
     const [{ data: analyses, error: analysesError }, { data: events, error: eventsError }, { data: payments, error: paymentsError }, { data: feedbackRows, error: feedbackError }, { data: feedbackAggregateRows, error: feedbackAggregateError }, { data: anonymousRoleRows, error: anonymousRoleError }] = await Promise.all([
-      client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,attribution,job_description_present").gte("created_at", since),
+      client.from("analyses").select("id,status,estimated_ai_cost,error_code,locale,market,prompt_version,rubric_version,review_model,review_provenance,attribution,job_description_present").gte("created_at", since),
       client.from("funnel_events").select("event_name,locale,market,safe_properties").gte("occurred_at", since),
       client.from("payments").select("analysis_id,status,amount_gross,currency,plan,locale,market,livemode").gte("created_at", since),
       client.from("feedback").select("rating,accurate,issue_id,comment").gte("created_at", since).order("created_at", { ascending: false }),
@@ -423,8 +426,17 @@ export async function diagnostics(options: { windowDays?: number } = {}) {
         teaserToCheckout: ratio(count("checkout_started"), count("teaser_viewed")),
         checkoutToPurchase: ratio(count("purchase"), count("checkout_started")),
       },
-      promptVersions: Object.fromEntries([...new Set((analyses || []).map((item) => item.prompt_version))].map((version) => [version, (analyses || []).filter((item) => item.prompt_version === version).length])),
-      rubricVersions: Object.fromEntries([...new Set((analyses || []).map((item) => item.rubric_version))].map((version) => [version, (analyses || []).filter((item) => item.rubric_version === version).length])),
+      // A missing version means the row predates the field, not a version named
+      // "null". Label it legacy_unknown rather than inventing provenance.
+      promptVersions: segmentCounts((analyses || []).map((item) => String(item.prompt_version || "legacy_unknown"))),
+      rubricVersions: segmentCounts((analyses || []).map((item) => String(item.rubric_version || "legacy_unknown"))),
+      // One row per distinct prompt/model/pipeline combination. Two reports are
+      // only comparable when they share a line here.
+      reviewProvenance: segmentCounts((analyses || []).map((item) => {
+        const provenance = item.review_provenance as ReviewProvenance | null;
+        if (!provenance) return "legacy_unknown";
+        return `prompt=${provenance.promptVersion} variant=${provenance.promptVariant} model=${provenance.model} pipeline=${provenance.pipelineVersion}`;
+      })),
       feedback: {
         last24Hours: { count: feedbackRows?.length || 0, averageRating: feedbackRows?.length ? Math.round(feedbackRows.reduce((sum, item) => sum + item.rating, 0) / feedbackRows.length * 100) / 100 : null,
           accuracy: Object.fromEntries(["yes", "partly", "no"].map((value) => [value, (feedbackRows || []).filter((item) => item.accurate === value).length])) },

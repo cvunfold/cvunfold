@@ -8,7 +8,7 @@ import { TARGET_ROLES } from "@/lib/roles";
 describe("live-model evaluation harness", () => {
   it("defines all launch cases in both languages", () => {
     const typed = cases as LiveEvalCase[];
-    expect(typed).toHaveLength(25);
+    expect(typed).toHaveLength(26);
     expect(typed.every((item) => item.cv.pl.length > 0 && item.cv.en.length > 0)).toBe(true);
     expect(typed.every((item) => TARGET_ROLES.some((role) => role.id === item.targetRole))).toBe(true);
     for (const role of TARGET_ROLES) expect(typed.filter((item) => item.targetRole === role.id).length).toBeGreaterThanOrEqual(2);

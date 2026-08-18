@@ -5,11 +5,11 @@ import { applyServerRubric, validateEvidence } from "./validate-report";
 import type { Segment } from "@/lib/document-parsing";
 import { getRubric, RUBRIC_VERSION, type Seniority } from "@/lib/rubrics/technical-v1";
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
-import { PROMPT_VERSION, SYSTEM_PROMPT } from "./prompts/review-pl-v3";
-import { EN_PROMPT_VERSION, EN_SYSTEM_PROMPT } from "./prompts/review-en-v1";
+import { getReviewPrompt } from "./prompts";
+import { REVIEW_PIPELINE_VERSION, type ReviewProvenance } from "./review-provenance";
 
 type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSeniority: Seniority; jobDescription?: string; locale: "pl" | "en"; maxOutputTokens?: number };
-export type ReviewTelemetry = { model: string; inputTokens: number; outputTokens: number; estimatedCost: number | null };
+export type ReviewTelemetry = { model: string; inputTokens: number; outputTokens: number; estimatedCost: number | null; provenance: ReviewProvenance };
 
 const retryableStatuses = new Set([408, 409, 429, 500, 502, 503, 504, 520]);
 
@@ -57,8 +57,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
   const client = new OpenAI({ apiKey, timeout: 90_000, maxRetries: 2 });
   const roleProfile = getTargetRoleProfile(input.targetRole, input.locale);
   const rubric = getRubric(input.targetSeniority, input.targetRole, input.locale);
-  const promptVersion = input.locale === "en" ? EN_PROMPT_VERSION : PROMPT_VERSION;
-  const systemPrompt = input.locale === "en" ? EN_SYSTEM_PROMPT : SYSTEM_PROMPT;
+  const { version: promptVersion, systemPrompt, variant: promptVariant } = getReviewPrompt(input.locale);
   const payload = {
     locale: input.locale,
     targetRole: roleProfile.label,
@@ -119,5 +118,19 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
   const estimatedCost = inputRateRaw && outputRateRaw && Number.isFinite(inputRate) && Number.isFinite(outputRate)
     ? (inputTokens * inputRate + outputTokens * outputRate) / 1_000_000
     : null;
-  return { report, telemetry: { model: selectedModel, inputTokens, outputTokens, estimatedCost } };
+  const provenance: ReviewProvenance = {
+    promptVersion,
+    promptVariant,
+    rubricVersion: RUBRIC_VERSION,
+    pipelineVersion: REVIEW_PIPELINE_VERSION,
+    model: selectedModel,
+    requestedModel: model,
+    fallbackUsed: selectedModel !== model,
+    modelConfig: {
+      maxOutputTokens: input.maxOutputTokens ?? null,
+      responseFormat: "cv_report",
+      store: false,
+    },
+  };
+  return { report, telemetry: { model: selectedModel, inputTokens, outputTokens, estimatedCost, provenance } };
 }

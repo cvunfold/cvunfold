@@ -11,6 +11,8 @@ import { validateSignature, validateUpload } from "@/lib/security/upload";
 import { parseSeniority } from "@/lib/rubrics/technical-v1";
 import { parseTargetRoleId } from "@/lib/roles";
 import { reviewWithOpenAI, toSafeOpenAIErrorCode } from "@/lib/ai/openai-review";
+import { activePromptVariant } from "@/lib/ai/prompts";
+import { REVIEW_PIPELINE_VERSION } from "@/lib/ai/review-provenance";
 import { isLocale, reportPath, type Locale } from "@/lib/i18n";
 import { marketForLocale, type Plan } from "@/lib/plans";
 import { parseAttribution } from "@/lib/analytics/attribution";
@@ -71,7 +73,9 @@ export async function POST(request: Request) {
     const mockMode = process.env.MOCK_MODE === "true";
     const documentQaMode = mockMode && process.env.NODE_ENV !== "production" && process.env.DOCUMENT_QA_MODE === "true";
     let report;
-    let telemetry: ReviewTelemetry = { model: "mock", inputTokens: 0, outputTokens: 0, estimatedCost: 0 };
+    let telemetry: ReviewTelemetry = { model: "mock", inputTokens: 0, outputTokens: 0, estimatedCost: 0,
+      provenance: { promptVersion: "mock", promptVariant: activePromptVariant(), rubricVersion: "mock", pipelineVersion: REVIEW_PIPELINE_VERSION,
+        model: "mock", requestedModel: "mock", fallbackUsed: false, modelConfig: { maxOutputTokens: null, responseFormat: "cv_report", store: false } } };
     if (!mockMode) {
       const quota = await consumeAnalysisQuota(ipKey);
       if (!quota.allowed) return NextResponse.json(
@@ -99,7 +103,7 @@ export async function POST(request: Request) {
       analysis: { id: randomUUID(), createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
         status: "complete" as const, paid: false, plan, locale, market, attribution,
         report, feedback: [], durationMs: Date.now() - startedAt, model: telemetry.model, inputTokens: telemetry.inputTokens,
-        outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost },
+        outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost, provenance: telemetry.provenance },
     }));
     await Promise.all([
       recordFunnelEvent({ name: "analysis_succeeded", analysisId, locale, market, properties: { plan, ...attribution, analysis_success: true, duration_ms: Date.now() - startedAt, model: telemetry.model, prompt_version: report.promptVersion, rubric_version: report.rubricVersion, input_tokens: telemetry.inputTokens, output_tokens: telemetry.outputTokens, estimated_cost: telemetry.estimatedCost, ...(paidClick ? { paid_click: true } : {}) } }),

@@ -12,8 +12,8 @@ import {
   type LiveEvalLocale,
 } from "../src/lib/ai/live-eval";
 import type { CVReport } from "../src/lib/ai/schemas/report";
-import { EN_SYSTEM_PROMPT } from "../src/lib/ai/prompts/review-en-v1";
-import { SYSTEM_PROMPT } from "../src/lib/ai/prompts/review-pl-v3";
+import { activePromptVariant, getReviewPrompt } from "../src/lib/ai/prompts";
+import { REVIEW_PIPELINE_VERSION } from "../src/lib/ai/review-provenance";
 
 type Result = {
   id: string;
@@ -33,7 +33,13 @@ const casePath = join(process.cwd(), "fixtures", "live-eval-cases.json");
 const allCases = JSON.parse(readFileSync(casePath, "utf8")) as LiveEvalCase[];
 const requestedCaseIds = new Set((process.env.OPENAI_EVAL_CASE_IDS || "").split(",").map((value) => value.trim()).filter(Boolean));
 const cases = requestedCaseIds.size ? allCases.filter((item) => requestedCaseIds.has(item.id)) : allCases;
-const locales: LiveEvalLocale[] = ["pl", "en"];
+// A canary usually targets one locale: the v1.6-rc1 prompt is Polish-only, so
+// running EN too would spend money re-testing an unchanged prompt.
+const supportedLocales: LiveEvalLocale[] = ["pl", "en"];
+const requestedLocales = (process.env.OPENAI_EVAL_LOCALES || "pl,en").split(",").map((value) => value.trim()).filter(Boolean);
+if (requestedLocales.some((locale) => !supportedLocales.includes(locale as LiveEvalLocale))) throw new Error("OPENAI_EVAL_LOCALES accepts only pl and en.");
+const locales: LiveEvalLocale[] = supportedLocales.filter((locale) => requestedLocales.includes(locale));
+if (!locales.length) throw new Error("OPENAI_EVAL_LOCALES must select at least one locale.");
 const maxCostPln = Number(process.env.OPENAI_EVAL_MAX_COST_PLN || 50);
 const plnPerUsd = Number(process.env.OPENAI_EVAL_PLN_PER_USD || 5);
 const costSafetyFactor = Number(process.env.OPENAI_EVAL_COST_SAFETY_FACTOR || 2.5);
@@ -53,7 +59,9 @@ const runnable = cases.flatMap((item) => locales.map((locale) => ({ item, locale
 const ratesConfigured = Number.isFinite(inputRate) && inputRate >= 0 && Number.isFinite(outputRate) && outputRate >= 0;
 const rawWorstCaseCostPln = ratesConfigured ? estimateWorstCaseCostPln({
   cases: runnable.map(({ item, locale }) => ({ cv: item.cv[locale], jobDescription: item.jobDescription?.[locale] })),
-  systemPromptCharacters: Math.max(SYSTEM_PROMPT.length, EN_SYSTEM_PROMPT.length),
+  // Estimate against the prompt that will actually run: v1.6-rc1 is roughly an
+  // order of magnitude longer than the stable one, which moves the cost cap.
+  systemPromptCharacters: Math.max(...locales.map((locale) => getReviewPrompt(locale).systemPrompt.length)),
   inputUsdPerMillion: inputRate,
   outputUsdPerMillion: outputRate,
   maxOutputTokens,
@@ -64,6 +72,7 @@ const worstCaseCostPln = rawWorstCaseCostPln == null ? null : alreadySpentPln + 
 async function main(): Promise<void> {
   console.log(`CV Unfold live eval preflight: ${cases.length} cases × ${locales.length} locales, ${runnable.length} paid model calls.`);
   console.log(`Mode: ${execute ? "EXECUTE" : "DRY RUN"}. Hard cap: ${maxCostPln.toFixed(2)} PLN.`);
+  console.log(`Prompt variant: ${activePromptVariant()} (${locales.map((locale) => `${locale}=${getReviewPrompt(locale).version}`).join(", ")}). Pipeline: ${REVIEW_PIPELINE_VERSION}.`);
   console.log(`Cost safety factor: ${costSafetyFactor.toFixed(2)}×. Already spent: ${alreadySpentPln.toFixed(2)} PLN.`);
   console.log(worstCaseCostPln == null ? "Worst-case cost unavailable: configure model rates before execution." : `Worst-case cost estimate: ${worstCaseCostPln.toFixed(2)} PLN.`);
 
@@ -138,7 +147,9 @@ async function main(): Promise<void> {
     }
   }
 
-  const localeParity = cases.filter((item) => !item.rejectBeforeModel).map((item) => {
+  // Parity compares a PL report against its EN counterpart, so it is only a
+  // meaningful gate when both locales were actually run.
+  const localeParity = locales.length < 2 ? [] : cases.filter((item) => !item.rejectBeforeModel).map((item) => {
     const pair = completedReports.get(item.id);
     const checks = pair?.pl && pair.en
       ? evaluateLocaleParity(pair.pl, pair.en)
@@ -153,6 +164,11 @@ async function main(): Promise<void> {
   writeFileSync(join(outputDir, "summary.json"), `${JSON.stringify({
     generatedAt: new Date().toISOString(),
     model: process.env.OPENAI_REVIEW_MODEL,
+    // Provenance of this run. Never compare two summaries whose provenance differs.
+    promptVariant: activePromptVariant(),
+    promptVersions: Object.fromEntries(locales.map((locale) => [locale, getReviewPrompt(locale).version])),
+    pipelineVersion: REVIEW_PIPELINE_VERSION,
+    locales,
     maxCostPln,
     costSafetyFactor,
     alreadySpentPln,
