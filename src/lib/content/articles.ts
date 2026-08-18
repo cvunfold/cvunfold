@@ -130,13 +130,21 @@ export const articles: Article[] = [
   {
     slug: "dlaczego-ownership-jest-wazny-dla-pracodawcow",
     category: "Ownership",
-    title: "Dlaczego ownership jest ważny dla pracodawców?",
-    description: "Dowiedz się, czym jest ownership w CV, dlaczego odróżnia samodzielnego specjalistę od wykonawcy zadań i jak pokazać go bez wyolbrzymiania swojej roli.",
-    excerpt: "Samo „pracowałem przy projekcie” nie mówi, za co naprawdę odpowiadałeś. Sprawdź, jak pokazać decyzje, odpowiedzialność i samodzielność.",
+    title: "Ownership w pracy: co oznacza i jak pokazać je w CV?",
+    description: "Ownership w pracy to odpowiedzialność za problem i jego rezultat, nie praca po godzinach. Zobacz, jak pokazać swój realny zakres w CV bez wyolbrzymiania roli.",
+    excerpt: "Samo „pracowałem przy projekcie” nie mówi, za co naprawdę odpowiadałeś. Pokaż problem, decyzję i zakres odpowiedzialności.",
     readingTime: "7 min",
     publishedAt: "2026-08-08",
-    intro: "Ownership to nie korporacyjne słowo oznaczające, że ktoś pracował po godzinach. Dla pracodawcy jest sygnałem, że kandydat potrafi przejąć odpowiedzialność za problem, podjąć decyzję, doprowadzić pracę do końca i rozumieć konsekwencje swojego rozwiązania. W CV ten sygnał często znika, nawet gdy w codziennej pracy był bardzo mocny.",
+    updatedAt: "2026-08-18",
+    intro: "Ownership w pracy oznacza, że bierzesz odpowiedzialność za problem i za to, co dzieje się po Twojej decyzji. Nie jest to korporacyjne określenie pracy po godzinach ani obietnica, że zrobisz wszystko sam. Dla pracodawcy to sygnał, że umiesz rozpoznać niejasność, podjąć decyzję w swoim zakresie, zaangażować właściwe osoby i doprowadzić temat do sensownego rezultatu. W CV ten sygnał często znika, choć w codziennej pracy był bardzo mocny.",
     sections: [
+      {
+        heading: "Jak wygląda ownership w pracy na co dzień",
+        paragraphs: [
+          "Nie zaczyna się od wielkiego projektu. Może oznaczać, że zamiast tylko poprawić zgłoszony błąd, sprawdzasz jego przyczynę i proponujesz zabezpieczenie przed powtórką. Albo że przed wdrożeniem pytasz o kryterium sukcesu, zauważasz zależność z innym zespołem i wracasz do danych po rolloutcie.",
+          "To wciąż może być praca zespołowa. Ownership nie odbiera innym wkładu i nie wymaga samodzielnej decyzji o wszystkim. Pokazuje natomiast, że nie kończysz odpowiedzialności w chwili odhaczenia taska.",
+        ],
+      },
       {
         heading: "Co pracodawca rozumie przez ownership",
         paragraphs: [
