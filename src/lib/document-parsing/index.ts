@@ -1,7 +1,13 @@
 import mammoth from "mammoth";
 
 export type Segment = { id: string; text: string };
-export type ParsedDocument = { text: string; segments: Segment[]; quality: "good" | "degraded" };
+export type ParsedDocument = {
+  text: string;
+  segments: Segment[];
+  quality: "good" | "degraded";
+  /** Same shape the module already builds for `UnreadableDocumentError`, also attached on success so downstream checks (e.g. the ATS checker) can read it without re-parsing. */
+  diagnostics: Omit<DocumentExtractionDiagnostics, "reason">;
+};
 export type UnreadableDocumentReason =
   | "pdf_no_text_items"
   | "pdf_empty_text_items"
@@ -62,8 +68,11 @@ const phone = /(?<!\d)(?:\+?48[ -]?)?(?:\d[ -]?){9}(?!\d)/g;
 const address = /\b(?:ul\.|aleja|al\.|os\.)\s+[^\n,]{3,40}(?:,\s*\d{2}-\d{3}\s+[^\n]+)?/gi;
 const protectedTraitLabel = /(?<![\p{L}])(?:age|date of birth|gender|sex|nationality|citizenship|marital[ -]status|family[ -]status|wiek|data urodzenia|płeć|narodowość|obywatelstwo|stan cywilny)(?![\p{L}])/giu;
 
+/** The literal replacement tokens `maskContactPii` leaves behind. A downstream check can look for these instead of re-matching raw PII. */
+export const PII_MASK_TOKENS = { email: "[EMAIL UKRYTY]", phone: "[TELEFON UKRYTY]", address: "[ADRES UKRYTY]" } as const;
+
 export function maskContactPii(text: string): string {
-  return text.replace(email, "[EMAIL UKRYTY]").replace(phone, "[TELEFON UKRYTY]").replace(address, "[ADRES UKRYTY]");
+  return text.replace(email, PII_MASK_TOKENS.email).replace(phone, PII_MASK_TOKENS.phone).replace(address, PII_MASK_TOKENS.address);
 }
 
 function containsProtectedPersonalData(text: string): boolean {
@@ -229,5 +238,8 @@ export async function parseDocument(file: File): Promise<ParsedDocument> {
     threshold_chars: minimumTextChars,
     reason: unreadableReason(diagnostics.document_kind, text.length, pdfCounters),
   });
-  return { text, segments: createSegments(text), quality: text.length < 500 ? "degraded" : "good" };
+  return {
+    text, segments: createSegments(text), quality: text.length < 500 ? "degraded" : "good",
+    diagnostics: { ...diagnostics, extracted_chars: text.length, threshold_chars: minimumTextChars },
+  };
 }

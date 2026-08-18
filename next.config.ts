@@ -59,8 +59,6 @@ const nextConfig: NextConfig = {
           { key: "Cross-Origin-Opener-Policy", value: googlePayCrossOriginOpenerPolicy },
         ],
       },
-      { source: "/pl/analiza", headers: [privateRouteHeaders] },
-      { source: "/pl/raport/:path*", headers: [privateRouteHeaders] },
     ];
   },
   async redirects() {

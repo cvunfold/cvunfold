@@ -33,7 +33,6 @@ const scores: Record<string, number> = {
   architecture: 82,
   collaboration: 82,
   clarity: 72,
-  ats: 94,
 };
 
 const rationales: Record<string, string> = {
@@ -43,7 +42,6 @@ const rationales: Record<string, string> = {
   architecture: "RFC o modułach domenowych, migracja do bardziej modularnej struktury oraz współdzielona biblioteka komponentów pokazują myślenie systemowe. W VertexPay brakuje jednak szczegółów dotyczących granic komponentów, API biblioteki lub uzasadnienia kluczowych trade-offów.",
   collaboration: "CV pokazuje współpracę z product, design, backendem, QA oraz zespołami platformowymi, a także pracę przy rozwiązaniu używanym przez trzy zespoły produktowe. Część opisów nie precyzuje jednak, jaki wpływ osoba aplikująca miała na uzgodnienia i decyzje.",
   clarity: "CV ma czytelne sekcje, chronologię i wyraźne specjalizacje, ale najlepsze dowody — konkretne rezultaty wydajnościowe i RFC — znajdują się przy wcześniejszej roli. Najnowsza rola oraz inicjatywy są bardziej ogólne, więc hierarchia sygnałów nie maksymalizuje odbioru seniority.",
-  ats: "Dokument ma standardowe nagłówki, chronologiczną historię zatrudnienia, daty, nazwy stanowisk, lokalizacje i czytelnie pogrupowane kompetencje. Nie widać artefaktów ekstrakcji ani problemów z parsowaniem.",
 };
 
 const categoryEvidenceRefs: Record<string, string[]> = {
@@ -53,7 +51,6 @@ const categoryEvidenceRefs: Record<string, string[]> = {
   architecture: ["seg_c", "seg_6", "seg_5"],
   collaboration: ["seg_4", "seg_9"],
   clarity: ["seg_b", "seg_c", "seg_8"],
-  ats: ["seg_summary"],
 };
 
 const categoryScores = getRubric("senior", "frontend_developer").map((category) => ({
@@ -274,12 +271,11 @@ export const sampleReport: CVReport = {
     },
   ],
   ats: {
-    score: 94,
-    findings: [
-      { type: "positive", title: "Czytelna struktura dokumentu", explanation: "CV zawiera rozpoznawalne sekcje dotyczące podsumowania, umiejętności, doświadczenia, inicjatyw, wykształcenia i języków." },
-      { type: "positive", title: "Spójne daty i nazwy stanowisk", explanation: "Role mają nazwy pracodawców, lokalizacje oraz jednoznaczne okresy zatrudnienia w formacie miesiąc–rok." },
-      { type: "positive", title: "Parsowalna lista kompetencji technicznych", explanation: "Technologie są pogrupowane według obszarów, takich jak frontend, architektura, jakość i delivery." },
-      { type: "warning", title: "Mieszany język terminologii", explanation: "Dokument łączy polskie opisy z angielskimi nazwami technicznymi i stanowiskami; jest to czytelne, ale warto utrzymać konsekwentny sposób zapisu nagłówków i opisów." },
+    score: 100,
+    checks: [
+      { id: "text_layer", status: "pass" }, { id: "reading_order", status: "pass" }, { id: "sections", status: "pass" },
+      { id: "dates_titles", status: "pass" }, { id: "contact_info", status: "pass" }, { id: "layout_columns", status: "pass" },
+      { id: "glyph_artifacts", status: "pass" }, { id: "date_format", status: "pass" },
     ],
   },
   jobMatch: null,

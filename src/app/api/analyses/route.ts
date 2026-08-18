@@ -4,6 +4,7 @@ import { createMockReport } from "@/lib/ai/mock-report";
 import { validateEvidence, toTeaser } from "@/lib/ai/validate-report";
 import { getUnreadableDocumentDiagnostics, parseDocument } from "@/lib/document-parsing";
 import { validateCvText } from "@/lib/document-parsing/cv-detection";
+import { runAtsChecker } from "@/lib/ats-checker";
 import { recordFunnelEvent, saveAnalysisWithRetry } from "@/lib/data/store";
 import { createAccessToken, hmacIdentifier } from "@/lib/security/tokens";
 import { consumeAnalysisQuota, rateLimit } from "@/lib/security/rate-limit";
@@ -81,7 +82,7 @@ export async function POST(request: Request) {
       provenance: { promptVersion: "mock", promptVariant: activePromptVariant(), rubricVersion: "mock", pipelineVersion: REVIEW_PIPELINE_VERSION,
         model: "mock", requestedModel: "mock", fallbackUsed: false,
         modelConfig: { maxOutputTokens: null, timeoutMs: resolveReviewTimeoutMs(), fallbackDisabled: fallbackModelDisabled(), responseFormat: "cv_report", store: false },
-        pricing: { inputUsdPerMillion: 0, outputUsdPerMillion: 0, source: "unknown" }, calibrationViolations: [], droppedAtsFindings: 0 } };
+        pricing: { inputUsdPerMillion: 0, outputUsdPerMillion: 0, source: "unknown" }, calibrationViolations: [] } };
     if (!mockMode) {
       const quota = await consumeAnalysisQuota(ipKey);
       if (!quota.allowed) return NextResponse.json(
@@ -91,17 +92,23 @@ export async function POST(request: Request) {
       await validateSignature(file);
       const parsed = await parseDocument(file);
       validateCvText(parsed.text);
-      const review = await reviewWithOpenAI({ segments: parsed.segments, targetRole, targetSeniority: seniority, jobDescription: jobDescription || undefined, locale });
-      report = review.report;
+      const [review, ats] = await Promise.all([
+        reviewWithOpenAI({ segments: parsed.segments, targetRole, targetSeniority: seniority, jobDescription: jobDescription || undefined, locale }),
+        runAtsChecker(file, parsed),
+      ]);
+      report = { ...review.report, ats };
       telemetry = review.telemetry;
     } else {
+      let ats;
       if (documentQaMode) {
         await validateSignature(file);
-        validateCvText((await parseDocument(file)).text);
+        const parsed = await parseDocument(file);
+        validateCvText(parsed.text);
+        ats = await runAtsChecker(file, parsed);
       }
       const mock = createMockReport(seniority, jobDescription.length > 0, targetRole, locale);
       const mockEvidence = mock.evidenceMap || {};
-      report = validateEvidence(mock, new Set(Object.keys(mockEvidence)), mockEvidence, { jobDescriptionProvided: jobDescription.length > 0 });
+      report = { ...validateEvidence(mock, new Set(Object.keys(mockEvidence)), mockEvidence), ...(ats ? { ats } : {}) };
     }
     const retentionDays = Number(process.env.REPORT_RETENTION_DAYS || 30);
     const { token, analysisId } = await saveAnalysisWithRetry(() => ({

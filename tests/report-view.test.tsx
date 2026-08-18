@@ -121,22 +121,27 @@ describe("ATS presentation", () => {
     const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
 
     const categoryLabels = [...container.querySelectorAll(".score-rows > div > b")].map((node) => node.textContent);
-    expect(categoryLabels.length).toBe(report.categoryScores.length - 1);
+    expect(categoryLabels.length).toBe(report.categoryScores.length);
     expect(categoryLabels.some((label) => label?.includes("ATS"))).toBe(false);
 
     const panel = container.querySelector(".ats-panel");
     expect(panel).not.toBeNull();
-    const atsCategory = report.categoryScores.find((category) => category.key === "ats");
-    expect(panel?.textContent).toContain(String(atsCategory?.score));
+    expect(panel?.textContent).toContain(String(report.ats?.score));
     // The separation only means something if it says what ATS is not.
     expect(panel?.textContent).toContain("To nie jest ocena treści ani poziomu.");
   });
 
-  it("surfaces the ATS findings the model already produced", () => {
+  it("collapses the ATS checklist to a 3-item preview, expandable to the full list", () => {
     const report = createMockReport();
     const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
-    const findings = container.querySelectorAll(".ats-findings li");
-    expect(findings.length).toBe(report.ats.findings.length);
+    const applicableChecks = report.ats?.checks.filter((check) => check.status !== "not_applicable") || [];
+    expect(container.querySelectorAll(".ats-findings li").length).toBe(3);
+
+    fireEvent.click(screen.getByText("Pokaż wszystkie kontrole"));
+    expect(container.querySelectorAll(".ats-findings li").length).toBe(applicableChecks.length);
+
+    fireEvent.click(screen.getByText("Zwiń kontrole"));
+    expect(container.querySelectorAll(".ats-findings li").length).toBe(3);
   });
 });
 
@@ -202,7 +207,8 @@ describe("full report clarity", () => {
     expect(proposed?.textContent).toContain("PROPONOWANY ZAPIS");
     const proposedBeforeEvidence = proposed && evidence ? Boolean(proposed.compareDocumentPosition(evidence) & Node.DOCUMENT_POSITION_FOLLOWING) : false;
     expect(proposedBeforeEvidence).toBe(true);
-    expect(evidence?.textContent).toContain("DOWODY Z CV");
+    // issues[0] carries exactly one evidenceRef in the mock fixture, so the singular label is correct here.
+    expect(evidence?.textContent).toContain("DOWÓD Z CV");
     expect(issues[1].querySelector(".issue-evidence")).toBeNull();
   });
 

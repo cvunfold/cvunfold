@@ -18,7 +18,6 @@ describe("OpenAI report schema", () => {
 
   it("keeps the review focused on document perception and evidence", () => {
     expect(SYSTEM_PROMPT).toContain("jaki obraz jego profilu powstaje wyłącznie z dokumentu");
-    expect(SYSTEM_PROMPT).toContain("ATS jest wyłącznie higieną dokumentu");
     expect(SYSTEM_PROMPT).toContain("istniejące evidenceRefs");
     expect(SYSTEM_PROMPT).toContain("Nie oceniasz rzeczywistych kompetencji");
   });

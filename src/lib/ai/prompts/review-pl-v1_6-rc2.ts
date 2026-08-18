@@ -689,12 +689,6 @@ Nie podnoś wyniku za angielskie słownictwo.
 Nie podnoś wyniku za samą deklarację seniority.
 Nie podnoś wyniku za występowanie popularnych technologii.
 Ten sam zestaw faktów po polsku i angielsku powinien otrzymać zbliżone wyniki.
-Bardzo krótki fragment bez standardowych sekcji CV nie może otrzymać więcej niż 50 punktów za ATS / higienę dokumentu, nawet jeśli jest czytelny.
-ATS ocenia wyłącznie higienę i techniczną czytelność dokumentu.
-Nie używaj ATS jako zastępczej oceny:
-treści,
-seniority,
-dopasowania.
 categoryScores zwróć w skali 0–100.
 overallScore zostanie przeliczony po stronie serwera.
 
@@ -706,7 +700,7 @@ Dla każdej kategorii wykonaj wewnętrznie tę kolejność:
 3. Sprawdź, czy którykolwiek finalny issue materialnie dotyczy tej kategorii.
 4. Dopiero wtedy wybierz przedział punktowy.
 5. Na końcu wybierz konkretną liczbę wewnątrz przedziału.
-Pole issue.category musi być kluczem kategorii z przekazanej rubryki, na przykład impact, ownership, credibility, architecture, collaboration, clarity albo ats. Nie twórz własnych nazw kategorii, ponieważ reguły poniżej wiążą issue z konkretną kategorią po tym kluczu.
+Pole issue.category musi być kluczem kategorii z przekazanej rubryki, na przykład impact, ownership, credibility, architecture, collaboration albo clarity. Nie twórz własnych nazw kategorii, ponieważ reguły poniżej wiążą issue z konkretną kategorią po tym kluczu.
 Przy ustalaniu wyniku pamiętaj:
 90–100 = kategoria niemal kompletna.
 Wymaga kilku niezależnych, konkretnych i powtarzalnych dowodów, w tym mocnego dowodu w najnowszej roli.

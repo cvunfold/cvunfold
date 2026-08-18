@@ -93,6 +93,20 @@ describe("privacy-safe document extraction diagnostics", () => {
     expect(parsed.text).toHaveLength(600);
   });
 
+  it("attaches extraction diagnostics to a successfully parsed PDF", async () => {
+    configurePdf([{ getTextContent: async () => ({ items: [{ str: "A".repeat(600), transform: [1, 0, 0, 1, 0, 100] }] }) }]);
+    const parsed = await parseDocument(pdfFile());
+    expect(parsed.diagnostics).toMatchObject({
+      document_kind: "pdf", parser: "pdf-parse", page_count: 1, pages_with_text: 1, text_item_count: 1, extracted_chars: 600,
+    });
+  });
+
+  it("attaches extraction diagnostics to a successfully parsed DOCX", async () => {
+    extractRawText.mockResolvedValue({ value: "A".repeat(600), messages: [] });
+    const parsed = await parseDocument(new File([Buffer.from("PKsynthetic")], "synthetic.docx", { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }));
+    expect(parsed.diagnostics).toMatchObject({ document_kind: "docx", parser: "mammoth", extracted_chars: 600 });
+  });
+
   it("destroys one PDF before parsing the next document", async () => {
     let firstDestroyed = false;
     pdfJs.getDocument

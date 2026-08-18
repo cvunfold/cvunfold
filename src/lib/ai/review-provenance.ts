@@ -29,8 +29,4 @@ export type ReviewProvenance = {
   pricing: ResolvedPricing;
   // Empty when the model respected its own calibration caps.
   calibrationViolations: CalibrationViolation[];
-  // How many ATS findings the server had to drop as out-of-scope. Without this
-  // the filter is silent, and "the prompt stopped generating them" looks exactly
-  // like "the prompt still generates them and the filter tidies up".
-  droppedAtsFindings: number;
 };
