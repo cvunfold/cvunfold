@@ -101,16 +101,24 @@ async function createValidatedCheckoutSession(analysis: Analysis, surface: Check
     { idempotencyKey: checkoutIdempotencyKey(analysis.id, price, surface) },
   );
   if (session.amount_total == null || !session.currency) throw new Error("STRIPE_CHECKOUT_FAILED");
-  await savePendingPayment({
-    analysisId: analysis.id,
-    checkoutSessionId: session.id,
-    plan: analysis.plan,
-    locale: analysis.locale,
-    market: analysis.market,
-    amountGross: session.amount_total,
-    currency: session.currency,
-    livemode: session.livemode,
-  });
+  // The express wallet element needs a live session before the reader has done
+  // anything at all: it is mounted on render purely to discover whether Apple
+  // Pay or Google Pay is available on the device. Persisting that probe made
+  // every single report view look like an abandoned checkout in `payments`.
+  // For that surface the row is written in markExpressWalletCheckoutStarted
+  // instead, at the first moment a real purchase intent exists.
+  if (surface !== "express_wallet") {
+    await savePendingPayment({
+      analysisId: analysis.id,
+      checkoutSessionId: session.id,
+      plan: analysis.plan,
+      locale: analysis.locale,
+      market: analysis.market,
+      amountGross: session.amount_total,
+      currency: session.currency,
+      livemode: session.livemode,
+    });
+  }
   return session;
 }
 
@@ -132,6 +140,28 @@ export async function markExpressWalletCheckoutStarted(sessionId: string, expect
   if (session.metadata?.analysis_id !== expectedAnalysisId || session.metadata?.checkout_surface !== "express_wallet") {
     throw new Error("STRIPE_ANALYSIS_MISMATCH");
   }
+  // The buyer has confirmed in the wallet sheet, so this is the first point at
+  // which the session represents a real purchase rather than an availability
+  // probe. fulfill_stripe_payment requires a pending row to match against, and
+  // the caller aborts the payment if this request fails, so writing it here
+  // keeps the webhook able to complete the purchase.
+  const plan = session.metadata?.plan;
+  const locale = session.metadata?.locale;
+  const market = session.metadata?.market;
+  if (session.amount_total == null || !session.currency || !isPlan(plan)
+    || (locale !== "pl" && locale !== "en") || (market !== "pl" && market !== "en")) {
+    throw new Error("STRIPE_METADATA_INVALID");
+  }
+  await savePendingPayment({
+    analysisId: expectedAnalysisId,
+    checkoutSessionId: session.id,
+    plan,
+    locale,
+    market,
+    amountGross: session.amount_total,
+    currency: session.currency,
+    livemode: session.livemode,
+  });
   await stripe.checkout.sessions.update(session.id, { metadata: { buyer_confirmed: "true" } });
 }
 

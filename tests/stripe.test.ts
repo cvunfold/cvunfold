@@ -83,3 +83,25 @@ describe("Stripe price boundary", () => {
     expect(shouldRecordCheckoutExpired({ metadata: { checkout_surface: "hosted", buyer_confirmed: "true" } })).toBe(true);
   });
 });
+
+describe("express wallet availability probe", () => {
+  const source = readFileSync("src/lib/payments/stripe.ts", "utf8");
+
+  it("does not persist a payments row for the availability probe", () => {
+    // The element mounts on every report render to ask the device whether Apple
+    // Pay or Google Pay exists. Persisting that made each view look like an
+    // abandoned checkout, inflating pending/failed rows in `payments`.
+    const creation = source.slice(source.indexOf("async function createValidatedCheckoutSession"), source.indexOf("export async function createCheckout"));
+    expect(creation).toContain('if (surface !== "express_wallet")');
+    expect(creation.indexOf('if (surface !== "express_wallet")')).toBeLessThan(creation.indexOf("savePendingPayment"));
+  });
+
+  it("persists the payments row once the buyer confirms in the wallet sheet", () => {
+    // fulfill_stripe_payment matches on a pending row, so the confirm path must
+    // create it before the webhook arrives or a real purchase cannot complete.
+    const confirm = source.slice(source.indexOf("export async function markExpressWalletCheckoutStarted"), source.indexOf("export function shouldRecordCheckoutExpired"));
+    expect(confirm).toContain("savePendingPayment");
+    expect(confirm).toContain('buyer_confirmed: "true"');
+    expect(confirm.indexOf("savePendingPayment")).toBeLessThan(confirm.indexOf('buyer_confirmed: "true"'));
+  });
+});
