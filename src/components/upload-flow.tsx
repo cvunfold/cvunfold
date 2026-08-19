@@ -374,7 +374,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
           {roleDetection === "pending" ? t.roleDetecting : t.roleDetected}
         </p> : null}
         <SenioritySelect value={seniority} onChange={setSeniority} levels={t.levels} disabled={busy} label={t.advancedToggle} optionalHint={t.advancedHint} popoverTitle={t.level} popoverSubtitle={t.levelHelper}/>
-        <label ref={consentRef} key={consentShakeEpoch} tabIndex={-1} className={`consent${consent ? " is-given" : ""}${consentShakeEpoch ? " attention" : ""}`}><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span><b className="consent-required">{t.consentRequired}</b>{t.consent}<br/><a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
+        <label ref={consentRef} key={`consent-${consentShakeEpoch}`} tabIndex={-1} className={`consent${consent ? " is-given" : ""}${consentShakeEpoch ? " attention" : ""}`}><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span><b className="consent-required">{t.consentRequired}</b>{t.consent}<br/><a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
         <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
         {error ? <p ref={errorMessage} className="form-error" role="alert" tabIndex={-1}>{error}</p> : null}
