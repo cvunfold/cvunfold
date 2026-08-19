@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { createMockReport } from "@/lib/ai/mock-report";
 import { validateEvidence, toTeaser } from "@/lib/ai/validate-report";
 import { getUnreadableDocumentDiagnostics, parseDocument } from "@/lib/document-parsing";
-import { validateCvText } from "@/lib/document-parsing/cv-detection";
+import { getNotACvDiagnostics, validateCvText } from "@/lib/document-parsing/cv-detection";
 import { runAtsChecker } from "@/lib/ats-checker";
 import { recordFunnelEvent, saveAnalysisWithRetry } from "@/lib/data/store";
 import { createAccessToken, hmacIdentifier } from "@/lib/security/tokens";
@@ -159,6 +159,9 @@ export async function POST(request: Request) {
     // The parser already knows why extraction failed (scan, password, corrupt file, empty
     // document); collapsing all of that into one generic message wastes it.
     const unreadableReason = code === "UNREADABLE_DOCUMENT" ? getUnreadableDocumentDiagnostics(error)?.reason : undefined;
+    // The heuristic already knows which gate rejected the document (too short, no career
+    // anchor, thin structure); collapsing that into one generic category wastes it.
+    const notACvReason = code === "NOT_A_CV" ? getNotACvDiagnostics(error)?.reason : undefined;
     console.error(JSON.stringify(buildSafeAnalysisFailureLog({
       code: safeCode,
       durationMs: Date.now() - startedAt,
@@ -225,7 +228,11 @@ export async function POST(request: Request) {
       name: "analysis_failed",
       locale,
       market: marketForLocale(locale),
-      properties: { analysis_success: false, error_category: errorCategory, ...(unreadableReason ? { unreadable_reason: unreadableReason } : {}) },
+      properties: {
+        analysis_success: false, error_category: errorCategory,
+        ...(unreadableReason ? { unreadable_reason: unreadableReason } : {}),
+        ...(notACvReason ? { not_a_cv_reason: notACvReason } : {}),
+      },
     }).catch(() => undefined);
     return NextResponse.json({ error: message, errorCategory }, { status });
   }
