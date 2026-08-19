@@ -516,6 +516,11 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .analysis-shell select { min-height: 48px; }
 .analysis-shell textarea { height: 102px; resize: vertical; }
 .role-field { position: relative; z-index: 8; margin-top: 18px; }
+/* z-index only ranks siblings within the same stacking context, and .role-field
+   itself opens one. A sibling field later in the DOM ties at z-index 8 and wins
+   by source order regardless of the popover's own z-index:30, so the open field
+   needs to outrank its siblings, not just its own popover. */
+.role-field:has(.role-select.open) { z-index: 20; }
 .role-label { display: block; font-size: 12px; font-weight: 750; }
 .role-helper { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; font-weight: 500; }
 .role-helper.experimental {
@@ -1079,8 +1084,6 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   .role-select-intro span { display: block; margin-top: 3px; }
   .role-options { grid-template-columns: 1fr; max-height: 380px; overflow-y: auto; }
   .role-options button { min-height: 65px; }
-  .segmented { display: grid; grid-template-columns: 1fr 1fr; }
-  .segmented label:first-child { grid-column: 1 / -1; }
   .segmented span, .segmented label:first-child span, .segmented label:last-child span { margin: -1px 0 0; border-radius: 0; }
   .analysis-aside { padding-block: 31px 42px; }
   .analysis-progress-overlay {
