@@ -1,6 +1,7 @@
 export const analyticsEvents = [
   "page_view", "landing_view", "hero_cta_clicked", "sample_report_viewed", "pricing_viewed",
   "file_picker_opened", "file_picker_cancelled", "upload_started", "upload_completed",
+  "role_autodetected", "role_autodetect_corrected",
   "desktop_handoff_started", "desktop_handoff_completed", "handoff_link_opened",
   "analysis_started", "analysis_succeeded", "analysis_failed", "analysis_configuration_failed",
   "teaser_viewed", "unlock_cta_viewed", "unlock_cta_clicked", "checkout_started", "checkout_cancelled", "checkout_expired", "payment_failed",
@@ -31,6 +32,10 @@ const allowed: Record<AnalyticsEvent, readonly string[]> = {
   file_picker_cancelled: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
   upload_started: ["locale", "market", "plan", "upload_entrypoint", ...measurementKeys, ...attributionKeys],
   upload_completed: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
+  // broad_role_enum carries the role in play; detected_role_enum is what the
+  // detector proposed, so a correction is the two disagreeing on one event.
+  role_autodetected: ["locale", "market", "plan", "detected_role_enum", ...measurementKeys, ...attributionKeys],
+  role_autodetect_corrected: ["locale", "market", "plan", "detected_role_enum", ...measurementKeys, ...attributionKeys],
   desktop_handoff_started: ["locale", "market", "plan", "handoff_method", ...measurementKeys, ...attributionKeys],
   desktop_handoff_completed: ["locale", "market", "plan", "handoff_method", ...measurementKeys, ...attributionKeys],
   handoff_link_opened: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
@@ -55,6 +60,7 @@ const allowed: Record<AnalyticsEvent, readonly string[]> = {
 const enumValues: Record<string, readonly string[]> = {
   locale: ["pl", "en"], market: ["pl", "en"], plan: ["full_review", "job_match"],
   broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
+  detected_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
   landing_variant: ["developer"], handoff_origin: ["google_cpc", "other"],
   teaser_variant: [TEASER_VARIANT],

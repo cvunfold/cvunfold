@@ -133,6 +133,77 @@ describe("mobile upload measurement", () => {
   });
 });
 
+describe("role prefill from the chosen file", () => {
+  function pickFile(container: HTMLElement) {
+    const picker = container.querySelector<HTMLInputElement>('input[type="file"]')!;
+    fireEvent.change(picker, { target: { files: [new File(["%PDF-1.4"], "cv.pdf", { type: "application/pdf" })] } });
+  }
+
+  function mockDetection(payload: unknown) {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
+
+  it("sets the detected role and says so, without touching the analysis quota", async () => {
+    const fetchMock = mockDetection({ detected: true, role: "backend_developer" });
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Rola docelowa" }).textContent).toContain("Backend Developer"));
+    expect(container.querySelector(".role-detection.applied")?.textContent).toContain("Ustawiliśmy tę rolę na podstawie Twojego CV");
+    expect(fetchMock).toHaveBeenCalledWith("/api/detect-role", expect.objectContaining({ method: "POST" }));
+    expect(trackAnalyticsEvent).toHaveBeenCalledWith("role_autodetected", expect.objectContaining({
+      detected_role_enum: "backend_developer", broad_role_enum: "backend_developer",
+    }));
+  });
+
+  it("leaves the form untouched when the detector is not confident", async () => {
+    mockDetection({ detected: false });
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+
+    await waitFor(() => expect(container.querySelector(".role-detection")).toBeNull());
+    expect(screen.getByRole("combobox", { name: "Rola docelowa" }).textContent).toContain("Frontend Developer");
+  });
+
+  it("never overrides a role the visitor picked themselves", async () => {
+    mockDetection({ detected: true, role: "backend_developer" });
+    const { container } = render(<UploadFlow {...props}/>);
+    fireEvent.click(screen.getByRole("combobox", { name: "Rola docelowa" }));
+    fireEvent.click(screen.getByRole("option", { name: /QA \/ Test Automation/ }));
+    pickFile(container);
+
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Rola docelowa" }).textContent).toContain("QA / Test Automation"));
+    expect(trackAnalyticsEvent).not.toHaveBeenCalledWith("role_autodetected", expect.anything());
+  });
+
+  it("reports a correction so the detector's real-world error rate is measurable", async () => {
+    mockDetection({ detected: true, role: "backend_developer" });
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+    await waitFor(() => expect(container.querySelector(".role-detection.applied")).toBeTruthy());
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Rola docelowa" }));
+    fireEvent.click(screen.getByRole("option", { name: /Mobile Developer/ }));
+
+    expect(trackAnalyticsEvent).toHaveBeenCalledWith("role_autodetect_corrected", expect.objectContaining({
+      detected_role_enum: "backend_developer", broad_role_enum: "mobile_developer",
+    }));
+    expect(container.querySelector(".role-detection")).toBeNull();
+  });
+
+  it("stays silent when detection fails outright", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+
+    await waitFor(() => expect(container.querySelector(".role-detection")).toBeNull());
+    expect(screen.getByRole("combobox", { name: "Rola docelowa" }).textContent).toContain("Frontend Developer");
+    expect((screen.getByRole("button", { name: "Analizuj CV" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
 describe("analysis progress overlay", () => {
   function startAnalysis() {
     render(<UploadFlow {...props} mockMode/>);

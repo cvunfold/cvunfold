@@ -522,6 +522,11 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   padding: 12px 14px; border: 1px solid #e5c36d; border-radius: 12px; background: #fff9e8;
   color: #704f00; line-height: 1.5;
 }
+.role-detection { margin: 8px 0 0; padding: 10px 13px; border-radius: 7px; font-size: 12px; line-height: 1.5; }
+.role-detection.pending { border: 1px dashed var(--line); color: var(--muted); }
+.role-detection.applied { border: 1px solid #cbd8a0; background: #f7faed; color: #3d4a2d; font-weight: 600; }
+.role-detection.applied::before { content: "\2713"; margin-right: 7px; color: var(--accent-deep); font-weight: 850; }
+.role-detection-privacy { margin: -12px 0 22px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .role-select { position: relative; margin-top: 7px; }
 .role-select-trigger {
   width: 100%; min-height: 65px; display: flex; align-items: center; gap: 13px; padding: 9px 13px;
@@ -1383,6 +1388,13 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .analysis-advanced fieldset { margin-top: 16px; }
 .turnstile-shell { display: grid; gap: 7px; margin: 13px 0; }
 .turnstile-shell > span { color: var(--muted); font-size: 12px; }
+/* The one gate between a chosen file and the free result. It has to look like a
+   required control rather than fine print, and the badge has to say so before
+   the 29 zl in the plan summary above convinces anyone this is a payment step. */
+.analysis-shell .consent { display: grid !important; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; margin: 20px 0 0 !important; padding: 15px !important; border: 1px solid #aeb6c1; border-radius: 8px; background: var(--surface); font-size: 13px !important; font-weight: 500 !important; line-height: 1.55; }
+.analysis-shell .consent.is-given { border-color: #cbd8a0; background: #f7faed; }
+.analysis-shell .consent input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--accent-deep); }
+.consent-required { display: block; margin-bottom: 5px; color: var(--accent-deep); font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
 .consent a { text-decoration: underline; text-underline-offset: 2px; }
 
 @media (max-width: 1050px) {
