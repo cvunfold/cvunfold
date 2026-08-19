@@ -1392,8 +1392,11 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 /* The one gate between a chosen file and the free result. It has to look like a
    required control rather than fine print, and the badge has to say so before
    the 29 zl in the plan summary above convinces anyone this is a payment step. */
-.analysis-shell .consent { display: grid !important; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; margin: 20px 0 0 !important; padding: 15px !important; border: 1px solid #aeb6c1; border-radius: 8px; background: var(--surface); font-size: 13px !important; font-weight: 500 !important; line-height: 1.55; }
+.analysis-shell .consent { display: grid !important; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; margin: 20px 0 0 !important; padding: 15px !important; border: 1px solid #aeb6c1; border-radius: 8px; background: var(--surface); font-size: 13px !important; font-weight: 500 !important; line-height: 1.55; cursor: pointer; }
+.analysis-shell .consent input { cursor: pointer; }
 .analysis-shell .consent.is-given { border-color: #cbd8a0; background: #f7faed; }
+@keyframes consent-attention { 0% { box-shadow: 0 0 0 0 rgba(93, 115, 0, .22); } 60% { box-shadow: 0 0 0 7px rgba(93, 115, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(93, 115, 0, 0); } }
+.analysis-shell .consent.attention { border-color: var(--accent-deep); animation: consent-attention .9s ease; }
 .analysis-shell .consent input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--accent-deep); }
 .consent-required { display: block; margin-bottom: 5px; color: var(--accent-deep); font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
 .consent a { text-decoration: underline; text-underline-offset: 2px; }

@@ -200,7 +200,28 @@ describe("role prefill from the chosen file", () => {
 
     await waitFor(() => expect(container.querySelector(".role-detection")).toBeNull());
     expect(screen.getByRole("combobox", { name: "Rola docelowa" }).textContent).toContain("Frontend Developer");
-    expect((screen.getByRole("button", { name: "Analizuj CV" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+describe("consent guard", () => {
+  it("pulses the consent box instead of submitting when it is unchecked", () => {
+    vi.stubGlobal("fetch", vi.fn());
+    const { container } = render(<UploadFlow {...props} mockMode/>);
+    const submitButton = screen.getByRole("button", { name: "Analizuj CV" }) as HTMLButtonElement;
+    expect(submitButton.disabled).toBe(false);
+
+    fireEvent.click(submitButton);
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(container.querySelector(".consent.attention")).toBeTruthy();
+  });
+
+  it("does not block submission once consent is given", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => undefined)));
+    render(<UploadFlow {...props} mockMode/>);
+    fireEvent.click(screen.getByRole("checkbox", { name: /Zlecam rozpoczęcie analizy/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Analizuj CV" }));
+    expect(fetch).toHaveBeenCalledOnce();
   });
 });
 

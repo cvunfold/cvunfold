@@ -116,6 +116,8 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileEpoch, setTurnstileEpoch] = useState(0);
   const [handoffStatus, setHandoffStatus] = useState("");
+  const [consentShakeEpoch, setConsentShakeEpoch] = useState(0);
+  const consentRef = useRef<HTMLLabelElement>(null);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const plan: Plan = "full_review";
   const advancedId = useId();
@@ -156,6 +158,13 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   useEffect(() => {
     if (phase === "idle" && error) errorMessage.current?.focus();
   }, [error, phase]);
+
+  useEffect(() => {
+    if (consentShakeEpoch === 0) return;
+    // jsdom has no scrollIntoView; guard so the pulse still works under test.
+    consentRef.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    consentRef.current?.focus();
+  }, [consentShakeEpoch]);
 
   useEffect(() => {
     if (!handoffFromMobile || handoffOpenTracked.current) return;
@@ -298,7 +307,8 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (!file || !consent) return;
+    if (!file) return;
+    if (!consent) { setConsentShakeEpoch((value) => value + 1); return; }
     setPhase("analyzing");
     setError("");
     trackAnalyticsEvent("analysis_started", analyticsBase());
@@ -378,11 +388,11 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
             {t.levels.map(([value, label]) => <label key={value}><input type="radio" name="seniority" value={value} checked={seniority === value} onChange={() => setSeniority(value)} /><span>{label}</span></label>)}
           </div><small className="level-helper">{t.levelHelper}</small></fieldset> : null}
         </div>
-        <label className={`consent${consent ? " is-given" : ""}`}><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span><b className="consent-required">{t.consentRequired}</b>{t.consent} <a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
+        <label ref={consentRef} key={consentShakeEpoch} tabIndex={-1} className={`consent${consent ? " is-given" : ""}${consentShakeEpoch ? " attention" : ""}`}><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span><b className="consent-required">{t.consentRequired}</b>{t.consent}<br/><a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
         <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
         {error ? <p ref={errorMessage} className="form-error" role="alert" tabIndex={-1}>{error}</p> : null}
-        <button className="button submit" disabled={!file || !consent || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button>
+        <button className="button submit" disabled={!file || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button>
         <p className="form-trust"><LockIcon/>{t.private}</p>
       </form>
 
