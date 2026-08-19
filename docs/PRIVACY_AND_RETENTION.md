@@ -4,6 +4,8 @@ Default retention is 30 days and configurable through `REPORT_RETENTION_DAYS`. S
 
 Never log CV text, prompts or reports. For failed document extraction, runtime logs may contain only privacy-safe technical diagnostics: document kind (`pdf`/`docx`), a coarse file-size bucket, parser and parser version, page/text-item counts, extracted character count, parser warning count and a closed failure-reason enum. The allowed extraction reasons are `pdf_no_text_items`, `pdf_empty_text_items`, `pdf_page_extraction_failed`, `pdf_parse_failed`, `pdf_encrypted`, `docx_no_text`, `docx_parse_failed` and `text_below_threshold`. Never log the filename, document text, warning/error message, file hash, private URL, access token or contact data. Analytics allow only event names and non-PII acquisition metadata. Private pages emit `noindex`. Supabase storage must be private; service-role credentials remain backend-only.
 
+For a document rejected as not a CV, the same rule applies: only the numeric heuristic score, the `low`/`medium`/`high` confidence band, the closed list of matched structural signals (which section headings, date patterns or job-title patterns were found — never the matched text itself) and a closed rejection-reason enum may be logged or stored in `funnel_events`. The allowed reasons are `too_short`, `no_career_anchor`, `insufficient_structure` and `low_score`.
+
 The model-perceived role may be used once, inside the server/database transaction that stores a completed report, to increment an anonymous audience-fit counter. The permanent aggregate contains only:
 
 - `role_category`: `supported_it`, `other_it`, `non_it` or `unclear`;

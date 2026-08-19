@@ -3,6 +3,8 @@ export type CVDetectionResult = {
   confidence: "low" | "medium" | "high";
   score: number;
   signals: string[];
+  hasCareerAnchor: boolean;
+  hasEnoughStructure: boolean;
 };
 
 export const sectionSignals = [
@@ -27,7 +29,9 @@ export function matchedSectionKeys(text: string): string[] {
 
 export function detectLikelyCv(text: string): CVDetectionResult {
   const normalized = text.replace(/\s+/g, " ").trim();
-  if (normalized.length < minimumStructuredCvChars) return { isLikelyCv: false, confidence: "low", score: 0, signals: ["too_short"] };
+  if (normalized.length < minimumStructuredCvChars) {
+    return { isLikelyCv: false, confidence: "low", score: 0, signals: ["too_short"], hasCareerAnchor: false, hasEnoughStructure: false };
+  }
 
   let score = 0;
   const signals: string[] = [];
@@ -62,12 +66,38 @@ export function detectLikelyCv(text: string): CVDetectionResult {
   const isLikelyCv = score >= 6 && hasCareerAnchor && hasEnoughStructure;
   const confidence = !isLikelyCv ? "low" : score >= 9 ? "high" : "medium";
 
-  return { isLikelyCv, confidence, score, signals };
+  return { isLikelyCv, confidence, score, signals, hasCareerAnchor, hasEnoughStructure };
+}
+
+export type NotACvReason = "too_short" | "no_career_anchor" | "insufficient_structure" | "low_score";
+
+/** Which gate in detectLikelyCv failed, so a rejection trend can be told apart from a score
+ * that just missed the threshold — never derived from or containing the document text. */
+export function classifyNotACvReason(result: CVDetectionResult): NotACvReason {
+  if (result.signals.includes("too_short")) return "too_short";
+  if (!result.hasCareerAnchor) return "no_career_anchor";
+  if (!result.hasEnoughStructure) return "insufficient_structure";
+  return "low_score";
+}
+
+export type NotACvDiagnostics = { score: number; confidence: CVDetectionResult["confidence"]; signals: string[]; reason: NotACvReason };
+
+export class NotACvError extends Error {
+  constructor(readonly diagnostics: NotACvDiagnostics) {
+    super("NOT_A_CV");
+    this.name = "NotACvError";
+  }
+}
+
+export function getNotACvDiagnostics(error: unknown): NotACvDiagnostics | undefined {
+  return error instanceof NotACvError ? error.diagnostics : undefined;
 }
 
 export function validateCvText(text: string, maxLength = Number(process.env.MAX_CV_TEXT_LENGTH || 30_000)): CVDetectionResult {
   if (text.length > maxLength) throw new Error("DOCUMENT_TEXT_TOO_LONG");
   const result = detectLikelyCv(text);
-  if (!result.isLikelyCv) throw new Error("NOT_A_CV");
+  if (!result.isLikelyCv) {
+    throw new NotACvError({ score: result.score, confidence: result.confidence, signals: result.signals, reason: classifyNotACvReason(result) });
+  }
   return result;
 }
