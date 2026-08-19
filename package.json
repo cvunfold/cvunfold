@@ -14,6 +14,7 @@
     "test:e2e": "playwright test",
     "test:a11y": "playwright test tests/e2e/accessibility.spec.ts --project=chromium",
     "eval": "tsx scripts/run-evals.ts",
+    "roles:report": "tsx scripts/role-detection-report.ts",
     "eval:live": "tsx scripts/run-live-evals.ts",
     "funnel": "node scripts/funnel-report.mjs",
     "qa:visual": "node scripts/visual-qa.mjs",
