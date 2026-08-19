@@ -43,11 +43,16 @@ const googleSources = {
   frame: ["https://www.googletagmanager.com"],
 } as const;
 
+// Stripe renders the Express Checkout Element in its own frame, but the wallets
+// inside it are served by Google and Apple: the Google Pay script and sheet come
+// from pay.google.com, Apple Pay's from applepay.cdn-apple.com. Without these the
+// element loads, reports no available payment method and silently hides itself,
+// which is indistinguishable from a device that genuinely has no wallet.
 const stripeSources = {
-  script: ["https://checkout.stripe.com", "https://js.stripe.com", "https://*.js.stripe.com"],
-  image: ["https://*.stripe.com"],
-  connect: ["https://checkout.stripe.com", "https://api.stripe.com"],
-  frame: ["https://checkout.stripe.com", "https://js.stripe.com", "https://*.js.stripe.com", "https://hooks.stripe.com"],
+  script: ["https://checkout.stripe.com", "https://js.stripe.com", "https://*.js.stripe.com", "https://pay.google.com", "https://applepay.cdn-apple.com"],
+  image: ["https://*.stripe.com", "https://pay.google.com", "https://applepay.cdn-apple.com"],
+  connect: ["https://checkout.stripe.com", "https://api.stripe.com", "https://pay.google.com", "https://applepay.cdn-apple.com"],
+  frame: ["https://checkout.stripe.com", "https://js.stripe.com", "https://*.js.stripe.com", "https://hooks.stripe.com", "https://pay.google.com", "https://applepay.cdn-apple.com"],
 } as const;
 
 function directive(name: string, sources: readonly string[]) {

@@ -45,3 +45,20 @@ describe("Content Security Policy", () => {
     expect(production).not.toContain("'unsafe-eval'");
   });
 });
+
+describe("wallet payment domains", () => {
+  it("allows the Google Pay and Apple Pay origins the Express Checkout Element needs", () => {
+    const policy = buildContentSecurityPolicy({ googleEnabled: false, stripeEnabled: true, turnstileEnabled: false, development: false });
+    for (const directive of ["script-src", "frame-src", "connect-src"]) {
+      const line = policy.split("; ").find((part) => part.startsWith(directive)) ?? "";
+      expect(line).toContain("https://pay.google.com");
+      expect(line).toContain("https://applepay.cdn-apple.com");
+    }
+  });
+
+  it("keeps wallet origins out of the policy when payments are disabled", () => {
+    const policy = buildContentSecurityPolicy({ googleEnabled: true, stripeEnabled: false, turnstileEnabled: true, development: false });
+    expect(policy).not.toContain("pay.google.com");
+    expect(policy).not.toContain("applepay.cdn-apple.com");
+  });
+});
