@@ -19,7 +19,7 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 | `file_picker_opened` | Jawne otwarcie natywnego selektora | locale, market, plan, wariant, role enum, seniority enum | GA4 | diagnostic | przed `input.click()` |
 | `file_picker_cancelled` | Wyłącznie natywne zdarzenie `cancel` | jw. | GA4 | diagnostic | bez heurystyki blur/focus |
 | `role_autodetected` | Detektor ustawił rolę po wybraniu pliku | locale, market, plan, `detected_role_enum`, wariant, role enum, seniority enum, UTM | GA4 | diagnostic | tylko przy pewnym wyniku i tylko gdy pole nie było tknięte |
-| `role_autodetect_corrected` | Użytkownik poprawił rolę ustawioną przez detektor | jw.; `broad_role_enum` niesie rolę poprawioną, `detected_role_enum` proponowaną | GA4 | diagnostic | dolna granica błędu detektora — nie każdy poprawi |
+| `role_autodetect_corrected` | Użytkownik poprawił rolę ustawioną przez detektor | jw.; `broad_role_enum` niesie rolę poprawioną, `detected_role_enum` proponowaną | GA4 | diagnostic | dolna granica błędu detektora, nie każdy poprawi |
 | `upload_started` | Wybór poprawnego pliku | jw. + `upload_entrypoint=picker|drop`, UTM | GA4 | secondary | po walidacji typu i limitu; bez dostawcy pliku |
 | `upload_completed` | Serwer przyjął i przetworzył upload | jw. | GA4 | secondary | odpowiedź sukcesu API |
 | `desktop_handoff_started` | Próba Web Share albo kopiowania | jw. + `handoff_method`, `handoff_origin` | GA4 | diagnostic | przy każdej rzeczywistej próbie |
