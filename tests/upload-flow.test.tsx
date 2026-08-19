@@ -207,16 +207,34 @@ describe("role prefill from the chosen file", () => {
 });
 
 describe("consent guard", () => {
-  it("pulses the consent box instead of submitting when it is unchecked", () => {
+  it("keeps the submit button natively disabled until consent is given", () => {
+    render(<UploadFlow {...props} mockMode/>);
+    expect((screen.getByRole("button", { name: "Analizuj CV" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("pulses the consent box red instead of submitting on a click through the disabled button", () => {
     vi.stubGlobal("fetch", vi.fn());
     const { container } = render(<UploadFlow {...props} mockMode/>);
-    const submitButton = screen.getByRole("button", { name: "Analizuj CV" }) as HTMLButtonElement;
-    expect(submitButton.disabled).toBe(false);
 
-    fireEvent.click(submitButton);
+    // A disabled <button> never dispatches click at all, in the browser or in
+    // jsdom — the wrapper span is what actually receives the click a real
+    // pointer would land on it via hit-testing (CSS gives the disabled button
+    // pointer-events:none for exactly this).
+    fireEvent.click(container.querySelector(".submit-wrap")!);
 
     expect(fetch).not.toHaveBeenCalled();
     expect(container.querySelector(".consent.attention")).toBeTruthy();
+  });
+
+  it("clears the red pulse the moment consent is given, in favour of the given state", () => {
+    const { container } = render(<UploadFlow {...props} mockMode/>);
+    fireEvent.click(container.querySelector(".submit-wrap")!);
+    expect(container.querySelector(".consent.attention")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /Zlecam rozpoczęcie analizy/ }));
+
+    expect(container.querySelector(".consent.attention")).toBeNull();
+    expect(container.querySelector(".consent.is-given")).toBeTruthy();
   });
 
   it("does not block submission once consent is given", () => {

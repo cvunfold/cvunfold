@@ -299,10 +299,17 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
     } else setHandoffStatus(t.handoffFailed);
   }
 
+  function nudgeConsent() {
+    setConsentShakeEpoch((value) => value + 1);
+  }
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!file) return;
-    if (!consent) { setConsentShakeEpoch((value) => value + 1); return; }
+    // The submit button is disabled while consent is missing, so this only
+    // guards a stray programmatic submit; the real feedback path for a click
+    // on the disabled button is the wrapper's onClick below.
+    if (!consent) { nudgeConsent(); return; }
     setPhase("analyzing");
     setError("");
     trackAnalyticsEvent("analysis_started", analyticsBase());
@@ -374,11 +381,11 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
           {roleDetection === "pending" ? t.roleDetecting : t.roleDetected}
         </p> : null}
         <SenioritySelect value={seniority} onChange={setSeniority} levels={t.levels} disabled={busy} label={t.advancedToggle} optionalHint={t.advancedHint} popoverTitle={t.level} popoverSubtitle={t.levelHelper}/>
-        <label ref={consentRef} key={`consent-${consentShakeEpoch}`} tabIndex={-1} className={`consent${consent ? " is-given" : ""}${consentShakeEpoch ? " attention" : ""}`}><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span><b className="consent-required">{t.consentRequired}</b>{t.consent}<br/><a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
+        <label ref={consentRef} key={`consent-${consentShakeEpoch}`} tabIndex={-1} className={`consent${consent ? " is-given" : ""}${consentShakeEpoch && !consent ? " attention" : ""}`}><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span><b className="consent-required">{t.consentRequired}</b>{t.consent}<br/><a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
         <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
         {error ? <p ref={errorMessage} className="form-error" role="alert" tabIndex={-1}>{error}</p> : null}
-        <button className="button submit" disabled={!file || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button>
+        <span className="submit-wrap" onClick={() => { if (file && !consent) nudgeConsent(); }}><button className="button submit" disabled={!file || !consent || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button></span>
         <p className="form-trust"><LockIcon/>{t.private}</p>
       </form>
 
