@@ -8,7 +8,7 @@ For a document rejected as not a CV, the same rule applies: only the numeric heu
 
 The model-perceived role may be used once, inside the server/database transaction that stores a completed report, to increment an anonymous audience-fit counter. The permanent aggregate contains only:
 
-- `role_category`: `supported_it`, `other_it`, `non_it` or `unclear`;
+- `role_category`: `supported_it`, `other_it`, `unclear`, or one of a closed set of specific non-IT categories (`architecture_construction`, `healthcare_medical`, `legal`, `education_academia`, `finance_accounting`, `sales_marketing`, `hr_recruiting`, `public_sector`, `hospitality_retail`, `creative_arts_media`, `engineering_manufacturing_nonit`, `skilled_trades`, `science_research_nonit`, `other_non_it`) — never free text, so a rare profession stays as anonymous as a common one;
 - `source_bucket`: `google_cpc` or `other`;
 - `analysis_count`: a cumulative count.
 
