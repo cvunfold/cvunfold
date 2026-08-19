@@ -526,7 +526,6 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .role-detection.pending { border: 1px dashed var(--line); color: var(--muted); }
 .role-detection.applied { border: 1px solid #cbd8a0; background: #f7faed; color: #3d4a2d; font-weight: 600; }
 .role-detection.applied::before { content: "\2713"; margin-right: 7px; color: var(--accent-deep); font-weight: 850; }
-.role-detection-privacy { margin: -12px 0 22px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .role-select { position: relative; margin-top: 7px; }
 .role-select-trigger {
   width: 100%; min-height: 65px; display: flex; align-items: center; gap: 13px; padding: 9px 13px;
@@ -598,6 +597,9 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .status-orbit.active { animation: orbit 1.3s linear infinite; }
 @keyframes orbit { to { transform: rotate(360deg); } }
 .analysis-aside ol { margin: 0; padding: 15px 0 22px; list-style: none; }
+.analysis-value { margin: 22px 0; padding: 18px 20px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 9px; background: rgba(255, 255, 255, .04); }
+.analysis-value b { display: block; margin-bottom: 7px; color: var(--accent); font-size: 12px; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+.analysis-value p { margin: 0; color: rgba(255, 255, 255, .78); font-size: 13px; line-height: 1.62; }
 .analysis-aside li { min-height: 78px; position: relative; display: flex; gap: 16px; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, .14); }
 .analysis-aside li > span, .analysis-aside li > svg { width: 29px; height: 29px; flex: none; border: 1px solid rgba(255, 255, 255, .54); border-radius: 50%; background: transparent; color: #fff; }
 .analysis-aside li > span { display: flex; align-items: center; justify-content: center; padding: 0 0 2px; font: 500 15px/1 var(--sans); text-align: center; }
@@ -1369,8 +1371,7 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .analysis-plan-summary span { font-size: 12px; font-weight: 750; }
 .analysis-plan-summary strong { grid-row: 1 / 3; grid-column: 2; align-self: center; font: 600 24px var(--serif); }
 .analysis-plan-summary small { color: var(--muted); font-size: 12px; }
-.upload-notes { display: flex; gap: 18px; margin: 12px 0 24px; padding: 0; color: var(--muted); list-style: none; font-size: 12px; }
-.upload-notes li::before { content: "✓"; margin-right: 6px; color: var(--accent-deep); font-weight: 850; }
+.upload-notes { margin: 11px 0 20px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .desktop-handoff { display: none; }
 .analysis-advanced { margin: 18px 0 22px; }
 /* Same shell as .role-select-trigger so the two form controls read as one family;
@@ -1498,7 +1499,6 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   html[data-mobile-cta-visible="true"] .consent-banner { bottom: calc(68px + env(safe-area-inset-bottom)); }
   .analysis-plan-summary { grid-template-columns: 1fr; }
   .analysis-plan-summary > div + div { border-top: 1px solid var(--line); border-left: 0; }
-  .upload-notes { flex-direction: column; gap: 3px; }
   .desktop-upload-copy { display: none; }
   .mobile-upload-copy { display: inline; }
   .dropzone { height: 220px; padding-inline: 14px; }

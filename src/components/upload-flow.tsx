@@ -9,7 +9,7 @@ import { readSafeAttribution, trackAnalyticsEvent } from "@/lib/analytics/client
 import { DEFAULT_LANDING_VARIANT, handoffOriginFromAttribution, type HandoffOrigin } from "@/lib/audience";
 import { parseTargetRoleId, type TargetRoleId } from "@/lib/roles";
 import type { Seniority } from "@/lib/rubrics/technical-v1";
-import { formatPlanPrice, type Plan } from "@/lib/plans";
+import { formatPlanPrice, REWRITE_SERVICE_REFERENCE, type Plan } from "@/lib/plans";
 import { analysisPath, homePath, legalPath, type Locale } from "@/lib/i18n";
 import { TurnstileWidget } from "@/components/turnstile-widget";
 
@@ -28,16 +28,17 @@ const copy = {
     handoffShared: "Link został udostępniony. Na komputerze wybierz plik CV ponownie.", handoffCopied: "Link skopiowany. Wyślij go na swój komputer i wybierz tam CV ponownie.",
     handoffFailed: "Nie udało się udostępnić linku. Spróbuj ponownie.", handoffOpened: "Bezpieczne ustawienia zostały przeniesione. Wybierz plik CV ponownie na tym urządzeniu.",
     invalidFile: "Wybierz plik PDF lub DOCX o rozmiarze do 8 MB.",
-    scan: "Skanowany PDF lub zdjęcie CV może nie zostać odczytane.", language: "CV może być po polsku lub angielsku.",
+    uploadNotes: "CV może być po polsku lub angielsku. Skanowany PDF lub zdjęcie może nie zostać odczytane. Po wybraniu pliku odczytujemy z niego rolę, żeby dobrać kryteria — dokumentu nie zapisujemy.",
     advancedToggle: "Poziom stanowiska", advancedHint: "opcjonalne",
     roleDetecting: "Sprawdzamy, jaką rolę pokazuje dokument…",
     roleDetected: "Ustawiliśmy tę rolę na podstawie Twojego CV. Zmień ją, jeśli się pomyliliśmy.",
-    roleDetectionPrivacy: "Po wybraniu pliku odczytujemy z niego rolę, żeby dobrać kryteria. Dokument przetwarzamy w pamięci i nie zapisujemy go na tym etapie.",
     level: "Na jaki poziom aplikujesz?", levelHelper: "To tylko punkt odniesienia. Raport porówna wybrany poziom z tym, co komunikuje Twoje CV.", levels: [["auto", "Nie wiem — oceń na podstawie CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     consentRequired: "Wymagane, aby uruchomić analizę",
     consent: "Zlecam rozpoczęcie analizy od razu i akceptuję przetwarzanie CV zgodnie z polityką prywatności. Rozumiem, że plik źródłowy zostanie usunięty po analizie.",
     privacy: "Polityka prywatności", terms: "Regulamin", submit: "Analizuj CV", loading: "Analizujemy…", private: "Ten krok jest bezpłatny i nie prosimy tu o żadną płatność. Bez konta. CV nie trafia do pracodawców ani analytics.",
     planLabel: "Pełny raport", free: "Wynik wstępny", freePrice: "Darmowy", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
+    valueTitle: `Co dostajesz za ${formatPlanPrice("full_review", "pl")}`,
+    valueCopy: `Przepisanie CV u specjalisty kosztuje zwykle ${REWRITE_SERVICE_REFERENCE.pl} i trwa kilka dni. Najdroższa część tej ceny to nie samo pisanie — to decyzja, co w dokumencie zmienić i dlaczego. Dokładnie tę część dostajesz tutaj, a wynik wstępny zobaczysz, zanim cokolwiek zapłacisz.`,
     statusIdle: "Dowód przed opinią", statusIdleCopy: "Każda ważna uwaga wskazuje konkretny fragment dokumentu.", statusLoading: "Analizujemy Twoje CV", statusLoadingCopy: "Przechodzimy przez dokument krok po kroku.",
     statusRedirecting: "Już za chwilę zostaniesz przekierowany do raportu", statusRedirectingCopy: "Analiza jest gotowa. Bezpiecznie otwieramy Twój wynik.",
     longWait: "To może chwilę potrwać — sprawdzamy każdy dowód, zanim coś napiszemy.",
@@ -55,16 +56,17 @@ const copy = {
     handoffShared: "Link shared. Select your CV again on the computer.", handoffCopied: "Link copied. Send it to your computer and select the CV there.",
     handoffFailed: "We could not share the link. Please try again.", handoffOpened: "Your safe settings were transferred. Select the CV file again on this device.",
     invalidFile: "Choose a PDF or DOCX file up to 8 MB.",
-    scan: "A scanned PDF or image-based CV may not be readable.", language: "Your CV can be in English or Polish.",
+    uploadNotes: "Your CV can be in English or Polish. A scanned PDF or photo may not be readable. Once you choose a file we read the role from it to pick the criteria — the document is not stored.",
     advancedToggle: "Seniority level", advancedHint: "optional",
     roleDetecting: "Checking which role the document shows…",
     roleDetected: "We set this role from your CV. Change it if we got it wrong.",
-    roleDetectionPrivacy: "Once you choose a file we read the role from it to pick the criteria. The document is processed in memory and is not stored at this stage.",
     level: "What level are you applying for?", levelHelper: "This is only a reference point. The report will compare your chosen level with what your CV communicates.", levels: [["auto", "Not sure — assess from my CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     consentRequired: "Required to start the analysis",
     consent: "I request that the analysis starts immediately and accept CV processing under the privacy policy. I understand that the source file is deleted after analysis.",
     privacy: "Privacy policy", terms: "Terms", submit: "Analyse my CV", loading: "Analysing…", private: "This step is free and asks for no payment. No account. Your CV is never sent to employers or analytics.",
     planLabel: "Full report", free: "Initial result", freePrice: "Free", full: "Full report", oneTime: "one-time payment · no subscription",
+    valueTitle: `What ${formatPlanPrice("full_review", "en")} buys`,
+    valueCopy: `A professional CV rewrite usually costs ${REWRITE_SERVICE_REFERENCE.en} and takes several days. The expensive part of that price is not the writing — it is deciding what to change and why. That is exactly the part you get here, and you see the initial result before paying anything.`,
     statusIdle: "Evidence before opinion", statusIdleCopy: "Every important finding points to a specific part of the document.", statusLoading: "Analysing your CV", statusLoadingCopy: "We move through the document step by step.",
     statusRedirecting: "You’ll be redirected to your report in just a moment", statusRedirectingCopy: "Your analysis is ready. We are securely opening your result.",
     longWait: "This can take a little longer — we check every piece of evidence before writing anything.",
@@ -357,8 +359,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
         </button>
         <input ref={input} hidden type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" disabled={busy}
           onChange={(event) => chooseFile(event.target.files?.[0] ?? null, "picker")} />
-        <ul className="upload-notes"><li>{t.language}</li><li>{t.scan}</li></ul>
-        <p className="role-detection-privacy">{t.roleDetectionPrivacy}</p>
+        <p className="upload-notes">{t.uploadNotes}</p>
         <div className="desktop-handoff">
           <button type="button" onClick={() => void shareToDesktop()} disabled={busy}>{t.handoff}</button>
           <p role="status" aria-live="polite">{handoffStatus}</p>
@@ -387,7 +388,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
 
       <aside className="analysis-aside">
         <div className="analysis-status"><span className="status-orbit" aria-hidden="true"/><div><h2>{t.statusIdle}</h2><p>{t.statusIdleCopy}</p></div></div>
-        <ol>{t.stages.map(([step, detail], index) => <li key={step}><span>{index + 1}</span><div><b>{step}</b><small>{detail}</small></div></li>)}</ol>
+        <div className="analysis-value"><b>{t.valueTitle}</b><p>{t.valueCopy}</p></div>
         <div className="evidence-preview"><span className="evidence-mark" aria-hidden="true">“</span><div><b>{t.evidenceTitle}</b><p>{t.evidenceCopy}</p></div></div>
       </aside>
     </div>
