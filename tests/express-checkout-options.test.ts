@@ -5,15 +5,21 @@ import { expressCheckoutOptions } from "@/lib/payments/express-checkout-options"
 //   IntegrationError: options.layout.overflow: 'never' is only supported when
 //   options.layout.maxRows is 0. Use overflow: 'auto' instead.
 // The element never mounted, so the wallet button was invisible everywhere,
-// with no server-side symptom at all.
+// with no server-side symptom at all. Fixed by using the "auto" overflow
+// Stripe's own error message recommends, paired with a one-row layout.
+//
+// Once it did mount, "always" on both wallets rendered Apple Pay and Google
+// Pay side by side regardless of the device, which read as a layout bug
+// rather than two real payment options. "auto" shows only what a given
+// browser actually supports, so a Chrome/Google Pay user never sees a
+// second, non-functional Apple Pay button.
 describe("Express Checkout Element options", () => {
-  it("does not combine overflow 'never' with a row limit Stripe rejects", () => {
-    const { overflow, maxRows } = expressCheckoutOptions.layout;
-    if (overflow === "never") expect(maxRows).toBe(0);
+  it("uses the maxRows/overflow pairing Stripe's own error message recommends", () => {
+    expect(expressCheckoutOptions.layout).toMatchObject({ maxColumns: 1, maxRows: 1, overflow: "auto" });
   });
 
-  it("keeps both wallets requestable", () => {
-    expect(expressCheckoutOptions.paymentMethods.googlePay).toBe("always");
-    expect(expressCheckoutOptions.paymentMethods.applePay).toBe("always");
+  it("shows a wallet only where the browser actually supports it, never unconditionally", () => {
+    expect(expressCheckoutOptions.paymentMethods.googlePay).toBe("auto");
+    expect(expressCheckoutOptions.paymentMethods.applePay).toBe("auto");
   });
 });

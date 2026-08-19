@@ -4,12 +4,18 @@ export const analyticsEvents = [
   "desktop_handoff_started", "desktop_handoff_completed", "handoff_link_opened",
   "analysis_started", "analysis_succeeded", "analysis_failed", "analysis_configuration_failed",
   "teaser_viewed", "unlock_cta_viewed", "unlock_cta_clicked", "checkout_started", "checkout_cancelled", "checkout_expired", "payment_failed",
-  "purchase", "full_report_viewed", "feedback_submitted", "delete_requested",
+  "purchase", "full_report_viewed", "feedback_submitted", "delete_requested", "wallet_checkout_unavailable",
 ] as const;
 export type AnalyticsEvent = (typeof analyticsEvents)[number];
 export const purchaseSurfaces = ["desktop_sidebar", "mobile_summary", "mobile_sticky", "report_paywall"] as const;
 export type PurchaseSurface = (typeof purchaseSurfaces)[number];
 export const purchasePaymentMethods = ["standard", "express_wallet", "apple_pay", "google_pay"] as const;
+// Every failure path in the wallet element previously called onAvailabilityChange(false)
+// and hid the button with no other trace — a Stripe IntegrationError from a bad element
+// option looked identical to a device with no wallet configured, in every environment,
+// with zero server-side symptom. This names which of those it actually was.
+export const walletUnavailableReasons = ["session_unavailable", "element_error", "no_supported_method", "provider_error"] as const;
+export type WalletUnavailableReason = (typeof walletUnavailableReasons)[number];
 
 const attributionKeys = ["source", "medium", "campaign", "content", "term"] as const;
 const measurementKeys = ["landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin"] as const;
@@ -43,6 +49,7 @@ const allowed: Record<AnalyticsEvent, readonly string[]> = {
   full_report_viewed: ["locale", "market", "plan", ...measurementKeys],
   feedback_submitted: ["locale", "market", "plan", ...measurementKeys],
   delete_requested: ["locale", "market", ...measurementKeys],
+  wallet_checkout_unavailable: ["locale", "market", "plan", "purchase_surface", "reason", ...measurementKeys, ...attributionKeys],
 };
 
 const enumValues: Record<string, readonly string[]> = {
@@ -52,7 +59,7 @@ const enumValues: Record<string, readonly string[]> = {
   landing_variant: ["developer"], handoff_origin: ["google_cpc", "other"],
   teaser_variant: [TEASER_VARIANT],
   upload_entrypoint: ["picker", "drop"], handoff_method: ["web_share", "clipboard"],
-  purchase_surface: purchaseSurfaces, payment_method: purchasePaymentMethods,
+  purchase_surface: purchaseSurfaces, payment_method: purchasePaymentMethods, reason: walletUnavailableReasons,
   currency: ["PLN", "EUR"], error_category: ["empty_file", "file_too_large", "unsupported_file_type", "invalid_file_signature", "invalid_file_mime", "unsafe_archive", "unreadable_document", "document_too_long", "not_a_cv", "invalid_target_role", "invalid_target_seniority", "invalid_job_description", "rate_limit", "verification", "model", "storage", "timeout", "configuration", "unknown"],
 };
 

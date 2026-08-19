@@ -11,16 +11,21 @@ export const expressCheckoutOptions = {
   buttonHeight: 55,
   buttonTheme: { applePay: "black" as const, googlePay: "black" as const },
   buttonType: { applePay: "buy" as const, googlePay: "buy" as const },
-  // overflow "never" is only valid with maxRows 0 (unlimited rows). Pairing it
-  // with maxRows 1 is what Stripe rejects. A device realistically offers one
-  // wallet at a time, so unlimited rows still renders a single button.
-  layout: { maxColumns: 1, maxRows: 0, overflow: "never" as const },
+  // One row of one column renders exactly one button; anything else Stripe
+  // would show moves into the overflow instead of stacking a second wallet.
+  // overflow must be "auto" here, because "never" is only valid with maxRows 0
+  // (unlimited rows) — that combination is what made the element throw, and
+  // unlimited rows is also what produced two stacked buttons once it loaded.
+  layout: { maxColumns: 1, maxRows: 1, overflow: "auto" as const },
   // The Checkout-specific type requires the key even though Stripe documents
   // `undefined` as the way to keep its per-customer dynamic ordering.
   paymentMethodOrder: undefined,
+  // "auto" offers a wallet only where the device actually supports it, so a
+  // Chrome user is not shown Apple Pay and vice versa. "always" would advertise
+  // both regardless, which is how two buttons appeared side by side.
   paymentMethods: {
-    applePay: "always" as const,
-    googlePay: "always" as const,
+    applePay: "auto" as const,
+    googlePay: "auto" as const,
     amazonPay: "never" as const,
     klarna: "never" as const,
     link: "never" as const,

@@ -10,7 +10,7 @@ import {
 } from "@stripe/stripe-js";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import type { MeasurementContext } from "@/lib/audience";
-import type { PurchaseSurface } from "@/lib/analytics/events";
+import type { PurchaseSurface, WalletUnavailableReason } from "@/lib/analytics/events";
 import { reportPath, type Locale } from "@/lib/i18n";
 import type { Plan } from "@/lib/plans";
 import { expressCheckoutOptions } from "@/lib/payments/express-checkout-options";
@@ -53,12 +53,28 @@ function ExpressWalletElement({ locale, plan, measurementContext, purchaseSurfac
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const container = useRef<HTMLDivElement>(null);
   const viewTracked = useRef(false);
+  // Every path below used to call onAvailabilityChange(false) and hide the
+  // button with no other trace, so a Stripe IntegrationError from a bad
+  // element option looked identical to a device with no wallet configured.
+  // Track the real reason once per mount instead of staying silent.
+  const unavailableTracked = useRef(false);
+  function trackUnavailable(reason: WalletUnavailableReason) {
+    if (unavailableTracked.current) return;
+    unavailableTracked.current = true;
+    trackAnalyticsEvent("wallet_checkout_unavailable", {
+      locale, market: locale, plan, purchase_surface: purchaseSurface, reason, ...measurementContext,
+    });
+  }
   const genericError = locale === "pl"
     ? "Nie udało się uruchomić szybkiej płatności. Użyj zwykłego przycisku płatności."
     : "We could not start the wallet. Use the standard payment button.";
 
   useEffect(() => {
-    if (checkoutState.type === "error") onAvailabilityChange(false);
+    if (checkoutState.type === "error") {
+      trackUnavailable("session_unavailable");
+      onAvailabilityChange(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkoutState.type, onAvailabilityChange]);
 
   useEffect(() => {
@@ -81,6 +97,9 @@ function ExpressWalletElement({ locale, plan, measurementContext, purchaseSurfac
   function updateWalletAvailability(walletAvailable: boolean) {
     setAvailable(walletAvailable);
     onAvailabilityChange(walletAvailable);
+    // Stripe itself determined neither wallet is usable on this device/browser
+    // — a genuine "nothing to show" rather than a broken integration.
+    if (!walletAvailable) trackUnavailable("no_supported_method");
   }
 
   function handleReady(event: StripeExpressCheckoutElementReadyEvent) {
@@ -128,7 +147,7 @@ function ExpressWalletElement({ locale, plan, measurementContext, purchaseSurfac
       onAvailablePaymentMethodsChange={handleAvailablePaymentMethodsChange}
       onConfirm={handleConfirm}
       onCancel={() => setPaymentError(null)}
-      onLoadError={() => { setAvailable(false); onAvailabilityChange(false); }}
+      onLoadError={() => { setAvailable(false); onAvailabilityChange(false); trackUnavailable("element_error"); }}
     />
     {paymentError ? <p className="express-wallet-error" role="alert">{paymentError}</p> : null}
   </div>;
@@ -150,7 +169,14 @@ export function ExpressWalletCheckout({ enabled, locale, plan, measurementContex
   }, [clientSecret, onAvailabilityChange]);
 
   if (!stripePromise || !clientSecret) return null;
-  return <ExpressWalletErrorBoundary onError={() => onAvailabilityChange(false)}>
+  return <ExpressWalletErrorBoundary onError={() => {
+    // A React render crash inside the wallet element, not a Stripe-reported
+    // unavailability — worth telling apart from the other reasons.
+    trackAnalyticsEvent("wallet_checkout_unavailable", {
+      locale, market: locale, plan, purchase_surface: purchaseSurface, reason: "provider_error", ...measurementContext,
+    });
+    onAvailabilityChange(false);
+  }}>
     <CheckoutElementsProvider stripe={stripePromise} options={{ clientSecret }}>
       <ExpressWalletElement
         locale={locale}

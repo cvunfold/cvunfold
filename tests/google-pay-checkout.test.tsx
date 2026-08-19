@@ -96,7 +96,7 @@ describe("Express wallet checkout CTA", () => {
     expect(mocks.expressCheckoutOptions).toMatchObject({
       buttonHeight: 55,
       paymentMethodOrder: undefined,
-      paymentMethods: { applePay: "always", googlePay: "always" },
+      paymentMethods: { applePay: "auto", googlePay: "auto" },
     });
     expect(onAvailabilityChange).toHaveBeenCalledWith(true);
     await waitFor(() => expect(mocks.analytics).toHaveBeenCalledWith("unlock_cta_viewed", expect.objectContaining({ purchase_surface: "report_paywall", payment_method: "express_wallet" })));
@@ -132,6 +132,7 @@ describe("Express wallet checkout CTA", () => {
 
     await waitFor(() => expect(onAvailabilityChange).toHaveBeenCalledWith(false));
     expect(screen.queryByRole("button", { name: "Wallet test button" })).toBeNull();
+    expect(mocks.analytics).toHaveBeenCalledWith("wallet_checkout_unavailable", expect.objectContaining({ reason: "no_supported_method", purchase_surface: "report_paywall" }));
   });
 
   it("keeps the fallback usable and does not start checkout when the wallet is cancelled", async () => {
@@ -159,6 +160,7 @@ describe("Express wallet checkout CTA", () => {
     await waitFor(() => expect(onAvailabilityChange).toHaveBeenCalledWith(false));
     expect(screen.getByText("Standard checkout remains")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Wallet test button" })).toBeNull();
+    expect(mocks.analytics).toHaveBeenCalledWith("wallet_checkout_unavailable", expect.objectContaining({ reason: "provider_error", purchase_surface: "report_paywall" }));
     consoleError.mockRestore();
   });
 });
