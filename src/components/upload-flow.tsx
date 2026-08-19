@@ -19,7 +19,7 @@ const SUPPORTED_EXTENSION = /\.(pdf|docx)$/i;
 
 const copy = {
   pl: {
-    back: "Jak to działa", title: "Zobacz, co naprawdę komunikuje Twoje CV", intro: "Najpierw otrzymasz bezpłatny wynik wstępny z konkretnym dowodem. Pełny raport kupujesz dopiero, gdy diagnoza okaże się wartościowa.",
+    back: "Jak to działa", title: "Prześlij CV i zobacz bezpłatny wynik",
     drop: "Przeciągnij PDF lub DOCX", choose: "albo wybierz plik", change: "Wybierz inny plik", limit: "Maksymalnie 8 MB · tekstowy PDF lub DOCX",
     mobileDrop: "Wybierz CV z telefonu lub dostępnej chmury", mobileLimit: "PDF/DOCX · Dysk Google, iCloud lub Pliki · maks. 8 MB",
     aiDisclosure: "Analiza jest wspierana przez AI i wykonywana według określonych rubryk oraz zasad wiązania uwag z dowodami.",
@@ -42,7 +42,7 @@ const copy = {
     stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam odpowiedzialność i wpływ", "Szukam dowodów, nie słów kluczowych"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
   },
   en: {
-    back: "How it works", title: "See what your CV really communicates", intro: "You first receive a free initial result with one concrete piece of evidence. You only buy the full report if the diagnosis proves useful.",
+    back: "How it works", title: "Upload your CV and see the free result",
     drop: "Drop a PDF or DOCX", choose: "or choose a file", change: "Choose another file", limit: "Up to 8 MB · text-based PDF or DOCX",
     mobileDrop: "Choose a CV from your phone or available cloud storage", mobileLimit: "PDF/DOCX · Google Drive, iCloud or Files · max. 8 MB",
     aiDisclosure: "The review is supported by AI and follows defined role rubrics and rules that tie findings to evidence.",
@@ -295,12 +295,10 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
     <div className="analysis-shell container" inert={busy} aria-hidden={busy}>
       <form onSubmit={submit} aria-busy={busy}>
         <h1>{t.title}</h1>
-        <p className="analysis-intro">{t.intro}</p>
         <div className="analysis-plan-summary" aria-label={t.full}>
           <div><span>{t.free}</span><strong>{t.freePrice}</strong></div>
           <div><span>{t.planLabel}</span><strong>{formatPlanPrice(plan, locale)}</strong><small>{t.oneTime}</small></div>
         </div>
-        <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         {handoffFromMobile ? <p className="handoff-arrival" role="status">{t.handoffOpened}</p> : null}
         <button type="button" className={`dropzone ${file ? "has-file" : ""}`} disabled={busy}
           onClick={() => { trackAnalyticsEvent("file_picker_opened", analyticsBase()); input.current?.click(); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); chooseFile(event.dataTransfer.files?.[0] ?? null, "drop"); }}>
@@ -328,6 +326,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
           </div><small className="level-helper">{t.levelHelper}</small></fieldset> : null}
         </div>
         <label className="consent"><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span>{t.consent} <a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
+        <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
         {error ? <p ref={errorMessage} className="form-error" role="alert" tabIndex={-1}>{error}</p> : null}
         <button className="button submit" disabled={!file || !consent || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button>
