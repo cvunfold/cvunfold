@@ -521,7 +521,9 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
    by source order regardless of the popover's own z-index:30, so the open field
    needs to outrank its siblings, not just its own popover. */
 .role-field:has(.role-select.open) { z-index: 20; }
+.role-field + .role-field { margin-top: 22px; }
 .role-label { display: block; font-size: 12px; font-weight: 750; }
+.role-label-optional { font-weight: 500; color: var(--muted); }
 .role-helper { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; font-weight: 500; }
 .role-helper.experimental {
   padding: 12px 14px; border: 1px solid #e5c36d; border-radius: 12px; background: #fff9e8;

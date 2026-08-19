@@ -41,7 +41,7 @@ describe("mobile upload measurement", () => {
     const trigger = screen.getByRole("combobox", { name: /Poziom stanowiska/ });
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
     expect(trigger.textContent).toContain("Nie wiem — oceń na podstawie CV");
-    expect(container.querySelector(".role-label-optional")?.textContent).toBe("opcjonalne");
+    expect(container.querySelector(".role-label-optional")?.textContent).toBe("(opcjonalne)");
     expect(screen.queryByRole("radio")).toBeNull();
 
     fireEvent.click(trigger);
