@@ -36,32 +36,35 @@ const props = {
 };
 
 describe("mobile upload measurement", () => {
-  it("keeps seniority collapsed behind an optional disclosure and frames it as the applied-for level", () => {
-    render(<UploadFlow {...props}/>);
-    expect(screen.queryByRole("group", { name: "Na jaki poziom aplikujesz?" })).toBeNull();
-    const disclosure = screen.getByRole("button", { name: /Poziom stanowiska/ });
-    expect(disclosure.getAttribute("aria-expanded")).toBe("false");
-    expect(disclosure.textContent).toContain("Nie wiem — oceń na podstawie CV");
-    expect(disclosure.textContent).toContain("opcjonalne");
+  it("shows the seniority field as a dropdown matching the role field, defaulting to auto", () => {
+    const { container } = render(<UploadFlow {...props}/>);
+    const trigger = screen.getByRole("combobox", { name: /Poziom stanowiska/ });
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(trigger.textContent).toContain("Nie wiem — oceń na podstawie CV");
+    expect(container.querySelector(".role-label-optional")?.textContent).toBe("opcjonalne");
+    expect(screen.queryByRole("radio")).toBeNull();
 
-    fireEvent.click(disclosure);
-    expect(disclosure.getAttribute("aria-expanded")).toBe("true");
-    expect(screen.getByRole("group", { name: "Na jaki poziom aplikujesz?" })).toBeTruthy();
-    expect((screen.getByRole("radio", { name: "Nie wiem — oceń na podstawie CV" }) as HTMLInputElement).checked).toBe(true);
-    expect(screen.getByText(/To tylko punkt odniesienia/).textContent).toContain("co komunikuje Twoje CV");
+    fireEvent.click(trigger);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    expect(screen.getByText("Na jaki poziom aplikujesz?")).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Senior" })).toBeTruthy();
   });
 
-  it("uses the same target-level framing in English", () => {
+  it("uses the same target-level framing in English and closes on pick", () => {
     render(<UploadFlow {...props} locale="en"/>);
-    fireEvent.click(screen.getByRole("button", { name: /Seniority level/ }));
-    expect(screen.getByRole("group", { name: "What level are you applying for?" })).toBeTruthy();
-    expect((screen.getByRole("radio", { name: "Not sure — assess from my CV" }) as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(screen.getByRole("combobox", { name: /Seniority level/ }));
+    expect(screen.getByText("What level are you applying for?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("option", { name: "Senior" }));
+    expect(screen.getByRole("combobox", { name: /Seniority level/ }).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("combobox", { name: /Seniority level/ }).textContent).toContain("Senior");
   });
 
-  it("opens the seniority disclosure when a handoff link carries an explicit level", () => {
+  it("shows an explicit level from a handoff link directly, without opening the popover", () => {
     render(<UploadFlow {...props} initialSeniority="senior"/>);
-    expect(screen.getByRole("button", { name: /Poziom stanowiska/ }).getAttribute("aria-expanded")).toBe("true");
-    expect((screen.getByRole("radio", { name: "Senior" }) as HTMLInputElement).checked).toBe(true);
+    const trigger = screen.getByRole("combobox", { name: /Poziom stanowiska/ });
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(trigger.textContent).toContain("Senior");
   });
 
   it("marks the Other role as experimental before the user uploads a CV", () => {

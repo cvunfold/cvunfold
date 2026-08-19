@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowIcon, CheckIcon, LockIcon } from "./icons";
 import { Logo } from "./logo";
 import { RoleSelect } from "./role-select";
+import { SenioritySelect } from "./seniority-select";
 import { readSafeAttribution, trackAnalyticsEvent } from "@/lib/analytics/client";
 import { DEFAULT_LANDING_VARIANT, handoffOriginFromAttribution, type HandoffOrigin } from "@/lib/audience";
 import { parseTargetRoleId, type TargetRoleId } from "@/lib/roles";
@@ -108,11 +109,6 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   const [roleDetection, setRoleDetection] = useState<"idle" | "pending" | "applied">("idle");
   const detectionRequest = useRef(0);
   const [seniority, setSeniority] = useState<Seniority>(initialSeniority);
-  // Seniority has a genuinely good default ("auto" lets the model infer it from
-  // the CV), so it starts collapsed to keep the required path to the free result
-  // at file + consent. A handoff link carrying an explicit level opens it, so the
-  // choice made on the other device stays visible rather than silently applied.
-  const [showAdvanced, setShowAdvanced] = useState(initialSeniority !== "auto");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileEpoch, setTurnstileEpoch] = useState(0);
   const [handoffStatus, setHandoffStatus] = useState("");
@@ -120,8 +116,6 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   const consentRef = useRef<HTMLLabelElement>(null);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const plan: Plan = "full_review";
-  const advancedId = useId();
-  const selectedLevel = t.levels.find(([value]) => value === seniority)?.[1] || seniority;
   const effectiveHandoffOrigin = handoffFromMobile ? initialHandoffOrigin || "other" : initialHandoffOrigin;
   const handleTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
   const handoffOpenTracked = useRef(false);
@@ -379,15 +373,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
         {roleDetection !== "idle" ? <p className={`role-detection ${roleDetection}`} role="status" aria-live="polite">
           {roleDetection === "pending" ? t.roleDetecting : t.roleDetected}
         </p> : null}
-        <div className="analysis-advanced">
-          <button type="button" className="analysis-advanced-toggle" aria-expanded={showAdvanced} aria-controls={advancedId} disabled={busy} onClick={() => setShowAdvanced((value) => !value)}>
-            <span><b>{t.advancedToggle}</b><small>{selectedLevel} · {t.advancedHint}</small></span>
-            <i aria-hidden="true"/>
-          </button>
-          {showAdvanced ? <fieldset id={advancedId} disabled={busy}><legend>{t.level}</legend><div className="segmented">
-            {t.levels.map(([value, label]) => <label key={value}><input type="radio" name="seniority" value={value} checked={seniority === value} onChange={() => setSeniority(value)} /><span>{label}</span></label>)}
-          </div><small className="level-helper">{t.levelHelper}</small></fieldset> : null}
-        </div>
+        <SenioritySelect value={seniority} onChange={setSeniority} levels={t.levels} disabled={busy} label={t.advancedToggle} optionalHint={t.advancedHint} popoverTitle={t.level} popoverSubtitle={t.levelHelper}/>
         <label ref={consentRef} key={consentShakeEpoch} tabIndex={-1} className={`consent${consent ? " is-given" : ""}${consentShakeEpoch ? " attention" : ""}`}><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span><b className="consent-required">{t.consentRequired}</b>{t.consent}<br/><a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
         <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>

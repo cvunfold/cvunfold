@@ -544,7 +544,7 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .role-select-mark { border-color: var(--accent); background: #f5f9e4; color: #536900; }
 .role-select-copy { min-width: 0; flex: 1; }
 .role-select-copy b, .role-select-copy small, .role-options b, .role-options small { display: block; }
-.role-select-copy b { font-size: 14px; }
+.role-select-copy b { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .role-select-copy small { margin-top: 3px; overflow: hidden; color: var(--muted); font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .role-select-chevron { width: 19px; height: 19px; flex: none; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; transition: transform .18s ease; }
 .role-select-chevron.open { transform: rotate(180deg); }
@@ -1373,20 +1373,6 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .analysis-plan-summary small { color: var(--muted); font-size: 12px; }
 .upload-notes { margin: 11px 0 20px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .desktop-handoff { display: none; }
-.analysis-advanced { margin: 18px 0 22px; }
-/* Same shell as .role-select-trigger so the two form controls read as one family;
-   the "opcjonalne" hint, not a weaker frame, is what marks this one as optional. */
-.analysis-advanced-toggle { display: flex; align-items: center; justify-content: space-between; gap: 13px; width: 100%; min-height: 65px; padding: 9px 13px; border: 1px solid #aeb6c1; border-radius: 8px; background: var(--surface); color: var(--ink); text-align: left; cursor: pointer; box-shadow: 0 5px 18px rgba(7, 22, 47, .035); transition: border-color .18s ease, box-shadow .18s ease; }
-.analysis-advanced-toggle:hover { border-color: #7b8797; box-shadow: 0 8px 22px rgba(7, 22, 47, .07); }
-.analysis-advanced-toggle[aria-expanded="true"] { border-color: var(--accent-deep); box-shadow: 0 0 0 3px rgba(185, 218, 0, .18); }
-.analysis-advanced-toggle:focus-visible { outline: 3px solid rgba(118, 149, 0, .22); outline-offset: 2px; }
-.analysis-advanced-toggle:disabled { cursor: wait; opacity: .7; }
-.analysis-advanced-toggle span { display: grid; gap: 3px; }
-.analysis-advanced-toggle b { font-size: 13px; font-weight: 750; }
-.analysis-advanced-toggle small { color: var(--muted); font-size: 12px; }
-.analysis-advanced-toggle i { flex: none; width: 9px; height: 9px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg) translate(-2px, -2px); transition: transform .15s ease; }
-.analysis-advanced-toggle[aria-expanded="true"] i { transform: rotate(-135deg) translate(-2px, -2px); }
-.analysis-advanced fieldset { margin-top: 16px; }
 .turnstile-shell { display: grid; gap: 7px; margin: 13px 0; }
 .turnstile-shell > span { color: var(--muted); font-size: 12px; }
 /* The one gate between a chosen file and the free result. It has to look like a
