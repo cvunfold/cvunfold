@@ -908,10 +908,9 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .locked-value li { position: relative; padding-left: 15px; line-height: 1.45; }
 .locked-value li::before { content: "✓"; position: absolute; left: 0; color: var(--accent-deep); font-weight: 800; }
 .locked-payment-actions { position: relative; width: min(100%, 680px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 0 auto; }
-.locked-payment-actions.wallet-ready { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .locked-payment-actions > .button { width: 100%; min-height: 62px; margin: 0; }
 .express-wallet-cta { position: absolute; width: 100%; visibility: hidden; pointer-events: none; }
-.express-wallet-cta.is-ready { position: relative; visibility: visible; pointer-events: auto; }
+.express-wallet-cta.is-ready { position: relative; width: min(100%, 300px); margin: 0 auto; visibility: visible; pointer-events: auto; }
 .locked .express-wallet-error { margin: 7px 0 0; color: var(--danger); font-size: 12px; line-height: 1.4; text-align: left; }
 .payment-methods-list { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px 10px; margin-top: 14px; color: var(--muted); font-size: 11px; }
 .payment-methods-list > span { font-weight: 700; }
@@ -1127,7 +1126,6 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   .teaser-featured-issue h2 { font-size: 31px; }
   .teaser-first-impression > p { font-size: 18px; }
   .locked-value { grid-template-columns: 1fr; }
-  .locked-payment-actions.wallet-ready { grid-template-columns: 1fr; }
   .payment-methods-list { align-items: stretch; flex-direction: column; gap: 7px; }
   .report-title h1 { font-size: 42px; }
   .report-title h2 { font-size: 17px; }
