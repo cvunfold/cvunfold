@@ -13,27 +13,11 @@ import type { MeasurementContext } from "@/lib/audience";
 import type { PurchaseSurface } from "@/lib/analytics/events";
 import { reportPath, type Locale } from "@/lib/i18n";
 import type { Plan } from "@/lib/plans";
+import { expressCheckoutOptions } from "@/lib/payments/express-checkout-options";
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = publishableKey && /^pk_(test|live)_/.test(publishableKey) ? loadStripe(publishableKey) : null;
 
-const expressCheckoutOptions = {
-  buttonHeight: 55,
-  buttonTheme: { applePay: "black" as const, googlePay: "black" as const },
-  buttonType: { applePay: "buy" as const, googlePay: "buy" as const },
-  layout: { maxColumns: 1, maxRows: 1, overflow: "never" as const },
-  // The Checkout-specific type requires the key even though Stripe documents
-  // `undefined` as the way to keep its per-customer dynamic ordering.
-  paymentMethodOrder: undefined,
-  paymentMethods: {
-    applePay: "always" as const,
-    googlePay: "always" as const,
-    amazonPay: "never" as const,
-    klarna: "never" as const,
-    link: "never" as const,
-    paypal: "never" as const,
-  },
-};
 
 type Props = {
   enabled: boolean;
