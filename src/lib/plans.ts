@@ -45,3 +45,12 @@ export function formatPlanPrice(plan: Plan, locale: Locale): string {
     maximumFractionDigits: 0,
   }).format(definition.amountMinor / 100);
 }
+
+// Market reference for the price anchor shown on the pricing section and the
+// paywall. It is a third-party market range for a professional CV rewrite, not
+// a former price of ours, so it must stay conservative and verifiable — the
+// whole product argument is that we do not overclaim. One place to update it.
+export const REWRITE_SERVICE_REFERENCE: Record<Market, string> = {
+  pl: "300–800 zł",
+  en: "€80–200",
+};

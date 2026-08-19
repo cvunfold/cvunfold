@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowIcon, CheckIcon, LockIcon } from "./icons";
 import { Logo } from "./logo";
@@ -29,12 +29,11 @@ const copy = {
     handoffFailed: "Nie udało się udostępnić linku. Spróbuj ponownie.", handoffOpened: "Bezpieczne ustawienia zostały przeniesione. Wybierz plik CV ponownie na tym urządzeniu.",
     invalidFile: "Wybierz plik PDF lub DOCX o rozmiarze do 8 MB.",
     scan: "Skanowany PDF lub zdjęcie CV może nie zostać odczytane.", language: "CV może być po polsku lub angielsku.",
+    advancedToggle: "Poziom stanowiska", advancedHint: "opcjonalne",
     level: "Na jaki poziom aplikujesz?", levelHelper: "To tylko punkt odniesienia. Raport porówna wybrany poziom z tym, co komunikuje Twoje CV.", levels: [["auto", "Nie wiem — oceń na podstawie CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
-    offerToggle: "Dopasuj analizę do konkretnej oferty", offerLabel: "Treść ogłoszenia", requiredForMatch: "wymagana do dopasowania", offerPlaceholder: "Wklej treść ogłoszenia. Nie wpisuj danych kontaktowych.",
-    offerRequired: "Wklej treść ogłoszenia, aby dopasować analizę do oferty.",
     consent: "Zlecam rozpoczęcie analizy od razu i akceptuję przetwarzanie CV zgodnie z polityką prywatności. Rozumiem, że plik źródłowy zostanie usunięty po analizie.",
     privacy: "Polityka prywatności", terms: "Regulamin", submit: "Analizuj CV", loading: "Analizujemy…", private: "Bez konta. CV nie trafia do pracodawców ani analytics.",
-    plan: { full_review: "Pełny raport", job_match: "Raport + dopasowanie do oferty" }, free: "Wynik wstępny", freePrice: "Darmowe", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
+    planLabel: "Pełny raport", free: "Wynik wstępny", freePrice: "Darmowe", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
     statusIdle: "Dowód przed opinią", statusIdleCopy: "Każda ważna uwaga wskazuje konkretny fragment dokumentu.", statusLoading: "Analizujemy Twoje CV", statusLoadingCopy: "Przechodzimy przez dokument krok po kroku.",
     statusRedirecting: "Już za chwilę zostaniesz przekierowany do raportu", statusRedirectingCopy: "Analiza jest gotowa. Bezpiecznie otwieramy Twój wynik.",
     longWait: "To może chwilę potrwać — sprawdzamy każdy dowód, zanim coś napiszemy.",
@@ -53,12 +52,11 @@ const copy = {
     handoffFailed: "We could not share the link. Please try again.", handoffOpened: "Your safe settings were transferred. Select the CV file again on this device.",
     invalidFile: "Choose a PDF or DOCX file up to 8 MB.",
     scan: "A scanned PDF or image-based CV may not be readable.", language: "Your CV can be in English or Polish.",
+    advancedToggle: "Seniority level", advancedHint: "optional",
     level: "What level are you applying for?", levelHelper: "This is only a reference point. The report will compare your chosen level with what your CV communicates.", levels: [["auto", "Not sure — assess from my CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
-    offerToggle: "Match the analysis to a specific job", offerLabel: "Job description", requiredForMatch: "required for matching", offerPlaceholder: "Paste the job description. Do not include contact details.",
-    offerRequired: "Paste the job description to match the analysis to this role.",
     consent: "I request that the analysis starts immediately and accept CV processing under the privacy policy. I understand that the source file is deleted after analysis.",
     privacy: "Privacy policy", terms: "Terms", submit: "Analyse my CV", loading: "Analysing…", private: "No account. Your CV is never sent to employers or analytics.",
-    plan: { full_review: "Full report", job_match: "Report + job matching" }, free: "Initial result", freePrice: "Free", full: "Full report", oneTime: "one-time payment · no subscription",
+    planLabel: "Full report", free: "Initial result", freePrice: "Free", full: "Full report", oneTime: "one-time payment · no subscription",
     statusIdle: "Evidence before opinion", statusIdleCopy: "Every important finding points to a specific part of the document.", statusLoading: "Analysing your CV", statusLoadingCopy: "We move through the document step by step.",
     statusRedirecting: "You’ll be redirected to your report in just a moment", statusRedirectingCopy: "Your analysis is ready. We are securely opening your result.",
     longWait: "This can take a little longer — we check every piece of evidence before writing anything.",
@@ -72,7 +70,6 @@ type AnalysisPhase = "idle" | "analyzing" | "redirecting";
 
 type Props = {
   mockMode: boolean;
-  initialJobMatch: boolean;
   initialRole: TargetRoleId;
   initialSeniority: Seniority;
   handoffFromMobile: boolean;
@@ -80,7 +77,7 @@ type Props = {
   locale: Locale;
 };
 
-export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeniority, handoffFromMobile, initialHandoffOrigin, locale }: Props) {
+export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFromMobile, initialHandoffOrigin, locale }: Props) {
   const t = copy[locale];
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
@@ -95,13 +92,18 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
   const [consent, setConsent] = useState(false);
   const [role, setRole] = useState<TargetRoleId>(initialRole);
   const [seniority, setSeniority] = useState<Seniority>(initialSeniority);
-  const [showJob, setShowJob] = useState(initialJobMatch);
-  const [job, setJob] = useState("");
+  // Seniority has a genuinely good default ("auto" lets the model infer it from
+  // the CV), so it starts collapsed to keep the required path to the free result
+  // at file + consent. A handoff link carrying an explicit level opens it, so the
+  // choice made on the other device stays visible rather than silently applied.
+  const [showAdvanced, setShowAdvanced] = useState(initialSeniority !== "auto");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileEpoch, setTurnstileEpoch] = useState(0);
   const [handoffStatus, setHandoffStatus] = useState("");
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  const plan: Plan = showJob ? "job_match" : "full_review";
+  const plan: Plan = "full_review";
+  const advancedId = useId();
+  const selectedLevel = t.levels.find(([value]) => value === seniority)?.[1] || seniority;
   const effectiveHandoffOrigin = handoffFromMobile ? initialHandoffOrigin || "other" : initialHandoffOrigin;
   const handleTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
   const handoffOpenTracked = useRef(false);
@@ -145,13 +147,13 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
     trackAnalyticsEvent("handoff_link_opened", {
       locale,
       market: locale,
-      plan: initialJobMatch ? "job_match" : "full_review",
+      plan: "full_review",
       landing_variant: DEFAULT_LANDING_VARIANT,
       broad_role_enum: initialRole,
       selected_seniority_enum: initialSeniority,
       handoff_origin: effectiveHandoffOrigin || "other",
     });
-  }, [effectiveHandoffOrigin, handoffFromMobile, initialJobMatch, initialRole, initialSeniority, locale]);
+  }, [effectiveHandoffOrigin, handoffFromMobile, initialRole, initialSeniority, locale]);
 
   useEffect(() => {
     const picker = input.current;
@@ -195,7 +197,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
 
   function handoffUrl(): string {
     return new URL(analysisPath(locale, {
-      plan: showJob ? "job_match" : "full_review",
+      plan,
       role,
       seniority,
       handoff: "mobile",
@@ -225,7 +227,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
 
   async function shareToDesktop() {
     const url = handoffUrl();
-    const context = { ...analyticsBase(showJob ? "job_match" : "full_review"), handoff_origin: effectiveHandoffOrigin || handoffOriginFromAttribution(readSafeAttribution()) };
+    const context = { ...analyticsBase(), handoff_origin: effectiveHandoffOrigin || handoffOriginFromAttribution(readSafeAttribution()) };
     if (typeof navigator.share === "function") {
       trackAnalyticsEvent("desktop_handoff_started", { ...context, handoff_method: "web_share" });
       try {
@@ -247,21 +249,14 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!file || !consent) return;
-    const jobDescription = job.trim();
-    if (showJob && !jobDescription) {
-      setError(t.offerRequired);
-      return;
-    }
     setPhase("analyzing");
     setError("");
-    const selectedPlan: Plan = showJob ? "job_match" : "full_review";
-    trackAnalyticsEvent("analysis_started", analyticsBase(selectedPlan));
+    trackAnalyticsEvent("analysis_started", analyticsBase());
     const form = new FormData();
     form.set("file", file);
     form.set("role", role);
     form.set("seniority", seniority);
-    form.set("plan", selectedPlan);
-    form.set("jobDescription", showJob ? jobDescription : "");
+    form.set("plan", plan);
     form.set("locale", locale);
     form.set("attribution", JSON.stringify({
       ...readSafeAttribution(),
@@ -275,8 +270,8 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
       const response = await fetch("/api/analyses", { method: "POST", body: form });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw Object.assign(new Error(data.error || t.genericError), { category: data.errorCategory || "unknown" });
-      trackAnalyticsEvent("upload_completed", analyticsBase(selectedPlan));
-      trackAnalyticsEvent("analysis_succeeded", { ...analyticsBase(selectedPlan), analysis_success: true });
+      trackAnalyticsEvent("upload_completed", analyticsBase());
+      trackAnalyticsEvent("analysis_succeeded", { ...analyticsBase(), analysis_success: true });
       setActiveStage(t.stages.length - 1);
       setPhase("redirecting");
       navigationFrame.current = window.requestAnimationFrame(() => {
@@ -284,9 +279,9 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
       });
     } catch (caught) {
       const category = typeof caught === "object" && caught && "category" in caught ? String(caught.category) : "unknown";
-      trackAnalyticsEvent("analysis_failed", { ...analyticsBase(selectedPlan), analysis_success: false, error_category: category });
+      trackAnalyticsEvent("analysis_failed", { ...analyticsBase(), analysis_success: false, error_category: category });
       if (category === "configuration") {
-        trackAnalyticsEvent("analysis_configuration_failed", { ...analyticsBase(selectedPlan), analysis_success: false });
+        trackAnalyticsEvent("analysis_configuration_failed", { ...analyticsBase(), analysis_success: false });
       }
       setError(caught instanceof Error ? caught.message : t.genericError);
       setTurnstileToken("");
@@ -303,7 +298,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
         <p className="analysis-intro">{t.intro}</p>
         <div className="analysis-plan-summary" aria-label={t.full}>
           <div><span>{t.free}</span><strong>{t.freePrice}</strong></div>
-          <div><span>{t.plan[plan]}</span><strong>{formatPlanPrice(plan, locale)}</strong><small>{t.oneTime}</small></div>
+          <div><span>{t.planLabel}</span><strong>{formatPlanPrice(plan, locale)}</strong><small>{t.oneTime}</small></div>
         </div>
         <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         {handoffFromMobile ? <p className="handoff-arrival" role="status">{t.handoffOpened}</p> : null}
@@ -323,11 +318,15 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
         </div>
 
         <RoleSelect value={role} onChange={setRole} disabled={busy} locale={locale}/>
-        <fieldset disabled={busy}><legend>{t.level}</legend><div className="segmented">
-          {t.levels.map(([value, label]) => <label key={value}><input type="radio" name="seniority" value={value} checked={seniority === value} onChange={() => setSeniority(value)} /><span>{label}</span></label>)}
-        </div><small className="level-helper">{t.levelHelper}</small></fieldset>
-        <label className="job-toggle"><input type="checkbox" checked={showJob} disabled={busy} onChange={(event) => setShowJob(event.target.checked)}/><span>{t.offerToggle}</span></label>
-        {showJob ? <label>{t.offerLabel} <small>({t.requiredForMatch})</small><textarea value={job} required disabled={busy} onChange={(event) => { setJob(event.target.value); if (error === t.offerRequired) setError(""); }} maxLength={20000} placeholder={t.offerPlaceholder}/></label> : null}
+        <div className="analysis-advanced">
+          <button type="button" className="analysis-advanced-toggle" aria-expanded={showAdvanced} aria-controls={advancedId} disabled={busy} onClick={() => setShowAdvanced((value) => !value)}>
+            <span><b>{t.advancedToggle}</b><small>{selectedLevel} · {t.advancedHint}</small></span>
+            <i aria-hidden="true"/>
+          </button>
+          {showAdvanced ? <fieldset id={advancedId} disabled={busy}><legend>{t.level}</legend><div className="segmented">
+            {t.levels.map(([value, label]) => <label key={value}><input type="radio" name="seniority" value={value} checked={seniority === value} onChange={() => setSeniority(value)} /><span>{label}</span></label>)}
+          </div><small className="level-helper">{t.levelHelper}</small></fieldset> : null}
+        </div>
         <label className="consent"><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span>{t.consent} <a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
         {error ? <p ref={errorMessage} className="form-error" role="alert" tabIndex={-1}>{error}</p> : null}

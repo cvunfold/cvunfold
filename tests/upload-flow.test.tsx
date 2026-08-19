@@ -29,7 +29,6 @@ afterEach(() => {
 
 const props = {
   mockMode: false,
-  initialJobMatch: false,
   initialRole: "frontend_developer" as const,
   initialSeniority: "auto" as const,
   handoffFromMobile: false,
@@ -37,8 +36,16 @@ const props = {
 };
 
 describe("mobile upload measurement", () => {
-  it("frames seniority as the level the user is applying for", () => {
+  it("keeps seniority collapsed behind an optional disclosure and frames it as the applied-for level", () => {
     render(<UploadFlow {...props}/>);
+    expect(screen.queryByRole("group", { name: "Na jaki poziom aplikujesz?" })).toBeNull();
+    const disclosure = screen.getByRole("button", { name: /Poziom stanowiska/ });
+    expect(disclosure.getAttribute("aria-expanded")).toBe("false");
+    expect(disclosure.textContent).toContain("Nie wiem — oceń na podstawie CV");
+    expect(disclosure.textContent).toContain("opcjonalne");
+
+    fireEvent.click(disclosure);
+    expect(disclosure.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByRole("group", { name: "Na jaki poziom aplikujesz?" })).toBeTruthy();
     expect((screen.getByRole("radio", { name: "Nie wiem — oceń na podstawie CV" }) as HTMLInputElement).checked).toBe(true);
     expect(screen.getByText(/To tylko punkt odniesienia/).textContent).toContain("co komunikuje Twoje CV");
@@ -46,8 +53,15 @@ describe("mobile upload measurement", () => {
 
   it("uses the same target-level framing in English", () => {
     render(<UploadFlow {...props} locale="en"/>);
+    fireEvent.click(screen.getByRole("button", { name: /Seniority level/ }));
     expect(screen.getByRole("group", { name: "What level are you applying for?" })).toBeTruthy();
     expect((screen.getByRole("radio", { name: "Not sure — assess from my CV" }) as HTMLInputElement).checked).toBe(true);
+  });
+
+  it("opens the seniority disclosure when a handoff link carries an explicit level", () => {
+    render(<UploadFlow {...props} initialSeniority="senior"/>);
+    expect(screen.getByRole("button", { name: /Poziom stanowiska/ }).getAttribute("aria-expanded")).toBe("true");
+    expect((screen.getByRole("radio", { name: "Senior" }) as HTMLInputElement).checked).toBe(true);
   });
 
   it("marks the Other role as experimental before the user uploads a CV", () => {
@@ -66,12 +80,13 @@ describe("mobile upload measurement", () => {
     expect(screen.getByRole("note").textContent).toContain("Other specialisations use general criteria");
   });
 
-  it("requires the job description when job matching is selected", () => {
-    render(<UploadFlow {...props} mockMode initialJobMatch/>);
-    const description = screen.getByRole("textbox", { name: /Treść ogłoszenia/ }) as HTMLTextAreaElement;
-    expect(description.required).toBe(true);
-    expect(screen.getByText(/wymagana do dopasowania/)).toBeTruthy();
-    expect(screen.getByText("39 zł")).toBeTruthy();
+  it("offers a single plan with no job-matching upsell in the form", () => {
+    render(<UploadFlow {...props} mockMode/>);
+    expect(screen.queryByRole("textbox", { name: /Treść ogłoszenia/ })).toBeNull();
+    expect(screen.queryByText(/Dopasuj analizę do konkretnej oferty/)).toBeNull();
+    expect(screen.getByText("Pełny raport")).toBeTruthy();
+    expect(screen.getByText("29 zł")).toBeTruthy();
+    expect(screen.queryByText("39 zł")).toBeNull();
   });
 
   it("distinguishes picker open, native cancel, picker selection and drop", () => {
@@ -97,11 +112,11 @@ describe("mobile upload measurement", () => {
   it("uses Web Share with a URL that excludes detailed attribution", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "share", { configurable: true, value: share });
-    render(<UploadFlow {...props} initialJobMatch initialRole="qa_test_automation" initialSeniority="senior"/>);
+    render(<UploadFlow {...props} initialRole="qa_test_automation" initialSeniority="senior"/>);
     fireEvent.click(screen.getByRole("button", { name: "Nie masz CV na telefonie? Udostępnij link na komputer" }));
     await waitFor(() => expect(share).toHaveBeenCalledOnce());
     const url = new URL(share.mock.calls[0][0].url);
-    expect(Object.fromEntries(url.searchParams)).toEqual({ plan: "job_match", role: "qa_test_automation", seniority: "senior", handoff: "mobile" });
+    expect(Object.fromEntries(url.searchParams)).toEqual({ plan: "full_review", role: "qa_test_automation", seniority: "senior", handoff: "mobile" });
     expect(url.searchParams.has("gclid")).toBe(false);
     expect(trackAnalyticsEvent).toHaveBeenCalledWith("desktop_handoff_completed", expect.objectContaining({ handoff_method: "web_share" }));
   });
