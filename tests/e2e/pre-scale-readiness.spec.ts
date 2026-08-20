@@ -43,20 +43,19 @@ test("mobile upload keeps only closed settings in the Web Share handoff", async 
       value: async (payload: ShareData) => { (window as typeof window & { __sharePayload?: ShareData }).__sharePayload = payload; },
     });
   });
-  await page.goto("/analiza?plan=job_match&role=qa_test_automation&seniority=senior&handoff=mobile&handoff_origin=google_cpc&utm_campaign=private-detail&gclid=secret-click-id");
+  await page.goto("/analiza?role=qa_test_automation&seniority=senior&handoff=mobile&handoff_origin=google_cpc&utm_campaign=private-detail&gclid=secret-click-id");
   await page.locator('input[type="file"]').setInputFiles([]);
   await expect(page.getByText("Wybierz CV z telefonu lub dostępnej chmury")).toBeVisible();
   await expect(page.getByText("PDF/DOCX · Dysk Google, iCloud lub Pliki · maks. 8 MB")).toBeVisible();
   await expect(page.getByText("Bezpieczne ustawienia zostały przeniesione.", { exact: false })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Rola docelowa" })).toContainText("QA / Test Automation");
-  await expect(page.locator('input[name="seniority"][value="senior"]')).toBeChecked();
-  await expect(page.locator(".job-toggle input")).toBeChecked();
+  await expect(page.getByRole("combobox", { name: /Poziom stanowiska/ })).toContainText("Senior");
   await page.getByRole("button", { name: "Nie masz CV na telefonie? Udostępnij link na komputer" }).click();
   await expect(page.getByText("Link został udostępniony.", { exact: false })).toBeVisible();
   const shared = await page.evaluate(() => (window as typeof window & { __sharePayload?: ShareData }).__sharePayload?.url);
   const url = new URL(String(shared));
   expect(Object.fromEntries(url.searchParams)).toEqual({
-    plan: "job_match",
+    plan: "full_review",
     role: "qa_test_automation",
     seniority: "senior",
     handoff: "mobile",
@@ -67,11 +66,10 @@ test("mobile upload keeps only closed settings in the Web Share handoff", async 
 
 test("desktop handoff link pre-fills safe settings and asks for a local file", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "chromium", "Desktop handoff destination");
-  await page.goto("/analiza?plan=job_match&role=mobile_developer&seniority=lead&handoff=mobile");
+  await page.goto("/analiza?role=mobile_developer&seniority=lead&handoff=mobile");
   await expect(page.getByText("Bezpieczne ustawienia zostały przeniesione.", { exact: false })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Rola docelowa" })).toContainText("Mobile Developer");
-  await expect(page.locator('input[name="seniority"][value="lead"]')).toBeChecked();
-  await expect(page.locator(".job-toggle input")).toBeChecked();
+  await expect(page.getByRole("combobox", { name: /Poziom stanowiska/ })).toContainText("Lead");
   await expect(page.locator('input[type="file"]')).toBeAttached();
 });
 

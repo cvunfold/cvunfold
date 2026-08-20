@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { ArrowIcon, CheckIcon, LockIcon } from "./icons";
 import { Logo } from "./logo";
 import { RoleSelect } from "./role-select";
+import { SenioritySelect } from "./seniority-select";
 import { readSafeAttribution, trackAnalyticsEvent } from "@/lib/analytics/client";
 import { DEFAULT_LANDING_VARIANT, handoffOriginFromAttribution, type HandoffOrigin } from "@/lib/audience";
-import type { TargetRoleId } from "@/lib/roles";
+import { parseTargetRoleId, type TargetRoleId } from "@/lib/roles";
 import type { Seniority } from "@/lib/rubrics/technical-v1";
-import { formatPlanPrice, type Plan } from "@/lib/plans";
+import { formatPlanPrice, REWRITE_SERVICE_REFERENCE, type Plan } from "@/lib/plans";
 import { analysisPath, homePath, legalPath, type Locale } from "@/lib/i18n";
 import { TurnstileWidget } from "@/components/turnstile-widget";
 
@@ -19,7 +20,7 @@ const SUPPORTED_EXTENSION = /\.(pdf|docx)$/i;
 
 const copy = {
   pl: {
-    back: "Jak to działa", title: "Zobacz, co naprawdę komunikuje Twoje CV", intro: "Najpierw otrzymasz bezpłatny wynik wstępny z konkretnym dowodem. Pełny raport kupujesz dopiero, gdy diagnoza okaże się wartościowa.",
+    back: "Jak to działa", title: "Prześlij CV i zobacz bezpłatny wynik",
     drop: "Przeciągnij PDF lub DOCX", choose: "albo wybierz plik", change: "Wybierz inny plik", limit: "Maksymalnie 8 MB · tekstowy PDF lub DOCX",
     mobileDrop: "Wybierz CV z telefonu lub dostępnej chmury", mobileLimit: "PDF/DOCX · Dysk Google, iCloud lub Pliki · maks. 8 MB",
     aiDisclosure: "Analiza jest wspierana przez AI i wykonywana według określonych rubryk oraz zasad wiązania uwag z dowodami.",
@@ -28,13 +29,17 @@ const copy = {
     handoffShared: "Link został udostępniony. Na komputerze wybierz plik CV ponownie.", handoffCopied: "Link skopiowany. Wyślij go na swój komputer i wybierz tam CV ponownie.",
     handoffFailed: "Nie udało się udostępnić linku. Spróbuj ponownie.", handoffOpened: "Bezpieczne ustawienia zostały przeniesione. Wybierz plik CV ponownie na tym urządzeniu.",
     invalidFile: "Wybierz plik PDF lub DOCX o rozmiarze do 8 MB.",
-    scan: "Skanowany PDF lub zdjęcie CV może nie zostać odczytane.", language: "CV może być po polsku lub angielsku.",
+    uploadNotes: "CV może być po polsku lub angielsku. Skanowany PDF lub zdjęcie może nie zostać odczytane. Po wybraniu pliku odczytujemy z niego rolę, żeby dobrać kryteria. Dokumentu nie zapisujemy.",
+    advancedToggle: "Poziom stanowiska", advancedHint: "opcjonalne",
+    roleDetecting: "Sprawdzamy, jaką rolę pokazuje dokument…",
+    roleDetected: "Ustawiliśmy tę rolę na podstawie Twojego CV. Zmień ją, jeśli się pomyliliśmy.",
     level: "Na jaki poziom aplikujesz?", levelHelper: "To tylko punkt odniesienia. Raport porówna wybrany poziom z tym, co komunikuje Twoje CV.", levels: [["auto", "Nie wiem — oceń na podstawie CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
-    offerToggle: "Dopasuj analizę do konkretnej oferty", offerLabel: "Treść ogłoszenia", requiredForMatch: "wymagana do dopasowania", offerPlaceholder: "Wklej treść ogłoszenia. Nie wpisuj danych kontaktowych.",
-    offerRequired: "Wklej treść ogłoszenia, aby dopasować analizę do oferty.",
+    consentRequired: "Wymagane, aby uruchomić analizę",
     consent: "Zlecam rozpoczęcie analizy od razu i akceptuję przetwarzanie CV zgodnie z polityką prywatności. Rozumiem, że plik źródłowy zostanie usunięty po analizie.",
-    privacy: "Polityka prywatności", terms: "Regulamin", submit: "Analizuj CV", loading: "Analizujemy…", private: "Bez konta. CV nie trafia do pracodawców ani analytics.",
-    plan: { full_review: "Pełny raport", job_match: "Raport + dopasowanie do oferty" }, free: "Wynik wstępny", freePrice: "Darmowe", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
+    privacy: "Polityka prywatności", terms: "Regulamin", submit: "Analizuj CV", loading: "Analizujemy…", private: "Ten krok jest bezpłatny i nie prosimy tu o żadną płatność. Bez konta. CV nie trafia do pracodawców ani analytics.",
+    planLabel: "Pełny raport", free: "Wynik wstępny", freePrice: "Darmowy", full: "Pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji",
+    valueTitle: `Co dostajesz za ${formatPlanPrice("full_review", "pl")}`,
+    valueCopy: `Przepisanie CV u specjalisty kosztuje zwykle ${REWRITE_SERVICE_REFERENCE.pl} i trwa kilka dni. Najdroższa część tej ceny to nie samo pisanie, tylko decyzja, co w dokumencie zmienić i dlaczego. Dokładnie tę część dostajesz tutaj, a wynik wstępny zobaczysz, zanim cokolwiek zapłacisz.`,
     statusIdle: "Dowód przed opinią", statusIdleCopy: "Każda ważna uwaga wskazuje konkretny fragment dokumentu.", statusLoading: "Analizujemy Twoje CV", statusLoadingCopy: "Przechodzimy przez dokument krok po kroku.",
     statusRedirecting: "Już za chwilę zostaniesz przekierowany do raportu", statusRedirectingCopy: "Analiza jest gotowa. Bezpiecznie otwieramy Twój wynik.",
     longWait: "To może chwilę potrwać — sprawdzamy każdy dowód, zanim coś napiszemy.",
@@ -43,7 +48,7 @@ const copy = {
     stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam odpowiedzialność i wpływ", "Szukam dowodów, nie słów kluczowych"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
   },
   en: {
-    back: "How it works", title: "See what your CV really communicates", intro: "You first receive a free initial result with one concrete piece of evidence. You only buy the full report if the diagnosis proves useful.",
+    back: "How it works", title: "Upload your CV and see the free result",
     drop: "Drop a PDF or DOCX", choose: "or choose a file", change: "Choose another file", limit: "Up to 8 MB · text-based PDF or DOCX",
     mobileDrop: "Choose a CV from your phone or available cloud storage", mobileLimit: "PDF/DOCX · Google Drive, iCloud or Files · max. 8 MB",
     aiDisclosure: "The review is supported by AI and follows defined role rubrics and rules that tie findings to evidence.",
@@ -52,13 +57,17 @@ const copy = {
     handoffShared: "Link shared. Select your CV again on the computer.", handoffCopied: "Link copied. Send it to your computer and select the CV there.",
     handoffFailed: "We could not share the link. Please try again.", handoffOpened: "Your safe settings were transferred. Select the CV file again on this device.",
     invalidFile: "Choose a PDF or DOCX file up to 8 MB.",
-    scan: "A scanned PDF or image-based CV may not be readable.", language: "Your CV can be in English or Polish.",
+    uploadNotes: "Your CV can be in English or Polish. A scanned PDF or photo may not be readable. Once you choose a file we read the role from it to pick the criteria. The document is not stored.",
+    advancedToggle: "Seniority level", advancedHint: "optional",
+    roleDetecting: "Checking which role the document shows…",
+    roleDetected: "We set this role from your CV. Change it if we got it wrong.",
     level: "What level are you applying for?", levelHelper: "This is only a reference point. The report will compare your chosen level with what your CV communicates.", levels: [["auto", "Not sure — assess from my CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
-    offerToggle: "Match the analysis to a specific job", offerLabel: "Job description", requiredForMatch: "required for matching", offerPlaceholder: "Paste the job description. Do not include contact details.",
-    offerRequired: "Paste the job description to match the analysis to this role.",
+    consentRequired: "Required to start the analysis",
     consent: "I request that the analysis starts immediately and accept CV processing under the privacy policy. I understand that the source file is deleted after analysis.",
-    privacy: "Privacy policy", terms: "Terms", submit: "Analyse my CV", loading: "Analysing…", private: "No account. Your CV is never sent to employers or analytics.",
-    plan: { full_review: "Full report", job_match: "Report + job matching" }, free: "Initial result", freePrice: "Free", full: "Full report", oneTime: "one-time payment · no subscription",
+    privacy: "Privacy policy", terms: "Terms", submit: "Analyse my CV", loading: "Analysing…", private: "This step is free and asks for no payment. No account. Your CV is never sent to employers or analytics.",
+    planLabel: "Full report", free: "Initial result", freePrice: "Free", full: "Full report", oneTime: "one-time payment · no subscription",
+    valueTitle: `What ${formatPlanPrice("full_review", "en")} buys`,
+    valueCopy: `A professional CV rewrite usually costs ${REWRITE_SERVICE_REFERENCE.en} and takes several days. The expensive part of that price is not the writing. It is deciding what to change and why. That is exactly the part you get here, and you see the initial result before paying anything.`,
     statusIdle: "Evidence before opinion", statusIdleCopy: "Every important finding points to a specific part of the document.", statusLoading: "Analysing your CV", statusLoadingCopy: "We move through the document step by step.",
     statusRedirecting: "You’ll be redirected to your report in just a moment", statusRedirectingCopy: "Your analysis is ready. We are securely opening your result.",
     longWait: "This can take a little longer — we check every piece of evidence before writing anything.",
@@ -72,7 +81,6 @@ type AnalysisPhase = "idle" | "analyzing" | "redirecting";
 
 type Props = {
   mockMode: boolean;
-  initialJobMatch: boolean;
   initialRole: TargetRoleId;
   initialSeniority: Seniority;
   handoffFromMobile: boolean;
@@ -80,7 +88,7 @@ type Props = {
   locale: Locale;
 };
 
-export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeniority, handoffFromMobile, initialHandoffOrigin, locale }: Props) {
+export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFromMobile, initialHandoffOrigin, locale }: Props) {
   const t = copy[locale];
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
@@ -94,14 +102,20 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
   const [error, setError] = useState("");
   const [consent, setConsent] = useState(false);
   const [role, setRole] = useState<TargetRoleId>(initialRole);
+  // The prefill is only ever allowed to move a role the visitor has not set
+  // themselves. A handoff link carries a deliberate choice from the other
+  // device, so that counts as set too.
+  const roleChosenByUser = useRef(initialRole !== "frontend_developer");
+  const [roleDetection, setRoleDetection] = useState<"idle" | "pending" | "applied">("idle");
+  const detectionRequest = useRef(0);
   const [seniority, setSeniority] = useState<Seniority>(initialSeniority);
-  const [showJob, setShowJob] = useState(initialJobMatch);
-  const [job, setJob] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileEpoch, setTurnstileEpoch] = useState(0);
   const [handoffStatus, setHandoffStatus] = useState("");
+  const [consentShakeEpoch, setConsentShakeEpoch] = useState(0);
+  const consentRef = useRef<HTMLLabelElement>(null);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  const plan: Plan = showJob ? "job_match" : "full_review";
+  const plan: Plan = "full_review";
   const effectiveHandoffOrigin = handoffFromMobile ? initialHandoffOrigin || "other" : initialHandoffOrigin;
   const handleTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
   const handoffOpenTracked = useRef(false);
@@ -140,18 +154,25 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
   }, [error, phase]);
 
   useEffect(() => {
+    if (consentShakeEpoch === 0) return;
+    // jsdom has no scrollIntoView; guard so the pulse still works under test.
+    consentRef.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    consentRef.current?.focus();
+  }, [consentShakeEpoch]);
+
+  useEffect(() => {
     if (!handoffFromMobile || handoffOpenTracked.current) return;
     handoffOpenTracked.current = true;
     trackAnalyticsEvent("handoff_link_opened", {
       locale,
       market: locale,
-      plan: initialJobMatch ? "job_match" : "full_review",
+      plan: "full_review",
       landing_variant: DEFAULT_LANDING_VARIANT,
       broad_role_enum: initialRole,
       selected_seniority_enum: initialSeniority,
       handoff_origin: effectiveHandoffOrigin || "other",
     });
-  }, [effectiveHandoffOrigin, handoffFromMobile, initialJobMatch, initialRole, initialSeniority, locale]);
+  }, [effectiveHandoffOrigin, handoffFromMobile, initialRole, initialSeniority, locale]);
 
   useEffect(() => {
     const picker = input.current;
@@ -191,11 +212,45 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
     }
     setFile(nextFile);
     trackAnalyticsEvent("upload_started", { ...analyticsBase(), upload_entrypoint: uploadEntrypoint });
+    void detectRole(nextFile);
+  }
+
+  /** Best-effort prefill. Any failure leaves the form exactly as the visitor left it. */
+  async function detectRole(nextFile: File) {
+    if (roleChosenByUser.current) return;
+    const request = ++detectionRequest.current;
+    setRoleDetection("pending");
+    try {
+      const body = new FormData();
+      body.set("file", nextFile);
+      const response = await fetch("/api/detect-role", { method: "POST", body });
+      const data = await response.json().catch(() => ({}));
+      // A second file picked while this was in flight owns the field now.
+      if (request !== detectionRequest.current || roleChosenByUser.current) return;
+      const detected = parseTargetRoleId(data.role);
+      if (!data.detected || !detected) { setRoleDetection("idle"); return; }
+      setRole(detected);
+      setRoleDetection("applied");
+      trackAnalyticsEvent("role_autodetected", { ...analyticsBase(), broad_role_enum: detected, detected_role_enum: detected });
+    } catch {
+      if (request === detectionRequest.current) setRoleDetection("idle");
+    }
+  }
+
+  function chooseRole(nextRole: TargetRoleId) {
+    // A correction after we set the field is the one honest signal we get about
+    // how often the detector is wrong on real documents.
+    if (roleDetection === "applied" && nextRole !== role) {
+      trackAnalyticsEvent("role_autodetect_corrected", { ...analyticsBase(), broad_role_enum: nextRole, detected_role_enum: role });
+    }
+    roleChosenByUser.current = true;
+    setRoleDetection("idle");
+    setRole(nextRole);
   }
 
   function handoffUrl(): string {
     return new URL(analysisPath(locale, {
-      plan: showJob ? "job_match" : "full_review",
+      plan,
       role,
       seniority,
       handoff: "mobile",
@@ -225,7 +280,7 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
 
   async function shareToDesktop() {
     const url = handoffUrl();
-    const context = { ...analyticsBase(showJob ? "job_match" : "full_review"), handoff_origin: effectiveHandoffOrigin || handoffOriginFromAttribution(readSafeAttribution()) };
+    const context = { ...analyticsBase(), handoff_origin: effectiveHandoffOrigin || handoffOriginFromAttribution(readSafeAttribution()) };
     if (typeof navigator.share === "function") {
       trackAnalyticsEvent("desktop_handoff_started", { ...context, handoff_method: "web_share" });
       try {
@@ -244,24 +299,25 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
     } else setHandoffStatus(t.handoffFailed);
   }
 
+  function nudgeConsent() {
+    setConsentShakeEpoch((value) => value + 1);
+  }
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (!file || !consent) return;
-    const jobDescription = job.trim();
-    if (showJob && !jobDescription) {
-      setError(t.offerRequired);
-      return;
-    }
+    if (!file) return;
+    // The submit button is disabled while consent is missing, so this only
+    // guards a stray programmatic submit; the real feedback path for a click
+    // on the disabled button is the wrapper's onClick below.
+    if (!consent) { nudgeConsent(); return; }
     setPhase("analyzing");
     setError("");
-    const selectedPlan: Plan = showJob ? "job_match" : "full_review";
-    trackAnalyticsEvent("analysis_started", analyticsBase(selectedPlan));
+    trackAnalyticsEvent("analysis_started", analyticsBase());
     const form = new FormData();
     form.set("file", file);
     form.set("role", role);
     form.set("seniority", seniority);
-    form.set("plan", selectedPlan);
-    form.set("jobDescription", showJob ? jobDescription : "");
+    form.set("plan", plan);
     form.set("locale", locale);
     form.set("attribution", JSON.stringify({
       ...readSafeAttribution(),
@@ -275,8 +331,8 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
       const response = await fetch("/api/analyses", { method: "POST", body: form });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw Object.assign(new Error(data.error || t.genericError), { category: data.errorCategory || "unknown" });
-      trackAnalyticsEvent("upload_completed", analyticsBase(selectedPlan));
-      trackAnalyticsEvent("analysis_succeeded", { ...analyticsBase(selectedPlan), analysis_success: true });
+      trackAnalyticsEvent("upload_completed", analyticsBase());
+      trackAnalyticsEvent("analysis_succeeded", { ...analyticsBase(), analysis_success: true });
       setActiveStage(t.stages.length - 1);
       setPhase("redirecting");
       navigationFrame.current = window.requestAnimationFrame(() => {
@@ -284,9 +340,9 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
       });
     } catch (caught) {
       const category = typeof caught === "object" && caught && "category" in caught ? String(caught.category) : "unknown";
-      trackAnalyticsEvent("analysis_failed", { ...analyticsBase(selectedPlan), analysis_success: false, error_category: category });
+      trackAnalyticsEvent("analysis_failed", { ...analyticsBase(), analysis_success: false, error_category: category });
       if (category === "configuration") {
-        trackAnalyticsEvent("analysis_configuration_failed", { ...analyticsBase(selectedPlan), analysis_success: false });
+        trackAnalyticsEvent("analysis_configuration_failed", { ...analyticsBase(), analysis_success: false });
       }
       setError(caught instanceof Error ? caught.message : t.genericError);
       setTurnstileToken("");
@@ -300,12 +356,10 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
     <div className="analysis-shell container" inert={busy} aria-hidden={busy}>
       <form onSubmit={submit} aria-busy={busy}>
         <h1>{t.title}</h1>
-        <p className="analysis-intro">{t.intro}</p>
         <div className="analysis-plan-summary" aria-label={t.full}>
           <div><span>{t.free}</span><strong>{t.freePrice}</strong></div>
-          <div><span>{t.plan[plan]}</span><strong>{formatPlanPrice(plan, locale)}</strong><small>{t.oneTime}</small></div>
+          <div><span>{t.planLabel}</span><strong>{formatPlanPrice(plan, locale)}</strong><small>{t.oneTime}</small></div>
         </div>
-        <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         {handoffFromMobile ? <p className="handoff-arrival" role="status">{t.handoffOpened}</p> : null}
         <button type="button" className={`dropzone ${file ? "has-file" : ""}`} disabled={busy}
           onClick={() => { trackAnalyticsEvent("file_picker_opened", analyticsBase()); input.current?.click(); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); chooseFile(event.dataTransfer.files?.[0] ?? null, "drop"); }}>
@@ -316,28 +370,28 @@ export function UploadFlow({ mockMode, initialJobMatch, initialRole, initialSeni
         </button>
         <input ref={input} hidden type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" disabled={busy}
           onChange={(event) => chooseFile(event.target.files?.[0] ?? null, "picker")} />
-        <ul className="upload-notes"><li>{t.language}</li><li>{t.scan}</li></ul>
+        <p className="upload-notes">{t.uploadNotes}</p>
         <div className="desktop-handoff">
           <button type="button" onClick={() => void shareToDesktop()} disabled={busy}>{t.handoff}</button>
           <p role="status" aria-live="polite">{handoffStatus}</p>
         </div>
 
-        <RoleSelect value={role} onChange={setRole} disabled={busy} locale={locale}/>
-        <fieldset disabled={busy}><legend>{t.level}</legend><div className="segmented">
-          {t.levels.map(([value, label]) => <label key={value}><input type="radio" name="seniority" value={value} checked={seniority === value} onChange={() => setSeniority(value)} /><span>{label}</span></label>)}
-        </div><small className="level-helper">{t.levelHelper}</small></fieldset>
-        <label className="job-toggle"><input type="checkbox" checked={showJob} disabled={busy} onChange={(event) => setShowJob(event.target.checked)}/><span>{t.offerToggle}</span></label>
-        {showJob ? <label>{t.offerLabel} <small>({t.requiredForMatch})</small><textarea value={job} required disabled={busy} onChange={(event) => { setJob(event.target.value); if (error === t.offerRequired) setError(""); }} maxLength={20000} placeholder={t.offerPlaceholder}/></label> : null}
-        <label className="consent"><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span>{t.consent} <a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
+        <RoleSelect value={role} onChange={chooseRole} disabled={busy} locale={locale}/>
+        {roleDetection !== "idle" ? <p className={`role-detection ${roleDetection}`} role="status" aria-live="polite">
+          {roleDetection === "pending" ? t.roleDetecting : t.roleDetected}
+        </p> : null}
+        <SenioritySelect value={seniority} onChange={setSeniority} levels={t.levels} disabled={busy} label={t.advancedToggle} optionalHint={t.advancedHint} popoverTitle={t.level} popoverSubtitle={t.levelHelper}/>
+        <label ref={consentRef} key={`consent-${consentShakeEpoch}`} tabIndex={-1} className={`consent${consent ? " is-given" : ""}${consentShakeEpoch && !consent ? " attention" : ""}`}><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span><b className="consent-required">{t.consentRequired}</b>{t.consent}<br/><a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
+        <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
         {error ? <p ref={errorMessage} className="form-error" role="alert" tabIndex={-1}>{error}</p> : null}
-        <button className="button submit" disabled={!file || !consent || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button>
+        <span className="submit-wrap" onClick={() => { if (file && !consent) nudgeConsent(); }}><button className="button submit" disabled={!file || !consent || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button></span>
         <p className="form-trust"><LockIcon/>{t.private}</p>
       </form>
 
       <aside className="analysis-aside">
         <div className="analysis-status"><span className="status-orbit" aria-hidden="true"/><div><h2>{t.statusIdle}</h2><p>{t.statusIdleCopy}</p></div></div>
-        <ol>{t.stages.map(([step, detail], index) => <li key={step}><span>{index + 1}</span><div><b>{step}</b><small>{detail}</small></div></li>)}</ol>
+        <div className="analysis-value"><b>{t.valueTitle}</b><p>{t.valueCopy}</p></div>
         <div className="evidence-preview"><span className="evidence-mark" aria-hidden="true">“</span><div><b>{t.evidenceTitle}</b><p>{t.evidenceCopy}</p></div></div>
       </aside>
     </div>

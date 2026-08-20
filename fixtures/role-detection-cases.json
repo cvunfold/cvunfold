@@ -1,0 +1,124 @@
+{
+  "note": "Synthetic, fictional CV excerpts for the deterministic role detector. No personal data. `expected` is the role the detector must return; `confident: false` means the document is genuinely ambiguous and the detector is required to decline rather than guess.",
+  "cases": [
+    {
+      "id": "frontend-titled",
+      "expected": "frontend_developer",
+      "confident": true,
+      "signal": "Explicit title plus matching stack",
+      "text": "SYNTHETIC CV — Frontend Developer. Built React and TypeScript interfaces, maintained the design system in Storybook and fixed WCAG issues across the checkout flow."
+    },
+    {
+      "id": "backend-titled",
+      "expected": "backend_developer",
+      "confident": true,
+      "signal": "Explicit title plus matching stack",
+      "text": "SYNTHETIC CV — Backend Developer. Designed REST API endpoints in Spring Boot, modelled data in Postgres and moved order processing onto Kafka."
+    },
+    {
+      "id": "fullstack-titled",
+      "expected": "fullstack_developer",
+      "confident": true,
+      "signal": "Full-stack title resolves a two-sided document",
+      "text": "SYNTHETIC CV — Full-stack Developer. Owned features end-to-end: React front end, Express.js services and a Postgres schema behind them."
+    },
+    {
+      "id": "mobile-titled",
+      "expected": "mobile_developer",
+      "confident": true,
+      "signal": "Explicit title plus platform stack",
+      "text": "SYNTHETIC CV — iOS Developer. Shipped SwiftUI screens, managed releases through App Store Connect and cut cold-start time in Xcode Instruments."
+    },
+    {
+      "id": "qa-titled",
+      "expected": "qa_test_automation",
+      "confident": true,
+      "signal": "Explicit title plus test tooling",
+      "text": "SYNTHETIC CV — QA Automation Engineer. Owned the regression suite in Playwright, wrote the test plan for release candidates and triaged defects with developers."
+    },
+    {
+      "id": "devops-titled",
+      "expected": "devops_platform",
+      "confident": true,
+      "signal": "Explicit title plus platform stack",
+      "text": "SYNTHETIC CV — DevOps Engineer. Ran Kubernetes clusters, wrote Terraform modules for shared infrastructure and rebuilt CI/CD on GitHub Actions."
+    },
+    {
+      "id": "frontend-skills-only",
+      "expected": "frontend_developer",
+      "confident": true,
+      "signal": "No title anywhere; stack alone must carry the decision",
+      "text": "SYNTHETIC CV. Worked on the customer-facing application: React components, Redux state, Tailwind styling and accessibility remediation with the design team."
+    },
+    {
+      "id": "devops-skills-only",
+      "expected": "devops_platform",
+      "confident": true,
+      "signal": "Bare title word absent; platform stack decides",
+      "text": "SYNTHETIC CV — Engineer. Maintained Kubernetes workloads, authored Ansible playbooks, ran Prometheus and Grafana dashboards and owned observability standards."
+    },
+    {
+      "id": "qa-skills-only",
+      "expected": "qa_test_automation",
+      "confident": true,
+      "signal": "Test tooling without an explicit QA title",
+      "text": "SYNTHETIC CV. Built automated coverage with Selenium and Appium, maintained the regression suite and validated API responses in Postman before each release."
+    },
+    {
+      "id": "fullstack-untitled-both-ends",
+      "expected": "fullstack_developer",
+      "confident": true,
+      "signal": "Strong evidence on both ends with no title is itself the answer",
+      "text": "SYNTHETIC CV. Delivered features across the product: React components, Tailwind styling and CSS on the client, with Django services, Postgres and Redis behind them, plus REST API design."
+    },
+    {
+      "id": "keyword-stuffed-frontend",
+      "expected": "frontend_developer",
+      "confident": true,
+      "signal": "Title must survive a list stuffed with unrelated tooling",
+      "text": "SYNTHETIC CV — Frontend Developer. Skills: React, Vue, Angular, Svelte, TypeScript, Kubernetes, Terraform, Jenkins, Cypress, Playwright, Selenium, Postgres, Kafka. Experience bullet: developed web applications."
+    },
+    {
+      "id": "frontend-mentioning-qa",
+      "expected": "frontend_developer",
+      "confident": true,
+      "signal": "Collaboration with QA must not read as a QA title",
+      "text": "SYNTHETIC CV — Frontend Developer. Led accessibility remediation for the core flow, documented WCAG issues and established regression checks together with design and QA."
+    },
+    {
+      "id": "backend-handing-off-to-devops",
+      "expected": "backend_developer",
+      "confident": true,
+      "signal": "Mentioning a DevOps team must not read as a DevOps title",
+      "text": "SYNTHETIC CV — Backend Developer. Built microservices in Spring Boot against Postgres and MySQL, then handed deployment manifests over to the DevOps team."
+    },
+    {
+      "id": "polish-frontend",
+      "expected": "frontend_developer",
+      "confident": true,
+      "signal": "Polish-language document with diacritics",
+      "text": "SYNTETYCZNE CV — Programista Frontend. Tworzyłem komponenty w React i TypeScript, dbałem o dostępność zgodną z WCAG oraz rozwijałem design system zespołu."
+    },
+    {
+      "id": "ambiguous-two-titles",
+      "expected": "other",
+      "confident": false,
+      "signal": "Document claims two roles outright; declining beats guessing",
+      "text": "SYNTHETIC CV — Frontend Developer and Backend Developer. Worked as a Frontend Developer on one product and as a Backend Developer on another, with no shared context described."
+    },
+    {
+      "id": "no-technical-signal",
+      "expected": "other",
+      "confident": false,
+      "signal": "Off-target profession, nothing to detect",
+      "text": "SYNTHETIC CV — Sales Representative. Managed a portfolio of retail accounts, negotiated annual contracts and reported pipeline forecasts to the regional manager."
+    },
+    {
+      "id": "empty-document",
+      "expected": "other",
+      "confident": false,
+      "signal": "Unreadable or empty extraction",
+      "text": ""
+    }
+  ]
+}

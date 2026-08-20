@@ -29,7 +29,6 @@ afterEach(() => {
 
 const props = {
   mockMode: false,
-  initialJobMatch: false,
   initialRole: "frontend_developer" as const,
   initialSeniority: "auto" as const,
   handoffFromMobile: false,
@@ -37,17 +36,35 @@ const props = {
 };
 
 describe("mobile upload measurement", () => {
-  it("frames seniority as the level the user is applying for", () => {
-    render(<UploadFlow {...props}/>);
-    expect(screen.getByRole("group", { name: "Na jaki poziom aplikujesz?" })).toBeTruthy();
-    expect((screen.getByRole("radio", { name: "Nie wiem — oceń na podstawie CV" }) as HTMLInputElement).checked).toBe(true);
-    expect(screen.getByText(/To tylko punkt odniesienia/).textContent).toContain("co komunikuje Twoje CV");
+  it("shows the seniority field as a dropdown matching the role field, defaulting to auto", () => {
+    const { container } = render(<UploadFlow {...props}/>);
+    const trigger = screen.getByRole("combobox", { name: /Poziom stanowiska/ });
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(trigger.textContent).toContain("Nie wiem — oceń na podstawie CV");
+    expect(container.querySelector(".role-label-optional")?.textContent).toBe("(opcjonalne)");
+    expect(screen.queryByRole("radio")).toBeNull();
+
+    fireEvent.click(trigger);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    expect(screen.getByText("Na jaki poziom aplikujesz?")).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Senior" })).toBeTruthy();
   });
 
-  it("uses the same target-level framing in English", () => {
+  it("uses the same target-level framing in English and closes on pick", () => {
     render(<UploadFlow {...props} locale="en"/>);
-    expect(screen.getByRole("group", { name: "What level are you applying for?" })).toBeTruthy();
-    expect((screen.getByRole("radio", { name: "Not sure — assess from my CV" }) as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(screen.getByRole("combobox", { name: /Seniority level/ }));
+    expect(screen.getByText("What level are you applying for?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("option", { name: "Senior" }));
+    expect(screen.getByRole("combobox", { name: /Seniority level/ }).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("combobox", { name: /Seniority level/ }).textContent).toContain("Senior");
+  });
+
+  it("shows an explicit level from a handoff link directly, without opening the popover", () => {
+    render(<UploadFlow {...props} initialSeniority="senior"/>);
+    const trigger = screen.getByRole("combobox", { name: /Poziom stanowiska/ });
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(trigger.textContent).toContain("Senior");
   });
 
   it("marks the Other role as experimental before the user uploads a CV", () => {
@@ -66,12 +83,13 @@ describe("mobile upload measurement", () => {
     expect(screen.getByRole("note").textContent).toContain("Other specialisations use general criteria");
   });
 
-  it("requires the job description when job matching is selected", () => {
-    render(<UploadFlow {...props} mockMode initialJobMatch/>);
-    const description = screen.getByRole("textbox", { name: /Treść ogłoszenia/ }) as HTMLTextAreaElement;
-    expect(description.required).toBe(true);
-    expect(screen.getByText(/wymagana do dopasowania/)).toBeTruthy();
-    expect(screen.getByText("39 zł")).toBeTruthy();
+  it("offers a single plan with no job-matching upsell in the form", () => {
+    render(<UploadFlow {...props} mockMode/>);
+    expect(screen.queryByRole("textbox", { name: /Treść ogłoszenia/ })).toBeNull();
+    expect(screen.queryByText(/Dopasuj analizę do konkretnej oferty/)).toBeNull();
+    expect(screen.getByText("Pełny raport")).toBeTruthy();
+    expect(screen.getByText("29 zł")).toBeTruthy();
+    expect(screen.queryByText("39 zł")).toBeNull();
   });
 
   it("distinguishes picker open, native cancel, picker selection and drop", () => {
@@ -97,11 +115,11 @@ describe("mobile upload measurement", () => {
   it("uses Web Share with a URL that excludes detailed attribution", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "share", { configurable: true, value: share });
-    render(<UploadFlow {...props} initialJobMatch initialRole="qa_test_automation" initialSeniority="senior"/>);
+    render(<UploadFlow {...props} initialRole="qa_test_automation" initialSeniority="senior"/>);
     fireEvent.click(screen.getByRole("button", { name: "Nie masz CV na telefonie? Udostępnij link na komputer" }));
     await waitFor(() => expect(share).toHaveBeenCalledOnce());
     const url = new URL(share.mock.calls[0][0].url);
-    expect(Object.fromEntries(url.searchParams)).toEqual({ plan: "job_match", role: "qa_test_automation", seniority: "senior", handoff: "mobile" });
+    expect(Object.fromEntries(url.searchParams)).toEqual({ plan: "full_review", role: "qa_test_automation", seniority: "senior", handoff: "mobile" });
     expect(url.searchParams.has("gclid")).toBe(false);
     expect(trackAnalyticsEvent).toHaveBeenCalledWith("desktop_handoff_completed", expect.objectContaining({ handoff_method: "web_share" }));
   });
@@ -115,6 +133,116 @@ describe("mobile upload measurement", () => {
     await waitFor(() => expect(writeText).toHaveBeenCalledOnce());
     expect(screen.getByRole("status").textContent).toContain("Link copied.");
     expect(trackAnalyticsEvent).toHaveBeenCalledWith("desktop_handoff_completed", expect.objectContaining({ handoff_method: "clipboard" }));
+  });
+});
+
+describe("role prefill from the chosen file", () => {
+  function pickFile(container: HTMLElement) {
+    const picker = container.querySelector<HTMLInputElement>('input[type="file"]')!;
+    fireEvent.change(picker, { target: { files: [new File(["%PDF-1.4"], "cv.pdf", { type: "application/pdf" })] } });
+  }
+
+  function mockDetection(payload: unknown) {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
+
+  it("sets the detected role and says so, without touching the analysis quota", async () => {
+    const fetchMock = mockDetection({ detected: true, role: "backend_developer" });
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Rola docelowa" }).textContent).toContain("Backend Developer"));
+    expect(container.querySelector(".role-detection.applied")?.textContent).toContain("Ustawiliśmy tę rolę na podstawie Twojego CV");
+    expect(fetchMock).toHaveBeenCalledWith("/api/detect-role", expect.objectContaining({ method: "POST" }));
+    expect(trackAnalyticsEvent).toHaveBeenCalledWith("role_autodetected", expect.objectContaining({
+      detected_role_enum: "backend_developer", broad_role_enum: "backend_developer",
+    }));
+  });
+
+  it("leaves the form untouched when the detector is not confident", async () => {
+    mockDetection({ detected: false });
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+
+    await waitFor(() => expect(container.querySelector(".role-detection")).toBeNull());
+    expect(screen.getByRole("combobox", { name: "Rola docelowa" }).textContent).toContain("Frontend Developer");
+  });
+
+  it("never overrides a role the visitor picked themselves", async () => {
+    mockDetection({ detected: true, role: "backend_developer" });
+    const { container } = render(<UploadFlow {...props}/>);
+    fireEvent.click(screen.getByRole("combobox", { name: "Rola docelowa" }));
+    fireEvent.click(screen.getByRole("option", { name: /QA \/ Test Automation/ }));
+    pickFile(container);
+
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Rola docelowa" }).textContent).toContain("QA / Test Automation"));
+    expect(trackAnalyticsEvent).not.toHaveBeenCalledWith("role_autodetected", expect.anything());
+  });
+
+  it("reports a correction so the detector's real-world error rate is measurable", async () => {
+    mockDetection({ detected: true, role: "backend_developer" });
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+    await waitFor(() => expect(container.querySelector(".role-detection.applied")).toBeTruthy());
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Rola docelowa" }));
+    fireEvent.click(screen.getByRole("option", { name: /Mobile Developer/ }));
+
+    expect(trackAnalyticsEvent).toHaveBeenCalledWith("role_autodetect_corrected", expect.objectContaining({
+      detected_role_enum: "backend_developer", broad_role_enum: "mobile_developer",
+    }));
+    expect(container.querySelector(".role-detection")).toBeNull();
+  });
+
+  it("stays silent when detection fails outright", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+
+    await waitFor(() => expect(container.querySelector(".role-detection")).toBeNull());
+    expect(screen.getByRole("combobox", { name: "Rola docelowa" }).textContent).toContain("Frontend Developer");
+  });
+});
+
+describe("consent guard", () => {
+  it("keeps the submit button natively disabled until consent is given", () => {
+    render(<UploadFlow {...props} mockMode/>);
+    expect((screen.getByRole("button", { name: "Analizuj CV" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("pulses the consent box red instead of submitting on a click through the disabled button", () => {
+    vi.stubGlobal("fetch", vi.fn());
+    const { container } = render(<UploadFlow {...props} mockMode/>);
+
+    // A disabled <button> never dispatches click at all, in the browser or in
+    // jsdom — the wrapper span is what actually receives the click a real
+    // pointer would land on it via hit-testing (CSS gives the disabled button
+    // pointer-events:none for exactly this).
+    fireEvent.click(container.querySelector(".submit-wrap")!);
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(container.querySelector(".consent.attention")).toBeTruthy();
+  });
+
+  it("clears the red pulse the moment consent is given, in favour of the given state", () => {
+    const { container } = render(<UploadFlow {...props} mockMode/>);
+    fireEvent.click(container.querySelector(".submit-wrap")!);
+    expect(container.querySelector(".consent.attention")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /Zlecam rozpoczęcie analizy/ }));
+
+    expect(container.querySelector(".consent.attention")).toBeNull();
+    expect(container.querySelector(".consent.is-given")).toBeTruthy();
+  });
+
+  it("does not block submission once consent is given", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => undefined)));
+    render(<UploadFlow {...props} mockMode/>);
+    fireEvent.click(screen.getByRole("checkbox", { name: /Zlecam rozpoczęcie analizy/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Analizuj CV" }));
+    expect(fetch).toHaveBeenCalledOnce();
   });
 });
 
