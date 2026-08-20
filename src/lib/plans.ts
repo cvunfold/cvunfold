@@ -50,7 +50,14 @@ export function formatPlanPrice(plan: Plan, locale: Locale): string {
 // paywall. It is a third-party market range for a professional CV rewrite, not
 // a former price of ours, so it must stay conservative and verifiable — the
 // whole product argument is that we do not overclaim. One place to update it.
+//
+// Sourced from the Polish market: a freelance copywriter rewrite runs
+// PLN 100-250, a professional CV/career-advisory firm PLN 250-400 (or more).
+// The combined span is what a buyer actually faces choosing between the two,
+// so PLN 100-400 is the anchor, not either segment alone.
+// EUR figure is that PLN range converted (~4.3 PLN/EUR), not an
+// independently sourced EU-market rate.
 export const REWRITE_SERVICE_REFERENCE: Record<Market, string> = {
-  pl: "300–800 zł",
-  en: "€80–200",
+  pl: "100–400 zł",
+  en: "€25–90",
 };
