@@ -1,6 +1,8 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { clampWindowDays, isRealPurchase, summarizeTrafficMix } from "@/lib/data/store";
 import { clickAttributionPresent } from "@/lib/audience";
+import { roleSources } from "@/lib/analytics/events";
 import { GET } from "@/app/api/admin/diagnostics/route";
 
 describe("diagnostics window", () => {
@@ -93,5 +95,24 @@ describe("diagnostics endpoint", () => {
     const response = await GET(request("https://example.test/api/admin/diagnostics?days=7", "test-secret"));
     expect(response.status).toBe(200);
     expect((await response.json()).windowDays).toBe(7);
+  });
+});
+
+describe("role provenance reaches the database", () => {
+  const store = readFileSync("src/lib/data/store.ts", "utf8");
+
+  it("allows the new keys through the funnel-event sanitizer", () => {
+    // recordFunnelEvent drops any key missing from safePropertyKeys, silently.
+    // A dimension added only to the client vocabulary never reaches Supabase.
+    const keys = store.slice(store.indexOf("const safePropertyKeys"), store.indexOf("const safePropertyEnums"));
+    expect(keys).toContain('"role_source"');
+    expect(keys).toContain('"detected_role_enum"');
+  });
+
+  it("keeps the stored role_source values in lockstep with the analytics vocabulary", () => {
+    const stored = store.match(/role_source: \[([^\]]*)\]/)?.[1] || "";
+    expect(stored).not.toBe("");
+    for (const source of roleSources) expect(stored).toContain(`"${source}"`);
+    expect(stored.split(",").length).toBe(roleSources.length);
   });
 });

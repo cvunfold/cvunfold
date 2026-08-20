@@ -206,6 +206,72 @@ describe("role prefill from the chosen file", () => {
   });
 });
 
+describe("where the submitted role came from", () => {
+  // broad_role_enum alone cannot answer this: `frontend_developer` is both the
+  // detector's answer and the untouched form default, and the funnel event is
+  // written before the CV is parsed. Ads traffic showed the two diverging.
+  function pickFile(container: HTMLElement) {
+    const picker = container.querySelector<HTMLInputElement>('input[type="file"]')!;
+    fireEvent.change(picker, { target: { files: [new File(["%PDF-1.4"], "cv.pdf", { type: "application/pdf" })] } });
+  }
+
+  function mockBothEndpoints(detection: unknown) {
+    const submitted: FormData[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === "/api/detect-role") return { ok: true, json: async () => detection };
+      submitted.push(init?.body as FormData);
+      return { ok: true, json: async () => ({ reportPath: "/raport", accessToken: "t" }) };
+    }));
+    return submitted;
+  }
+
+  async function submitAfterDetection(container: HTMLElement, submitted: FormData[]) {
+    fireEvent.click(screen.getByRole("checkbox", { name: /Zlecam rozpoczęcie analizy/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Analizuj CV" }));
+    await waitFor(() => expect(submitted).toHaveLength(1));
+    return submitted[0];
+  }
+
+  it("labels a role the detector picked", async () => {
+    const submitted = mockBothEndpoints({ detected: true, role: "backend_developer" });
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+    await waitFor(() => expect(container.querySelector(".role-detection.applied")).toBeTruthy());
+
+    const form = await submitAfterDetection(container, submitted);
+    expect(form.get("roleSource")).toBe("autodetected");
+    expect(form.get("detectedRole")).toBe("backend_developer");
+    expect(form.get("role")).toBe("backend_developer");
+  });
+
+  it("keeps the detector's answer when the visitor overrides it", async () => {
+    const submitted = mockBothEndpoints({ detected: true, role: "backend_developer" });
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+    await waitFor(() => expect(container.querySelector(".role-detection.applied")).toBeTruthy());
+    fireEvent.click(screen.getByRole("combobox", { name: "Rola docelowa" }));
+    fireEvent.click(screen.getByRole("option", { name: /Mobile Developer/ }));
+
+    const form = await submitAfterDetection(container, submitted);
+    expect(form.get("roleSource")).toBe("user_chose");
+    expect(form.get("role")).toBe("mobile_developer");
+    // Losing this would erase the only signal of how often the detector is wrong.
+    expect(form.get("detectedRole")).toBe("backend_developer");
+  });
+
+  it("separates an untouched default from a detected frontend developer", async () => {
+    const submitted = mockBothEndpoints({ detected: false });
+    const { container } = render(<UploadFlow {...props}/>);
+    pickFile(container);
+    await waitFor(() => expect(container.querySelector(".role-detection")).toBeNull());
+
+    const form = await submitAfterDetection(container, submitted);
+    expect(form.get("role")).toBe("frontend_developer");
+    expect(form.get("roleSource")).toBe("not_detected");
+    expect(form.get("detectedRole")).toBeNull();
+  });
+});
+
 describe("consent guard", () => {
   it("keeps the submit button natively disabled until consent is given", () => {
     render(<UploadFlow {...props} mockMode/>);

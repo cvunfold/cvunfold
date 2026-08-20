@@ -13,7 +13,7 @@ import {
   writeConsent,
 } from "@/lib/analytics/client";
 import { googleConsentDefaults } from "@/components/google-analytics";
-import { safeAnalyticsPayload } from "@/lib/analytics/events";
+import { parseRoleSource, safeAnalyticsPayload } from "@/lib/analytics/events";
 
 afterEach(() => {
   window.localStorage.clear();
@@ -135,6 +135,25 @@ describe("file picker diagnostics", () => {
       locale: "pl", market: "pl", plan: "full_review", broad_role_enum: "other",
       selected_seniority_enum: "auto", upload_entrypoint: "picker",
     });
+  });
+
+  it("carries the closed role provenance on analysis_started and drops anything else", () => {
+    expect(safeAnalyticsPayload("analysis_started", {
+      locale: "pl", market: "pl", plan: "full_review", broad_role_enum: "frontend_developer",
+      role_source: "not_detected", detected_role_enum: "backend_developer", detector_note: "raw model text",
+    }).properties).toEqual({
+      locale: "pl", market: "pl", plan: "full_review", broad_role_enum: "frontend_developer",
+      role_source: "not_detected", detected_role_enum: "backend_developer",
+    });
+  });
+
+  it("rejects a role provenance value outside the closed set", () => {
+    expect(parseRoleSource("autodetected")).toBe("autodetected");
+    expect(parseRoleSource("guessed")).toBeNull();
+    expect(parseRoleSource(null)).toBeNull();
+    expect(safeAnalyticsPayload("analysis_started", {
+      locale: "pl", market: "pl", plan: "full_review", role_source: "guessed",
+    }).properties).toEqual({ locale: "pl", market: "pl", plan: "full_review" });
   });
 
   it("keeps plan and the closed variant on sample-report views", () => {

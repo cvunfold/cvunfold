@@ -11,6 +11,7 @@ import { consumeAnalysisQuota, rateLimit } from "@/lib/security/rate-limit";
 import { validateSignature, validateUpload } from "@/lib/security/upload";
 import { parseSeniority } from "@/lib/rubrics/technical-v1";
 import { parseTargetRoleId } from "@/lib/roles";
+import { parseRoleSource } from "@/lib/analytics/events";
 import { fallbackModelDisabled, resolveReviewTimeoutMs, reviewWithOpenAI, toSafeOpenAIErrorCode } from "@/lib/ai/openai-review";
 import { activePromptVariant } from "@/lib/ai/prompts";
 import { REVIEW_PIPELINE_VERSION } from "@/lib/ai/review-provenance";
@@ -67,11 +68,22 @@ export async function POST(request: Request) {
     });
     const plan: Plan = requestedPlan || (jobDescription ? "job_match" : "full_review");
     const paidClick = clickAttributionPresent(attribution);
+    // broad_role_enum above is the form field, which defaults to
+    // frontend_developer and is recorded before the CV is read. These two say
+    // whether that value was chosen, detected, or simply left alone.
+    const roleSource = parseRoleSource(form.get("roleSource"));
+    const detectedRole = parseTargetRoleId(form.get("detectedRole"));
     await recordFunnelEvent({
       name: "analysis_started",
       locale,
       market,
-      properties: { plan, ...attribution, ...(paidClick ? { paid_click: true } : {}) },
+      properties: {
+        plan,
+        ...attribution,
+        ...(paidClick ? { paid_click: true } : {}),
+        ...(roleSource ? { role_source: roleSource } : {}),
+        ...(detectedRole ? { detected_role_enum: detectedRole } : {}),
+      },
     }).catch(() => undefined);
     await verifyTurnstile(String(form.get("turnstileToken") || ""), clientIp);
     if (jobDescription.length > Number(process.env.MAX_JOB_DESCRIPTION_LENGTH || 20_000)) throw new Error("JOB_DESCRIPTION_TOO_LONG");
