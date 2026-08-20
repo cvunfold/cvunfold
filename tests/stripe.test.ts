@@ -104,4 +104,17 @@ describe("express wallet availability probe", () => {
     expect(confirm).toContain('buyer_confirmed: "true"');
     expect(confirm.indexOf("savePendingPayment")).toBeLessThan(confirm.indexOf('buyer_confirmed: "true"'));
   });
+
+  it("does not let the buyer_confirmed bookkeeping write abort the payment", () => {
+    // The wallet element only calls checkout.confirm() after this endpoint
+    // answers ok, so a throw here means the buyer is never charged. The flag is
+    // only used to classify expiry events, so it must never gate the sale.
+    const confirm = source.slice(source.indexOf("export async function markExpressWalletCheckoutStarted"), source.indexOf("export function shouldRecordCheckoutExpired"));
+    const update = confirm.slice(confirm.indexOf("checkout.sessions.update"));
+    expect(update).toContain(".catch(");
+    // The pending row is the half the webhook cannot complete a purchase
+    // without, so it must stay fatal rather than being swallowed too.
+    const pendingRow = confirm.slice(confirm.indexOf("savePendingPayment"), confirm.indexOf("checkout.sessions.update"));
+    expect(pendingRow).not.toContain(".catch(");
+  });
 });
