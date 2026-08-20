@@ -17,6 +17,17 @@ export const purchasePaymentMethods = ["standard", "express_wallet", "apple_pay"
 // with zero server-side symptom. This names which of those it actually was.
 export const walletUnavailableReasons = ["session_unavailable", "element_error", "no_supported_method", "provider_error"] as const;
 export type WalletUnavailableReason = (typeof walletUnavailableReasons)[number];
+// broad_role_enum is recorded before the CV is parsed, so a `frontend_developer`
+// reading is ambiguous: it is both the detector's answer and the form default.
+// This says which one it was, and detected_role_enum says what the detector
+// proposed even when the visitor then overrode it.
+export const roleSources = ["autodetected", "user_chose", "not_detected", "detector_error", "not_run"] as const;
+export type RoleSource = (typeof roleSources)[number];
+
+export function parseRoleSource(value: unknown): RoleSource | null {
+  const candidate = String(value || "");
+  return roleSources.includes(candidate as RoleSource) ? candidate as RoleSource : null;
+}
 
 const attributionKeys = ["source", "medium", "campaign", "content", "term"] as const;
 const measurementKeys = ["landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin"] as const;
@@ -39,7 +50,7 @@ const allowed: Record<AnalyticsEvent, readonly string[]> = {
   desktop_handoff_started: ["locale", "market", "plan", "handoff_method", ...measurementKeys, ...attributionKeys],
   desktop_handoff_completed: ["locale", "market", "plan", "handoff_method", ...measurementKeys, ...attributionKeys],
   handoff_link_opened: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
-  analysis_started: ["locale", "market", "plan", ...measurementKeys, ...attributionKeys],
+  analysis_started: ["locale", "market", "plan", "role_source", "detected_role_enum", ...measurementKeys, ...attributionKeys],
   analysis_succeeded: ["locale", "market", "plan", "analysis_success", ...measurementKeys, ...attributionKeys],
   analysis_failed: ["locale", "market", "plan", "analysis_success", "error_category", ...measurementKeys, ...attributionKeys],
   analysis_configuration_failed: ["locale", "market", "plan", "analysis_success", ...measurementKeys, ...attributionKeys],
@@ -62,6 +73,7 @@ const enumValues: Record<string, readonly string[]> = {
   broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   detected_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
+  role_source: roleSources,
   landing_variant: ["developer"], handoff_origin: ["google_cpc", "other"],
   teaser_variant: [TEASER_VARIANT],
   upload_entrypoint: ["picker", "drop"], handoff_method: ["web_share", "clipboard"],

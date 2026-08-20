@@ -9,6 +9,7 @@ import { SenioritySelect } from "./seniority-select";
 import { readSafeAttribution, trackAnalyticsEvent } from "@/lib/analytics/client";
 import { DEFAULT_LANDING_VARIANT, handoffOriginFromAttribution, type HandoffOrigin } from "@/lib/audience";
 import { parseTargetRoleId, type TargetRoleId } from "@/lib/roles";
+import type { RoleSource } from "@/lib/analytics/events";
 import type { Seniority } from "@/lib/rubrics/technical-v1";
 import { formatPlanPrice, REWRITE_SERVICE_REFERENCE, type Plan } from "@/lib/plans";
 import { analysisPath, homePath, legalPath, type Locale } from "@/lib/i18n";
@@ -108,6 +109,9 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   const roleChosenByUser = useRef(initialRole !== "frontend_developer");
   const [roleDetection, setRoleDetection] = useState<"idle" | "pending" | "applied">("idle");
   const detectionRequest = useRef(0);
+  // What the detector answered, kept even when the visitor overrides it: the
+  // disagreement is the only measurement we get of how often it is wrong.
+  const detectionOutcome = useRef<{ source: RoleSource; role: TargetRoleId | null }>({ source: "not_run", role: null });
   const [seniority, setSeniority] = useState<Seniority>(initialSeniority);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileEpoch, setTurnstileEpoch] = useState(0);
@@ -228,12 +232,20 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
       // A second file picked while this was in flight owns the field now.
       if (request !== detectionRequest.current || roleChosenByUser.current) return;
       const detected = parseTargetRoleId(data.role);
-      if (!data.detected || !detected) { setRoleDetection("idle"); return; }
+      if (!data.detected || !detected) {
+        detectionOutcome.current = { source: "not_detected", role: null };
+        setRoleDetection("idle");
+        return;
+      }
+      detectionOutcome.current = { source: "autodetected", role: detected };
       setRole(detected);
       setRoleDetection("applied");
       trackAnalyticsEvent("role_autodetected", { ...analyticsBase(), broad_role_enum: detected, detected_role_enum: detected });
     } catch {
-      if (request === detectionRequest.current) setRoleDetection("idle");
+      if (request === detectionRequest.current) {
+        detectionOutcome.current = { source: "detector_error", role: null };
+        setRoleDetection("idle");
+      }
     }
   }
 
@@ -312,10 +324,20 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
     if (!consent) { nudgeConsent(); return; }
     setPhase("analyzing");
     setError("");
-    trackAnalyticsEvent("analysis_started", analyticsBase());
+    // A choice by the visitor outranks whatever the detector said, but the
+    // detector's answer still travels so the two can be compared server-side.
+    const source: RoleSource = roleChosenByUser.current ? "user_chose" : detectionOutcome.current.source;
+    const detected = detectionOutcome.current.role;
+    trackAnalyticsEvent("analysis_started", {
+      ...analyticsBase(),
+      role_source: source,
+      ...(detected ? { detected_role_enum: detected } : {}),
+    });
     const form = new FormData();
     form.set("file", file);
     form.set("role", role);
+    form.set("roleSource", source);
+    if (detected) form.set("detectedRole", detected);
     form.set("seniority", seniority);
     form.set("plan", plan);
     form.set("locale", locale);

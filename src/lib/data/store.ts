@@ -258,7 +258,7 @@ const safePropertyKeys = new Set([
   "plan", "error_category", "unreadable_reason", "not_a_cv_reason", "analysis_success", "model", "prompt_version", "rubric_version", "duration_ms",
   "input_tokens", "output_tokens", "estimated_cost", "source", "medium", "campaign", "content", "term",
   "landing_variant", "broad_role_enum", "selected_seniority_enum", "handoff_origin", "teaser_variant", "currency", "value",
-  "paid_click",
+  "paid_click", "role_source", "detected_role_enum",
 ]);
 const safePropertyEnums: Record<string, readonly string[]> = {
   plan: ["full_review", "job_match"],
@@ -266,6 +266,8 @@ const safePropertyEnums: Record<string, readonly string[]> = {
   unreadable_reason: ["pdf_no_text_items", "pdf_empty_text_items", "pdf_page_extraction_failed", "pdf_parse_failed", "pdf_encrypted", "docx_no_text", "docx_parse_failed", "text_below_threshold"],
   not_a_cv_reason: ["too_short", "no_career_anchor", "insufficient_structure", "low_score"],
   broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
+  detected_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
+  role_source: ["autodetected", "user_chose", "not_detected", "detector_error", "not_run"],
   selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
   handoff_origin: ["google_cpc", "other"],
   teaser_variant: ["evidence_v1"],
