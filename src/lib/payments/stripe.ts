@@ -162,7 +162,18 @@ export async function markExpressWalletCheckoutStarted(sessionId: string, expect
     currency: session.currency,
     livemode: session.livemode,
   });
-  await stripe.checkout.sessions.update(session.id, { metadata: { buyer_confirmed: "true" } });
+  // The pending row above is the only part the purchase actually needs. This
+  // flag exists purely so shouldRecordCheckoutExpired can tell a real wallet
+  // confirmation apart from an availability probe when the expiry webhook
+  // fires. The caller treats any throw from this function as fatal and returns
+  // without charging the buyer, so letting a bookkeeping write abort a sale
+  // would trade real revenue for one analytics event. Log and continue.
+  await stripe.checkout.sessions.update(session.id, { metadata: { buyer_confirmed: "true" } })
+    .catch((error) => console.error(JSON.stringify({
+      event: "wallet_buyer_confirmed_update_failed",
+      analysis_id: expectedAnalysisId,
+      message: error instanceof Error ? error.message : "UNKNOWN",
+    })));
 }
 
 export function shouldRecordCheckoutExpired(session: Pick<Stripe.Checkout.Session, "metadata">): boolean {
