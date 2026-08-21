@@ -13,7 +13,7 @@ test("Other is clearly disclosed as an experimental role before upload", async (
 
 test("mock vertical slice keeps paid details server-side", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Twoje CV ma kilka sekund/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Zwykle brakuje kilku zdań/ })).toBeVisible();
   await page.getByRole("link", { name: /Sprawdź, co pokazuje moje CV/ }).first().click();
   const role = page.getByRole("combobox", { name: "Rola docelowa" });
   await role.click();

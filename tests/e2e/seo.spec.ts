@@ -20,7 +20,7 @@ test("public pages expose canonical bilingual metadata", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator("h1")).toHaveCount(1);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://cvunfold.pl/en");
-  await expect(page.locator("h1")).toContainText("Does it show what you can do?");
+  await expect(page.locator("h1")).toContainText("not more experience.");
   await page.goto("/artykuly/jak-nie-dac-sie-zastapic-przez-ai");
   await expect(page.locator("h1")).toHaveCount(1);
   await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");

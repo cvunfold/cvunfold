@@ -15,10 +15,10 @@ import { absoluteUrl } from "@/lib/seo";
 const copy = {
   pl: {
     nav: ["Różnica", "Raport", "Cennik", "FAQ"], navIds: ["roznica", "raport", "cennik", "faq"], switchLabel: "EN",
-    title: <>Twoje CV ma kilka sekund.<br/>Czy pokazuje <em>to, co potrafisz?</em></>,
-    description: "Prześlij CV i bezpłatnie zobacz, jaki poziom komunikuje, jakie robi pierwsze wrażenie i jeden konkretny problem z dowodem z dokumentu. Pełny raport odblokujesz tylko wtedy, gdy uznasz analizę za wartościową.",
+    title: <>Zwykle brakuje kilku zdań,<br/><em>nie nowego doświadczenia.</em></>,
+    description: "Prześlij CV i bezpłatnie zobacz, jakie robi pierwsze wrażenie, jaki poziom komunikuje i jedną konkretną rzecz do poprawy — wskazaną cytatem z Twojego dokumentu. Pełny raport odblokujesz tylko wtedy, gdy uznasz analizę za wartościową.",
     primary: "Sprawdź swoje CV za darmo", secondary: "Zobacz przykładowy raport — 79/100",
-    freeLine: "Za darmo: ATS checker + pierwsze wrażenie + 1 problem z dowodem",
+    freeLine: "Za darmo: ATS checker + pierwsze wrażenie + 1 poprawka z cytatem",
     priceLine: `Pełny raport ${formatPlanPrice("full_review", "pl")} · bez konta`,
     trustLine: "Plik źródłowy usuwamy po analizie. Nie dopisujemy faktów, których nie ma w dokumencie.",
     specialty: "Raport uwzględnia specjalizację techniczną i poziom stanowiska, na które aplikujesz.",
@@ -77,10 +77,10 @@ const copy = {
   },
   en: {
     nav: ["Difference", "Report", "Pricing", "FAQ"], navIds: ["difference", "report", "pricing", "faq"], switchLabel: "PL",
-    title: <>Your CV has a few seconds.<br/>Does it show <em>what you can do?</em></>,
-    description: "Upload your CV and see for free what level it communicates, the first impression it makes, and one concrete issue backed by an excerpt from your document. You only unlock the full report if you find the review valuable.",
+    title: <>Usually it&apos;s a few sentences missing,<br/><em>not more experience.</em></>,
+    description: "Upload your CV and see for free the first impression it makes, what level it communicates, and one concrete thing to improve — pointed out with a quote from your own document. You only unlock the full report if you find the review valuable.",
     primary: "Check your CV for free", secondary: "View the sample report — 79/100",
-    freeLine: "Free: ATS checker + first impression + 1 issue with evidence",
+    freeLine: "Free: ATS checker + first impression + 1 improvement with a quote",
     priceLine: `Full report ${formatPlanPrice("full_review", "en")} · no account`,
     trustLine: "We delete the source file after analysis. We never add facts that are not in the document.",
     specialty: "The review accounts for your technical specialization and the seniority level you're applying for.",
