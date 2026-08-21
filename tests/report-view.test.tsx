@@ -92,6 +92,21 @@ describe("free report purchase hierarchy", () => {
     expect(container.querySelector(".locked")?.textContent).not.toContain("1 z 5");
   });
 
+  it("lets an undecided reader see a full report before paying, without losing their own", () => {
+    // The paywall asks for 29 zł from someone who has never seen a full report.
+    // New tab: the teaser is a private session the reader should not navigate off.
+    const teaser = toTeaser(createMockReport());
+    const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
+    const link = container.querySelector<HTMLAnchorElement>(".locked .locked-sample-link")!;
+    expect(link).not.toBeNull();
+    expect(link.getAttribute("href")).toBe("/przykladowy-raport");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toContain("noopener");
+    // It has to precede the buy button: it is evidence for the decision, not an afterthought.
+    const cta = container.querySelector(".locked-payment-actions")!;
+    expect(link.compareDocumentPosition(cta) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("tracks the paywall CTA after the hook", () => {
     const teaser = toTeaser(createMockReport());
     const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);

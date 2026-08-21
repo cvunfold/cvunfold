@@ -926,6 +926,9 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .locked-value { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 18px; width: min(100%, 600px); margin: 20px auto; padding: 0; list-style: none; color: #455169; font-size: 12px; text-align: left; }
 .locked-value li { position: relative; padding-left: 15px; line-height: 1.45; }
 .locked-value li::before { content: "✓"; position: absolute; left: 0; color: var(--accent-deep); font-weight: 800; }
+.locked-sample-link { display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 20px; color: #526600; font-size: 13px; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+.locked-sample-link svg { width: 14px; height: 14px; }
+.locked-sample-link:hover { color: var(--ink); }
 .locked-payment-actions { position: relative; width: min(100%, 680px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 0 auto; }
 .locked-payment-actions > .button { width: 100%; min-height: 62px; margin: 0; }
 .express-wallet-cta { position: absolute; width: 100%; visibility: hidden; pointer-events: none; }
