@@ -386,11 +386,6 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
           <div><span>{t.free}</span><strong>{t.freePrice}</strong></div>
           <div><span>{t.planLabel}</span><strong>{formatPlanPrice(plan, locale)}</strong><small>{t.oneTime}</small></div>
         </div>
-        {/* Beside the price, and above the fold on both layouts: someone who lands
-            straight here from the hero never passes the landing page's sample link.
-            New tab on purpose — navigating away would discard the picked file,
-            the detected role and the consent checkbox. */}
-        <a className="analysis-sample-link" href={sampleReportPath(locale)} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a>
         {handoffFromMobile ? <p className="handoff-arrival" role="status">{t.handoffOpened}</p> : null}
         <button type="button" className={`dropzone ${file ? "has-file" : ""}`} disabled={busy}
           onClick={() => { trackAnalyticsEvent("file_picker_opened", analyticsBase()); input.current?.click(); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); chooseFile(event.dataTransfer.files?.[0] ?? null, "drop"); }}>
@@ -424,6 +419,9 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
         <div className="analysis-status"><span className="status-orbit" aria-hidden="true"/><div><h2>{t.statusIdle}</h2><p>{t.statusIdleCopy}</p></div></div>
         <div className="analysis-value"><b>{t.valueTitle}</b><p>{t.valueCopy}</p></div>
         <div className="evidence-preview"><span className="evidence-mark" aria-hidden="true">“</span><div><b>{t.evidenceTitle}</b><p>{t.evidenceCopy}</p></div></div>
+        {/* New tab on purpose: navigating away in this tab would discard the picked
+            file, the auto-detected role and the consent checkbox. */}
+        <a className="analysis-sample-link" href={sampleReportPath(locale)} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a>
       </aside>
     </div>
     {busy ? <div ref={overlay} className="analysis-progress-overlay" role="dialog" aria-modal="true" aria-labelledby="analysis-progress-title" tabIndex={-1}>
