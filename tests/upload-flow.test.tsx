@@ -92,6 +92,27 @@ describe("mobile upload measurement", () => {
     expect(screen.queryByText("39 zł")).toBeNull();
   });
 
+  it("offers the sample report without costing the visitor their form state", () => {
+    // Someone who clicks the hero CTA lands here directly and never passes the
+    // landing page's sample link, so this is their only chance to see one. It must
+    // open in a new tab: navigating away discards the picked file, the detected
+    // role and the consent checkbox.
+    const { container } = render(<UploadFlow {...props}/>);
+    const link = container.querySelector<HTMLAnchorElement>(".analysis-sample-link")!;
+    expect(link).not.toBeNull();
+    expect(link.getAttribute("href")).toBe("/przykladowy-raport");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toContain("noopener");
+    expect(link.getAttribute("aria-label")).toContain("nowej karcie");
+  });
+
+  it("points the sample link at the English report for English visitors", () => {
+    const { container } = render(<UploadFlow {...props} locale="en"/>);
+    const link = container.querySelector<HTMLAnchorElement>(".analysis-sample-link")!;
+    expect(link.getAttribute("href")).toBe("/en/sample-report");
+    expect(link.getAttribute("aria-label")).toContain("new tab");
+  });
+
   it("distinguishes picker open, native cancel, picker selection and drop", () => {
     const { container } = render(<UploadFlow {...props}/>);
     const dropzone = screen.getByRole("button", { name: /Przeciągnij PDF lub DOCX/ });
