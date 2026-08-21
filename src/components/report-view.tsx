@@ -45,10 +45,10 @@ const copy = {
     reservations: "Co budzi rezerwę", questions: "O co mogą zapytać", after: ["Po 5 sekundach", "Po 10 sekundach", "Po 20 sekundach"],
     simulated: "SYMULOWANY WYNIK", improve: { reached: "Co najbardziej wzmocniłoby ten wynik?", pending: "Co najbardziej mogłoby przesunąć wynik w stronę rozmowy?" },
     disclaimer: "To symulacja pierwszego wrażenia na podstawie samego dokumentu, a nie prawdziwa decyzja rekrutacyjna ani przewidywanie wyniku konkretnej rekrutacji.",
-    categories: "Sygnały poziomu w kategoriach", featured: "Najważniejsze ustalenie darmowej analizy", problem: "PROBLEM",
+    categories: "Sygnały poziomu w kategoriach", featured: "Najważniejsze ustalenie darmowej analizy", problem: "DO POPRAWY",
     matters: "DLACZEGO TO WAŻNE", action: "CO ZROBIĆ", proposedRewrite: "PROPONOWANY ZAPIS", confidence: "Pewność", perceptionMarker: "Wrażenie", targetMarker: "Aplikujesz na",
     fullIssues: "Co osłabia odbiór — dowód przed opinią", strengths: "Mocne sygnały", nextSteps: "Plan działania",
-    lockedTitle: "Pełna anatomia problemów jest w raporcie", lockedCopy: "Odblokuj wszystkie dowody, priorytety i bezpieczne sugestie bez dopisywania faktów.", lockedOutcome: "Zobacz, co poprawić najpierw i dlaczego.",
+    lockedTitle: "Pełna anatomia problemów jest w raporcie", lockedCopy: "Odblokuj wszystkie dowody, priorytety i bezpieczne sugestie bez dopisywania faktów.", lockedOutcome: "Przestajesz zgadywać, co jest nie tak z Twoim CV.",
     anchorTitle: "Za co naprawdę płaci się przy poprawianiu CV",
     anchor: `Przepisanie CV u specjalisty kosztuje zwykle ${REWRITE_SERVICE_REFERENCE.pl} i trwa kilka dni. Najdroższa część tej ceny to nie samo pisanie, tylko decyzja, co w dokumencie zmienić i dlaczego. Dokładnie tę część odblokowujesz poniżej, na dowodach z Twojego CV. Zdania przepiszesz potem sam albo swoim agentem AI.`,
     unlock: "Odblokuj pełny raport", oneTime: "płatność jednorazowa · bez subskrypcji", paymentMethodsLabel: "Obsługiwane płatności", paymentMethods: ["Karta", "BLIK", "Apple Pay", "Google Pay"], feedback: "Czy analiza była trafna?",
@@ -56,8 +56,8 @@ const copy = {
     accurate: ["Tak", "Częściowo", "Nie"], copied: "Link skopiowany", copyFailed: "Nie udało się skopiować linku.",
     deleteConfirm: "Usunąć raport i wszystkie powiązane dane? Tej operacji nie można cofnąć.", private: "Raport jest prywatny i nie jest indeksowany.",
     samplePrivate: "Dane syntetyczne · fikcyjna kandydatka", viewArticles: "Rozwiń diagnozę w artykułach", analyze: "Sprawdź swoje CV", backHome: "Wróć do strony głównej",
-    mobileSummary: "Twój bezpłatny wynik", fullIncludes: "Pełny raport zawiera",
-    atsTitle: "ATS / higiena techniczna dokumentu", atsCaption: "Czy plik da się poprawnie odczytać i sparsować. To nie jest ocena treści ani poziomu.", atsShowAll: "Pokaż wszystkie kontrole", atsCollapse: "Zwiń kontrole", teaserFinding: "WYKRYTY PROBLEM", teaserLocked: "Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.", teaserSidebar: "Pełna diagnoza pokaże dowody, wpływ problemu i bezpieczne poprawki.",
+    mobileSummary: "Twój bezpłatny wynik", fullIncludes: "W pełnym raporcie",
+    atsTitle: "ATS / higiena techniczna dokumentu", atsCaption: "Czy plik da się poprawnie odczytać i sparsować. To nie jest ocena treści ani poziomu.", atsShowAll: "Pokaż wszystkie kontrole", atsCollapse: "Zwiń kontrole", teaserFinding: "PRZYKŁADOWA POPRAWKA", teaserLocked: "Zobacz, gdzie to występuje, jak wpływa na odbiór i co zmienić.", teaserSidebar: "Pełny raport pokazuje, jak Twoje CV czyta rekruter — i co zmienić najpierw.",
   },
   en: {
     sample: "SAMPLE REPORT", yourReport: "Your CV report", sampleReport: "Sample CV report",
@@ -67,10 +67,10 @@ const copy = {
     reservations: "What creates doubt", questions: "What they may ask", after: ["After 5 seconds", "After 10 seconds", "After 20 seconds"],
     simulated: "SIMULATED OUTCOME", improve: { reached: "What would most strengthen this outcome?", pending: "What could most improve the outcome towards Interview?" },
     disclaimer: "This is a simulation of the first impression created by the document, not a real hiring decision or a prediction for a specific application.",
-    categories: "Seniority signals by category", featured: "The most important finding from your free analysis", problem: "PROBLEM",
+    categories: "Seniority signals by category", featured: "The most important finding from your free analysis", problem: "TO IMPROVE",
     matters: "WHY IT MATTERS", action: "WHAT TO DO", proposedRewrite: "SUGGESTED WORDING", confidence: "Confidence", perceptionMarker: "Impression", targetMarker: "Applying for",
     fullIssues: "What weakens the document — evidence before opinion", strengths: "Strong signals", nextSteps: "Action plan",
-    lockedTitle: "The full anatomy of the issues is in your report", lockedCopy: "Unlock every evidence reference, priority and fact-safe suggestion.", lockedOutcome: "See what to fix first and why.",
+    lockedTitle: "The full anatomy of the issues is in your report", lockedCopy: "Unlock every evidence reference, priority and fact-safe suggestion.", lockedOutcome: "You stop guessing what is wrong with your CV.",
     anchorTitle: "What you actually pay for when you fix a CV",
     anchor: `A professional CV rewrite usually costs ${REWRITE_SERVICE_REFERENCE.en} and takes several days. The expensive part of that price is not the writing. It is deciding what to change and why. That is exactly what you unlock below, backed by evidence from your own CV. The rewriting you can do yourself, or with your own AI agent.`,
     unlock: "Unlock the full report", oneTime: "one-time payment · no subscription", paymentMethodsLabel: "Supported payments", paymentMethods: ["Cards", "Apple Pay", "Google Pay"], feedback: "Was the analysis accurate?",
@@ -78,8 +78,8 @@ const copy = {
     accurate: ["Yes", "Partly", "No"], copied: "Link copied", copyFailed: "We could not copy the link.",
     deleteConfirm: "Delete the report and all related data? This cannot be undone.", private: "This report is private and not indexed.",
     samplePrivate: "Synthetic data · fictional candidate", viewArticles: "Explore the diagnosis in our articles", analyze: "Review your CV", backHome: "Back to homepage",
-    mobileSummary: "Your free result", fullIncludes: "The full report includes",
-    atsTitle: "ATS / technical document hygiene", atsCaption: "Whether the file parses correctly. This is not an assessment of content or seniority.", atsShowAll: "Show all checks", atsCollapse: "Collapse checks", teaserFinding: "DETECTED ISSUE", teaserLocked: "See where it appears, how it affects the reader and what to change.", teaserSidebar: "The full diagnosis shows the evidence, impact and fact-safe improvements.",
+    mobileSummary: "Your free result", fullIncludes: "In the full report",
+    atsTitle: "ATS / technical document hygiene", atsCaption: "Whether the file parses correctly. This is not an assessment of content or seniority.", atsShowAll: "Show all checks", atsCollapse: "Collapse checks", teaserFinding: "SAMPLE IMPROVEMENT", teaserLocked: "See where it appears, how it affects the reader and what to change.", teaserSidebar: "The full report shows how a recruiter reads your CV — and what to change first.",
   },
 } as const;
 
@@ -226,13 +226,12 @@ const confidenceLabel = {
 } as const;
 const TEASER_VARIANT = "evidence_v1" as const;
 
-function teaserTitle(issueCount: number, locale: Locale) {
-  if (locale === "en") return `We found ${issueCount} ${issueCount === 1 ? "issue" : "issues"} that may be weakening how your CV is received.`;
-  if (issueCount === 1) return "Wykryliśmy 1 problem, który może osłabiać odbiór Twojego CV.";
-  const lastTwoDigits = issueCount % 100;
-  const lastDigit = issueCount % 10;
-  const noun = lastTwoDigits >= 12 && lastTwoDigits <= 14 || lastDigit < 2 || lastDigit > 4 ? "problemów" : "problemy";
-  return `Wykryliśmy ${issueCount} ${noun}, które mogą osłabiać odbiór Twojego CV.`;
+// Leading with the count made the report priced per finding, and a strong CV scores
+// a low count — so the best candidates read the weakest pitch. The severity line
+// below still carries how serious this is, which is the part that should land.
+function teaserTitle(locale: Locale) {
+  if (locale === "en") return "Your CV has places that may be weakening how it is received.";
+  return "W Twoim CV są miejsca, które mogą osłabiać jego odbiór.";
 }
 
 function polishLabel(count: number, forms: [string, string, string]) {
@@ -263,20 +262,19 @@ function evidenceLabel(count: number, locale: Locale) {
   return count === 1 ? "DOWÓD Z CV" : "DOWODY Z CV";
 }
 
-// The teaser exposes one finding; everything else stays behind the paywall, so the
-// mobile offer states that split instead of repeating the severity breakdown.
-function teaserOfferCounts(teaser: TeaserReport, locale: Locale) {
-  const preview = teaser.featuredIssue ? 1 : 0;
-  const locked = Math.max(teaser.issueCount - preview, 0);
+// Counting the findings priced the report per unit, and the count shrinks as the CV
+// gets better — the strongest candidates saw the weakest offer. Name the kinds of
+// answer waiting behind the paywall instead, led by the one the teaser never shows.
+function teaserOfferHighlights(locale: Locale) {
   if (locale === "en") return [
-    { count: teaser.issueCount, label: teaser.issueCount === 1 ? "issue" : "issues" },
-    { count: preview, label: "in preview" },
-    { count: locked, label: "locked" },
+    "how a recruiter reads your CV after 5, 10 and 20 seconds",
+    "what creates doubt, and what they may ask about it",
+    "what to change first, and why",
   ];
   return [
-    { count: teaser.issueCount, label: polishLabel(teaser.issueCount, ["problem", "problemy", "problemów"]) },
-    { count: preview, label: "w podglądzie" },
-    { count: locked, label: polishLabel(locked, ["zablokowany", "zablokowane", "zablokowanych"]) },
+    "jak rekruter czyta Twoje CV po 5, 10 i 20 sekundach",
+    "co budzi rezerwę i o co mogą zapytać na rozmowie",
+    "co zmienić najpierw i dlaczego",
   ];
 }
 
@@ -466,7 +464,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
 
           {teaser ? <div className="report-mobile-offer">
             <span>{t.fullIncludes}</span>
-            <ul>{teaserOfferCounts(teaser, locale).map((item) => <li key={item.label}><b>{item.count}</b> {item.label}</li>)}</ul>
+            <ul>{teaserOfferHighlights(locale).map((item) => <li key={item}>{item}</li>)}</ul>
             <button onClick={() => void unlock("mobile_summary")} disabled={busy} className="button" data-purchase-surface="mobile_summary" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button>
             <small>{t.oneTime}</small>
           </div> : null}
@@ -485,7 +483,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
 
           <section ref={featuredIssue} className="report-section teaser-featured-issue">
             <span>{t.teaserFinding}</span>
-            <h2>{teaserTitle(teaser?.issueCount || 0, locale)}</h2>
+            <h2>{teaserTitle(locale)}</h2>
             {teaser ? <p className="teaser-severity">{severitySummary(teaser, locale)}</p> : null}
             {teaser?.featuredIssue ? <article className="teaser-finding">
               <div><small>{t.problem}</small><h3>{teaser.featuredIssue.title}</h3></div>
@@ -495,7 +493,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
             </article> : <div className="teaser-lock"><LockIcon/><span>{locale === "pl" ? "Pełny raport zawiera diagnozy wraz z dowodami i priorytetami." : "The full report contains diagnoses with evidence and priorities."}</span></div>}
           </section>
 
-          <section ref={paywall} className="locked"><LockIcon/><h2>{locale === "pl" ? `To tylko 1 z ${teaser?.issueCount || 0} wykrytych problemów.` : `This is only 1 of ${teaser?.issueCount || 0} detected issues.`}</h2><p>{locale === "pl" ? "Pełny raport pokazuje pozostałe diagnozy, wszystkie dowody, ich wpływ na odbiór CV oraz kolejność poprawek." : "The full report shows the remaining diagnoses, all evidence, their effect on how your CV is received, and the order of improvements."}</p><p><b>{t.lockedOutcome}</b></p><ul className="locked-value"><li>{locale === "pl" ? "wszystkie wykryte problemy" : "all detected issues"}</li><li>{locale === "pl" ? "dowody z dokumentu i priorytety" : "document evidence and priorities"}</li><li>{locale === "pl" ? "bezpieczne sugestie bez dopisywania faktów" : "fact-safe suggestions"}</li><li>{locale === "pl" ? "pełne pierwsze 20 sekund" : "the full first 20 seconds"}</li></ul><aside className="price-anchor"><b>{t.anchorTitle}</b><p>{t.anchor}</p></aside><div className="locked-payment-actions"><button ref={paywallCta} onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={() => {}}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
+          <section ref={paywall} className="locked"><LockIcon/><h2>{locale === "pl" ? "To była jedna poprawka. Pod spodem jest cała diagnoza." : "That was one improvement. The full diagnosis is below."}</h2><aside className="price-anchor"><b>{t.anchorTitle}</b><p>{t.anchor}</p></aside><p><b>{t.lockedOutcome}</b></p><ul className="locked-value"><li>{locale === "pl" ? "jak rekruter czyta Twoje CV po 5, 10 i 20 sekundach" : "how a recruiter reads your CV after 5, 10 and 20 seconds"}</li><li>{locale === "pl" ? "co budzi rezerwę i o co mogą zapytać na rozmowie" : "what creates doubt, and what they may ask about it"}</li><li>{locale === "pl" ? "każda poprawka z cytatem z Twojego dokumentu" : "every improvement quoted from your own document"}</li><li>{locale === "pl" ? "kolejność: co zmienić najpierw i dlaczego" : "the order: what to change first, and why"}</li><li>{locale === "pl" ? "sugestie bez dopisywania faktów, których nie ma w CV" : "suggestions that never invent facts your CV does not have"}</li><li>{locale === "pl" ? "sygnały poziomu w kategoriach i mocne strony dokumentu" : "seniority signals by category, and the document's strengths"}</li></ul><div className="locked-payment-actions"><button ref={paywallCta} onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={() => {}}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
         </div>
       </div>
       <button className="report-mobile-sticky-cta" data-visible={mobileStickyVisible ? "true" : "false"} data-purchase-surface="mobile_sticky" data-payment-method="standard" aria-hidden={!mobileStickyVisible} tabIndex={mobileStickyVisible ? 0 : -1} disabled={busy} onClick={() => void unlock("mobile_sticky")}><span><LockIcon/>{busy ? "…" : t.unlock}</span><strong>{price}</strong></button>

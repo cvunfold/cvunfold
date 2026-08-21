@@ -976,8 +976,9 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   .report-mobile-summary .verdict { margin: 8px 0 0; font: 600 16px/1.4 var(--serif); }
   .report-mobile-offer { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, .8fr); align-items: center; gap: 10px 24px; padding-top: 18px; border-top: 1px solid var(--line); }
   .report-mobile-offer > span { align-self: end; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
-  .report-mobile-offer ul { grid-column: 1; display: flex; flex-wrap: wrap; gap: 7px 16px; align-self: start; margin: 0; padding: 0; list-style: none; color: #455169; font-size: 12px; }
-  .report-mobile-offer li b { color: var(--ink); }
+  .report-mobile-offer ul { grid-column: 1; display: grid; gap: 5px; align-self: start; margin: 0; padding: 0; list-style: none; color: #455169; font-size: 12px; }
+  .report-mobile-offer li { position: relative; padding-left: 15px; line-height: 1.45; }
+  .report-mobile-offer li::before { content: "✓"; position: absolute; left: 0; color: var(--accent-deep); font-weight: 800; }
   .report-mobile-offer .button { grid-column: 2; grid-row: 1 / 3; width: 100%; min-height: 54px; }
   .report-mobile-offer > small { grid-column: 2; color: var(--muted); font-size: 11px; text-align: center; }
   .report-content { padding: 25px 20px 60px; }
@@ -1117,9 +1118,7 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
   .report-mobile-offer .button { order: 2; }
   .report-mobile-offer ul { order: 3; }
   .report-mobile-offer > small { order: 4; }
-  .report-mobile-offer ul { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-  .report-mobile-offer li { padding: 7px 5px; border: 1px solid var(--line); border-radius: 4px; text-align: center; }
-  .report-mobile-offer li b { display: block; font-size: 15px; }
+  .report-mobile-offer ul { grid-template-columns: 1fr; }
   .timeline-grid, .two-col, .match-grid, .report-summary-grid { grid-template-columns: 1fr; }
   .report-summary-grid { gap: 34px; }
   .sample-disclosure { display: block; }
