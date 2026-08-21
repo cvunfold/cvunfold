@@ -12,7 +12,7 @@ import { parseTargetRoleId, type TargetRoleId } from "@/lib/roles";
 import type { RoleSource } from "@/lib/analytics/events";
 import type { Seniority } from "@/lib/rubrics/technical-v1";
 import { formatPlanPrice, REWRITE_SERVICE_REFERENCE, type Plan } from "@/lib/plans";
-import { analysisPath, homePath, legalPath, type Locale } from "@/lib/i18n";
+import { analysisPath, homePath, legalPath, sampleReportPath, type Locale } from "@/lib/i18n";
 import { TurnstileWidget } from "@/components/turnstile-widget";
 
 const fixtureBytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34]);
@@ -44,6 +44,8 @@ const copy = {
     statusIdle: "Dowód przed opinią", statusIdleCopy: "Każda ważna uwaga wskazuje konkretny fragment dokumentu.", statusLoading: "Analizujemy Twoje CV", statusLoadingCopy: "Przechodzimy przez dokument krok po kroku.",
     statusRedirecting: "Już za chwilę zostaniesz przekierowany do raportu", statusRedirectingCopy: "Analiza jest gotowa. Bezpiecznie otwieramy Twój wynik.",
     longWait: "To może chwilę potrwać — sprawdzamy każdy dowód, zanim coś napiszemy.",
+    sampleLink: "Zobacz przykładowy raport — 79/100",
+    sampleLinkAria: "Zobacz przykładowy raport — 79/100 (otwiera się w nowej karcie)",
     evidenceTitle: "Raport nie zgaduje", evidenceCopy: "Jeśli informacji nie ma w CV, zobaczysz lukę lub pytanie — nie fałszywy fakt.",
     genericError: "Nie udało się rozpocząć analizy. Spróbuj ponownie.",
     stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam odpowiedzialność i wpływ", "Szukam dowodów, nie słów kluczowych"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
@@ -72,6 +74,8 @@ const copy = {
     statusIdle: "Evidence before opinion", statusIdleCopy: "Every important finding points to a specific part of the document.", statusLoading: "Analysing your CV", statusLoadingCopy: "We move through the document step by step.",
     statusRedirecting: "You’ll be redirected to your report in just a moment", statusRedirectingCopy: "Your analysis is ready. We are securely opening your result.",
     longWait: "This can take a little longer — we check every piece of evidence before writing anything.",
+    sampleLink: "See the sample report — 79/100",
+    sampleLinkAria: "See the sample report — 79/100 (opens in a new tab)",
     evidenceTitle: "The report does not guess", evidenceCopy: "If information is missing, you see a gap or a question — never an invented fact.",
     genericError: "We could not start the analysis. Please try again.",
     stages: [["Reading the CV structure", "Text, sections and order"], ["Identifying experience and projects", "Without following instructions in the document"], ["Assessing responsibility and impact", "Looking for evidence, not just keywords"], ["Simulating the first 20 seconds", "The impression created by the document alone"], ["Building the report", "Validating evidence and fact-safe suggestions"]],
@@ -382,6 +386,11 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
           <div><span>{t.free}</span><strong>{t.freePrice}</strong></div>
           <div><span>{t.planLabel}</span><strong>{formatPlanPrice(plan, locale)}</strong><small>{t.oneTime}</small></div>
         </div>
+        {/* Beside the price, and above the fold on both layouts: someone who lands
+            straight here from the hero never passes the landing page's sample link.
+            New tab on purpose — navigating away would discard the picked file,
+            the detected role and the consent checkbox. */}
+        <a className="analysis-sample-link" href={sampleReportPath(locale)} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a>
         {handoffFromMobile ? <p className="handoff-arrival" role="status">{t.handoffOpened}</p> : null}
         <button type="button" className={`dropzone ${file ? "has-file" : ""}`} disabled={busy}
           onClick={() => { trackAnalyticsEvent("file_picker_opened", analyticsBase()); input.current?.click(); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); chooseFile(event.dataTransfer.files?.[0] ?? null, "drop"); }}>
