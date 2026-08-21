@@ -64,7 +64,7 @@ describe("free report purchase hierarchy", () => {
     const teaser = toTeaser(createMockReport());
     const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
 
-    const hook = screen.getByRole("heading", { name: "Wykryliśmy 3 problemy, które mogą osłabiać odbiór Twojego CV." }).closest("section");
+    const hook = screen.getByRole("heading", { name: "W Twoim CV są miejsca, które mogą osłabiać jego odbiór." }).closest("section");
     const paywall = container.querySelector<HTMLElement>(".locked");
     expect(container.querySelector(".teaser-profile")?.textContent).toContain(teaser.profileSummary);
     expect(container.querySelector(".teaser-first-impression")?.textContent).toContain(teaser.firstImpression);
@@ -82,11 +82,14 @@ describe("free report purchase hierarchy", () => {
     for (const method of ["Karta", "BLIK", "Apple Pay", "Google Pay"]) expect(paymentMethods?.textContent).toContain(method);
   });
 
-  it("shows every severity count with correct Polish inflection", () => {
+  it("shows severity with correct Polish inflection, without pricing the report per finding", () => {
     const teaser = { ...toTeaser(createMockReport()), issueCount: 5, severityCounts: { critical: 1, important: 3, minor: 1 } };
-    render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
-    expect(screen.getByRole("heading", { name: "Wykryliśmy 5 problemów, które mogą osłabiać odbiór Twojego CV." })).toBeTruthy();
+    const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);
     expect(screen.getByText("1 kluczowy · 3 istotne · 1 drobny")).toBeTruthy();
+    // The count led readers to price the report per finding, and it shrinks as the
+    // CV improves, so the strongest candidates saw the weakest offer.
+    expect(container.textContent).not.toContain("Wykryliśmy 5");
+    expect(container.querySelector(".locked")?.textContent).not.toContain("1 z 5");
   });
 
   it("tracks the paywall CTA after the hook", () => {
