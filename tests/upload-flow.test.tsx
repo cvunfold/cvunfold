@@ -96,10 +96,12 @@ describe("mobile upload measurement", () => {
     // Someone who clicks the hero CTA lands here directly and never passes the
     // landing page's sample link, so this is their only chance to see one. It must
     // open in a new tab: navigating away discards the picked file, the detected
-    // role and the consent checkbox.
+    // role and the consent checkbox. It closes the sidebar, after the evidence note.
     const { container } = render(<UploadFlow {...props}/>);
-    const link = container.querySelector<HTMLAnchorElement>(".analysis-sample-link")!;
+    const aside = container.querySelector(".analysis-aside")!;
+    const link = aside.querySelector<HTMLAnchorElement>(".analysis-sample-link")!;
     expect(link).not.toBeNull();
+    expect(aside.lastElementChild).toBe(link);
     expect(link.getAttribute("href")).toBe("/przykladowy-raport");
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toContain("noopener");
