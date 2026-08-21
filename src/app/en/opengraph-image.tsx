@@ -9,7 +9,7 @@ export const contentType = "image/png";
 
 export default async function EnglishOpenGraphImage() {
   return new ImageResponse(<OgImageCanvas
-    title="Your CV has a few seconds. Does it show what you can do?"
+    title="Usually it's a few sentences missing, not more experience."
     description="See how your responsibility, impact and technical credibility come across to a hiring manager."
     label="EVIDENCE-BASED CV REVIEW"
     footer="First impression · Evidence · Impact · Priorities"
