@@ -44,10 +44,22 @@ export function parseSeniority(value: unknown): Seniority | null {
   return SENIORITIES.includes(value as Seniority) ? value as Seniority : null;
 }
 
+// "auto" used to resolve to senior, so anyone who answered "I do not know, judge
+// from my CV" was scored as a senior: ownership at .23 instead of .09 and clarity
+// at .08 instead of .30. A junior was then told their ownership and impact were
+// missing — true, and useless, because those are facts of career stage rather than
+// fixable document problems. Auto now carries neutral weights into the request, and
+// the real profile is applied afterwards from the seniority the model perceived.
 export function getRubric(seniority: Seniority, targetRole: TargetRoleId = "frontend_developer", locale: Locale = "pl"): RubricCategory[] {
-  const resolved = seniority === "auto" ? "senior" : seniority;
   const role = getTargetRoleProfile(targetRole, locale);
   const labels: Record<string, string> = { ...(locale === "en" ? commonLabelsEn : commonLabels), credibility: role.credibilityLabel, architecture: role.systemsLabel };
-  const selectedWeights = seniority === "auto" && role.experimental ? genericAutoWeights : weights[resolved];
+  const selectedWeights = seniority === "auto" ? genericAutoWeights : weights[seniority];
   return Object.entries(selectedWeights).map(([key, weight]) => ({ key, weight, label: labels[key] }));
+}
+
+// Only the four real levels can pick a weight profile; "unclear" keeps the neutral
+// one, which is the honest answer when the document does not settle the question.
+export function scoringSeniority(selected: Seniority, perceived: string): Seniority {
+  if (selected !== "auto") return selected;
+  return perceived === "junior" || perceived === "mid" || perceived === "senior" || perceived === "lead" ? perceived : "auto";
 }
