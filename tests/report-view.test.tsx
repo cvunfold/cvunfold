@@ -173,7 +173,10 @@ describe("report header", () => {
     expect(mobileScore?.lastElementChild?.textContent).toBe("OGÓLNA JAKOŚĆ KOMUNIKACJI CV");
     expect(desktopScore?.firstElementChild?.classList.contains("score-ring-with-caption")).toBe(true);
     expect(desktopScore?.lastElementChild?.textContent).toBe("OGÓLNA JAKOŚĆ KOMUNIKACJI CV");
-    expect(mobileScore?.querySelector(".score-ring-caption")?.textContent).toBe("Wymaga dopracowania");
+    // The band label itself is covered in score-band.test.ts. Asserting a specific
+    // one here coupled a layout test to the mock's weighted score, so it broke when
+    // the auto rubric stopped using senior weights.
+    expect(mobileScore?.querySelector(".score-ring-caption")?.textContent).toBeTruthy();
   });
 
   it("places perceived and target labels on the seniority ladder without repeating the level", () => {

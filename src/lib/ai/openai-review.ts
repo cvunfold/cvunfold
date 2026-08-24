@@ -3,7 +3,7 @@ import { zodTextFormat } from "openai/helpers/zod";
 import { reportSchema, type CVReport } from "./schemas/report";
 import { applyServerRubric, auditCalibration, validateEvidence } from "./validate-report";
 import type { Segment } from "@/lib/document-parsing";
-import { getRubric, RUBRIC_VERSION, type Seniority } from "@/lib/rubrics/technical-v1";
+import { getRubric, RUBRIC_VERSION, scoringSeniority, type Seniority } from "@/lib/rubrics/technical-v1";
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
 import { getReviewPrompt } from "./prompts";
 import { REVIEW_PIPELINE_VERSION, type ReviewProvenance } from "./review-provenance";
@@ -113,6 +113,14 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     response = await request(fallbackModel);
   }
   if (!response.output_parsed) throw new Error("OPENAI_INVALID_RESPONSE");
+  // The rubric sent with the request carried neutral weights when the visitor left
+  // seniority on auto. Now that the model has read the CV, score with the profile
+  // for the level it actually perceived.
+  const scoringRubric = getRubric(
+    scoringSeniority(input.targetSeniority, response.output_parsed.document.perceivedSeniority),
+    input.targetRole,
+    input.locale,
+  );
   const normalized = applyServerRubric({
     ...response.output_parsed,
     rubricVersion: RUBRIC_VERSION,
@@ -122,7 +130,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
       targetRole: roleProfile.label,
       targetSeniority: input.targetSeniority,
     },
-  }, rubric);
+  }, scoringRubric);
   const report = validateEvidence(
     normalized,
     new Set(input.segments.map((segment) => segment.id)),
