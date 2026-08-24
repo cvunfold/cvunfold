@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DocumentLanguage } from "@/components/document-language";
 import { GoogleAnalytics, googleConsentDefaults } from "@/components/google-analytics";
+import { VercelWebAnalytics } from "@/components/vercel-web-analytics";
 import { brand } from "@/lib/brand";
 import { SITE_DESCRIPTION, SITE_LOCALE, SITE_NAME, SITE_URL } from "@/lib/seo";
 import "./globals.css";
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <DocumentLanguage />
       {children}
       {analyticsEnabled ? <GoogleAnalytics analyticsId={analyticsId} adsId={adsId} adsConversionLabel={adsConversionLabel} /> : null}
+      {process.env.MOCK_MODE !== "true" ? <VercelWebAnalytics /> : null}
     </body>
   </html>;
 }
