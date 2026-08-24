@@ -6,6 +6,8 @@ Google dostaje wyłącznie parametry z zamkniętej allowlisty. Treść CV, ogło
 
 Rola rozpoznana z CV przez model nie jest parametrem analytics i nigdy nie trafia do GA4 ani Google Ads. Po stronie serwera służy jednorazowo do zwiększenia anonimowego licznika w jednej z zamkniętych kategorii — `supported_it`, `other_it`, `unclear` oraz zestaw konkretnych kategorii spoza IT (`architecture_construction`, `healthcare_medical`, `legal`, `education_academia`, `finance_accounting`, `sales_marketing`, `hr_recruiting`, `public_sector`, `hospitality_retail`, `creative_arts_media`, `engineering_manufacturing_nonit`, `skilled_trades`, `science_research_nonit`, `other_non_it`) — nigdy wolny tekst, i jednym z dwóch ogólnych źródeł (`google_cpc`, `other`). Licznik nie przechowuje identyfikatora analizy, dokładnej roli, daty, UTM, click ID ani treści dokumentu lub raportu. Komórki z mniej niż pięcioma analizami są ukrywane w diagnostics.
 
+Odsłony stron mierzy Vercel Web Analytics — bezciasteczkowo, bez identyfikatora i bez zgody, na podstawie prawnie uzasadnionego interesu. Adres strony przechodzi przez `safeVercelAnalyticsUrl`: fragment (a w nim token dostępu do raportu) znika, ścieżki raportu są sprowadzane do `/raport` lub `/en/report` i tracą całe query, a poza nimi zostają wyłącznie etykiety kampanii `utm_*`. Identyfikatory kliknięcia (`gclid`, `gbraid`, `wbraid`) nie trafiają do Vercela — dostaje je tylko Google, bo tylko on ma czym je rozliczyć.
+
 Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero po świadomej zgodzie. Użytkownik ma równorzędne opcje akceptacji, odrzucenia i późniejszej zmiany ustawień. Implementacja odpowiada [aktualnej instrukcji Google](https://developers.google.com/tag-platform/security/guides/consent).
 
 ## Eventy
@@ -20,9 +22,6 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 | `file_picker_cancelled` | Wyłącznie natywne zdarzenie `cancel` | jw. | GA4 | diagnostic | bez heurystyki blur/focus |
 | `role_autodetected` | Detektor ustawił rolę po wybraniu pliku | locale, market, plan, `detected_role_enum`, wariant, role enum, seniority enum, UTM | GA4 | diagnostic | tylko przy pewnym wyniku i tylko gdy pole nie było tknięte |
 | `role_autodetect_corrected` | Użytkownik poprawił rolę ustawioną przez detektor | jw.; `broad_role_enum` niesie rolę poprawioną, `detected_role_enum` proponowaną | GA4 | diagnostic | dolna granica błędu detektora, nie każdy poprawi |
-
-`role_autodetected` i `role_autodetect_corrected` istnieją wyłącznie w GA4, więc znikają dla każdego, kto nie wyrazi zgody — a na ruchu płatnym to znaczna część. Dlatego `analysis_started` niesie do Supabase dwa dodatkowe, zamknięte pola: `role_source` (`autodetected`, `user_chose`, `not_detected`, `detector_error`, `not_run`) mówiące skąd wzięła się wartość `broad_role_enum`, oraz `detected_role_enum` — **co zaproponował detektor**, zachowywane także wtedy, gdy użytkownik jego propozycję nadpisał. Bez tego `broad_role_enum=frontend_developer` jest nierozstrzygalne: to jednocześnie odpowiedź detektora i domyślna wartość formularza, zapisywana zanim CV zostanie sparsowane. Oba pola to domknięte enumy z tej samej listy ról co `broad_role_enum`; nie zbieramy żadnej nowej danej o osobie, tylko pochodzenie wartości, którą i tak już zapisywaliśmy.
-| `upload_started` | Wybór poprawnego pliku | jw. + `upload_entrypoint=picker|drop`, UTM | GA4 | secondary | po walidacji typu i limitu; bez dostawcy pliku |
 | `upload_completed` | Serwer przyjął i przetworzył upload | jw. | GA4 | secondary | odpowiedź sukcesu API |
 | `desktop_handoff_started` | Próba Web Share albo kopiowania | jw. + `handoff_method`, `handoff_origin` | GA4 | diagnostic | przy każdej rzeczywistej próbie |
 | `desktop_handoff_completed` | Web Share zakończony albo link skopiowany | jw. | GA4 | diagnostic | dopiero po sukcesie API |
@@ -42,6 +41,8 @@ Consent Mode v2 ma domyślnie cztery stany `denied`; tag jest ładowany dopiero 
 | `full_report_viewed` | Render płatnego raportu | locale, market, plan | Supabase + GA4 | secondary | raz na mount |
 | `feedback_submitted` | Zapis feedbacku płatnego raportu | locale, market, plan | Supabase | secondary | odpowiedź 2xx |
 | `delete_requested` | Skuteczne żądanie usunięcia | locale, market | Supabase | diagnostic | zapis poza kasowanym FK |
+
+`role_autodetected` i `role_autodetect_corrected` istnieją wyłącznie w GA4, więc znikają dla każdego, kto nie wyrazi zgody — a na ruchu płatnym to znaczna część. Dlatego `analysis_started` niesie do Supabase dwa dodatkowe, zamknięte pola: `role_source` (`autodetected`, `user_chose`, `not_detected`, `detector_error`, `not_run`) mówiące skąd wzięła się wartość `broad_role_enum`, oraz `detected_role_enum` — **co zaproponował detektor**, zachowywane także wtedy, gdy użytkownik jego propozycję nadpisał. Bez tego `broad_role_enum=frontend_developer` jest nierozstrzygalne: to jednocześnie odpowiedź detektora i domyślna wartość formularza, zapisywana zanim CV zostanie sparsowane. Oba pola to domknięte enumy z tej samej listy ról co `broad_role_enum`; nie zbieramy żadnej nowej danej o osobie, tylko pochodzenie wartości, którą i tak już zapisywaliśmy.
 
 `error_category` dla `analysis_failed`: `empty_file`, `file_too_large`, `unsupported_file_type`, `invalid_file_signature`,
 `invalid_file_mime`, `unsafe_archive`, `unreadable_document`, `document_too_long`, `not_a_cv`, `invalid_target_role`,
