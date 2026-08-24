@@ -189,52 +189,89 @@ export const articles: Article[] = [
   {
     slug: "jak-pokazac-seniority-w-cv",
     category: "Seniority",
-    title: "Jak pokazać seniority w CV bez pisania „Senior” w każdym miejscu?",
-    description: "Sprawdź, jakie sygnały w CV naprawdę budują obraz seniora: skala decyzji, złożoność problemów, wpływ, współpraca i odpowiedzialność.",
-    excerpt: "Liczba lat doświadczenia pomaga, ale nie wystarcza. Seniority widać przede wszystkim w rodzaju problemów, decyzji i odpowiedzialności.",
-    readingTime: "8 min",
+    title: "Jak pokazać seniority w CV? 7 wiarygodnych dowodów",
+    description: "Jak pokazać seniority w CV bez pustych deklaracji? Sprawdź 7 dowodów: progresję, trudność problemów, decyzje, ownership, wpływ i szerszy zakres.",
+    excerpt: "Sama nazwa stanowiska nie pokazuje poziomu. Zobacz siedem rodzajów dowodów, które pomagają odróżnić dojrzały profil od listy obowiązków.",
+    readingTime: "5 min",
     publishedAt: "2026-08-08",
-    intro: "Tytuł stanowiska jest deklaracją. Seniority, które widzi pracodawca, powstaje z dowodów rozsianych po całym CV: rodzaju problemów, skali odpowiedzialności, trudności decyzji, współpracy z innymi i wpływu na rezultat. Dlatego osoba z ośmioma latami doświadczenia może wyglądać w dokumencie na Mida, a kandydat z krótszym stażem może pokazać zaskakująco dojrzały profil.",
+    updatedAt: "2026-08-24",
+    intro: "Jak pokazać seniority w CV, skoro sama liczba lat i tytuł stanowiska niewiele wyjaśniają? Potrzebujesz śladów rosnącego zakresu: trudniejszych wyzwań, ważniejszych wyborów, odpowiedzialności za rezultat i wpływu wykraczającego poza własne zadania. Nie musisz mieć wszystkich siedmiu dowodów w każdym punkcie. Dokument powinien jednak tworzyć z nich spójny wzorzec, który da się obronić na rozmowie.",
     sections: [
       {
-        heading: "Lata doświadczenia są kontekstem, nie dowodem",
+        heading: "1. Pokaż progresję, a nie tylko staż",
         paragraphs: [
-          "Staż pomaga osadzić historię zawodową, ale sam nie wyjaśnia poziomu. Pięć lat wykonywania podobnych, dokładnie opisanych zadań nie musi oznaczać większej samodzielności niż dwa lata pracy nad coraz trudniejszymi problemami.",
-          "Pracodawca szuka progresji. Czy z czasem rosła skala systemu, niejasność problemów, odpowiedzialność za decyzje albo wpływ na innych? CV powinno pokazywać tę zmianę w treści punktów, nie tylko w nazwach kolejnych stanowisk.",
+          "Staż porządkuje historię zawodową, ale nie pokazuje, czy wraz z nim rosła odpowiedzialność. Pięć lat wykonywania podobnych, dokładnie opisanych zadań może komunikować węższy poziom niż dwa lata pracy nad coraz mniej oczywistymi problemami.",
+          "Porównaj dwie lub trzy ostatnie role. Czy zmienił się zakres systemu, samodzielność, trudność wyborów albo liczba osób korzystających z Twoich rozwiązań? Wydobądź tę zmianę w treści punktów. Kolejne stanowiska nie powinny wyglądać jak ta sama lista obowiązków z inną datą.",
         ],
       },
       {
-        heading: "Cztery sygnały dojrzałego profilu",
+        heading: "2. Nazwij wyzwanie, zanim opiszesz rozwiązanie",
         paragraphs: [
-          "Pierwszy to złożoność: problemy wykraczające poza pojedynczy komponent lub ticket. Drugi to decyzje: wybór podejścia wraz z ograniczeniami i konsekwencjami. Trzeci to wpływ: rezultat dla użytkownika, biznesu, jakości albo sposobu pracy zespołu. Czwarty to współpraca: zdolność uzgadniania kierunku z produktem, designem, backendem i innymi zespołami.",
-          "Nie musisz mieć dowodu na każdy sygnał w każdym miejscu. Jeżeli jednak całe CV pokazuje wyłącznie implementację funkcji w konkretnej technologii, odbiorca ma mało podstaw, by zobaczyć poziom Senior lub Lead.",
+          "Technologia mówi, czym pracujesz. Sytuacja pokazuje, dlaczego praca wymagała Twojego doświadczenia. Zamiast zaczynać od „implementacji modułu”, wskaż punkt wyjścia: niestabilny checkout, niespójne komponenty używane przez kilka zespołów, kosztowny proces wydawniczy albo migrację ograniczoną kompatybilnością.",
+          "Nie nazywaj zadania „złożonym” lub „strategicznym”. Pokaż źródło trudności. Czy wymagania były niepełne? Czy rozwiązanie dotykało wielu części systemu? Czy błąd mógł zatrzymać sprzedaż albo pracę innych zespołów? Konkret pozwala odbiorcy samodzielnie ocenić poziom problemu.",
         ],
       },
       {
-        heading: "Opisuj trudność, nie tylko wielkość projektu",
+        heading: "3. Pokaż wybór i ograniczenie",
         paragraphs: [
-          "„Duży projekt” jest pojęciem względnym. Znacznie bardziej wiarygodne są konkretne ograniczenia: cztery zespoły korzystające z jednego design systemu, migracja bez zatrzymania sprzedaży, wymagania dostępności, budżet wydajnościowy albo konieczność utrzymania kompatybilności.",
-          "Takie szczegóły pozwalają zrozumieć, dlaczego zadanie wymagało dojrzałości. Jednocześnie chronią przed pustymi określeniami w rodzaju „zaawansowana architektura” czy „strategiczny projekt”.",
+          "Dojrzałość techniczna jest widoczna nie w liczbie użytych narzędzi, lecz w wyborach dokonanych pod presją ograniczeń. Dobry punkt może pokazać, co trzeba było pogodzić: tempo migracji z bezpieczeństwem, autonomię zespołów ze spójnością albo wydajność z kosztem utrzymania.",
+          "Nie musisz opisywać całego RFC. Wystarczy jedna decyzja i warunek, który ją ukształtował. Taki fragment tworzy też uczciwy punkt wyjścia do rozmowy: można zapytać o odrzucone warianty, ryzyko i konsekwencje.",
         ],
         example: {
           before: "Tworzenie skalowalnej architektury aplikacji e-commerce.",
-          after: "Przygotowałam podział frontendu na moduły domenowe dla trzech zespołów, zachowując wspólne logowanie i kompatybilność istniejących ścieżek checkoutu.",
-          note: "Konkretne ograniczenia pokazują poziom problemu bez nazywania go „seniorowym”.",
+          after: "Podzieliłam frontend na moduły domenowe dla trzech zespołów, zachowując wspólne logowanie i kompatybilność istniejących ścieżek checkoutu.",
+          note: "Druga wersja nie deklaruje poziomu. Pokazuje wybór, zakres i ograniczenia, które można zweryfikować w rozmowie.",
         },
       },
       {
-        heading: "Lead nie oznacza wyłącznie zarządzania ludźmi",
+        heading: "4. Domknij odpowiedzialność poza implementacją",
         paragraphs: [
-          "Profil Lead może wynikać z wpływu technicznego, prowadzenia kierunku architektury, budowania standardów albo usprawniania decyzji wielu zespołów. Mentoring jest wartościowy, ale zdanie „mentoring młodszych programistów” samo w sobie niewiele mówi.",
-          "Pokaż mechanizm wpływu: jakie decyzje stały się lepsze, jaki standard został przyjęty, jak skrócił się feedback loop albo jakie ryzyko zespół zaczął wykrywać wcześniej. Seniority staje się wiarygodne wtedy, gdy odbiorca widzi zmianę wykraczającą poza Twój własny backlog.",
+          "Punkt kończący się na „zaimplementowałem” pozostawia pytanie, kto rozpoznał potrzebę zmiany, uzgodnił kierunek, zaplanował wdrożenie i sprawdził zachowanie rozwiązania na produkcji. Jeżeli naprawdę uczestniczyłeś w tych etapach, pokaż właściwy zakres zamiast redukować go do kodowania.",
+          "Ownership nie oznacza pracy w pojedynkę ani przypisywania sobie wyniku zespołu. Możesz precyzyjnie napisać, że przygotowałeś plan, uzgodniłeś kontrakt z Backendem, prowadziłeś rollout albo monitorowałeś efekt. Każdy z tych czasowników opisuje inny, sprawdzalny zakres.",
         ],
+      },
+      {
+        heading: "5. Połącz pracę z rezultatem",
+        paragraphs: [
+          "Rezultat pomaga zrozumieć, po co wykonano pracę. Może nim być zmiana metryki, lecz również usunięcie ryzyka, umożliwienie innemu zespołowi samodzielnego wdrażania, skrócenie procesu albo dostarczenie potrzebnej funkcji. Nie dodawaj procentów, których nie potrafisz wyjaśnić.",
+          "Gdy nie masz pomiaru, pokaż mechanizm i odbiorcę zmiany. „Dodałem testy wizualne do procesu wydawniczego, aby regresje komponentów były wykrywane przed publikacją do czterech zespołów” jest konkretniejsze niż „poprawiłem jakość oprogramowania”, choć nie zawiera efektownego procentu.",
+        ],
+      },
+      {
+        heading: "6. Wyjaśnij współpracę przez jej przedmiot",
+        paragraphs: [
+          "„Współpraca z Productem i Designem” jest standardowym elementem wielu ról. Sama lista funkcji nie pokazuje seniority. Znaczenie pojawia się dopiero wtedy, gdy wiadomo, co dzięki tej współpracy zostało rozstrzygnięte: zakres pierwszego wdrożenia, kryteria dostępności, kontrakt API, priorytet ryzyka albo sposób pomiaru.",
+          "Nie zawłaszczaj wspólnego rozstrzygnięcia. Nazwij własny wkład: przygotowanie wariantów, ujawnienie zależności, poprowadzenie uzgodnienia czy przetłumaczenie celu produktu na ograniczenia techniczne. Taka precyzja brzmi dojrzalej niż ogólne „prowadziłem interesariuszy”.",
+        ],
+      },
+      {
+        heading: "7. Pokaż, jak Twoja praca wzmacnia innych",
+        paragraphs: [
+          "Senior lub Lead nie musi zarządzać ludźmi. Szerszy wpływ może wynikać ze standardu, biblioteki, dokumentacji, mechanizmu kontroli jakości albo kierunku architektonicznego, z którego korzystają inni. Istotne jest to, co zespół mógł robić lepiej lub bardziej samodzielnie.",
+          "Zamiast samego „mentoringu juniorów” pokaż mechanizm: przygotowany proces review, warsztat zakończony wspólnym standardem, uproszczony onboarding albo narzędzie usuwające powtarzalną pracę. Nie chodzi o nadanie każdej pomocy strategicznego znaczenia, tylko o uczciwe wskazanie trwałego efektu.",
+        ],
+      },
+      {
+        heading: "Jak przepisać punkt bez dopisywania doświadczenia",
+        paragraphs: [
+          "Weź jeden ważny punkt i rozpisz go roboczo na pięć pól: punkt wyjścia, Twój zakres, wybór, ograniczenie i rezultat. Następnie zaznacz dwa lub trzy elementy, które najlepiej pokazują poziom. CV nie potrzebuje całego studium przypadku, ale powinno zawierać więcej niż nazwę technologii i obowiązek.",
+          "Jeżeli brakuje Ci informacji o rezultacie albo zakresie decyzji, nie zgaduj. Zapisz pytanie do siebie lub dawnego współpracownika. Uczciwe „nie wiem” jest lepsze niż imponujący punkt, którego nie da się obronić. Seniority ma wynikać z faktów, nie z mocniejszych przymiotników.",
+        ],
+        example: {
+          before: "Rozwój checkoutu w React i współpraca z zespołem backendowym.",
+          after: "Podzieliłem migrację checkoutu na etapy, uzgodniłem z Backendem kontrakt API i odpowiadałem za bezpieczny rollout pierwszych trzech ścieżek.",
+          note: "Rozwinięta wersja nie dodaje wyniku biznesowego. Wydobywa zakres wyboru i odpowiedzialności, które muszą być prawdziwe.",
+        },
       },
     ],
     checklist: [
-      "Czy widać progresję trudności i odpowiedzialności między rolami?",
-      "Czy przynajmniej jeden punkt pokazuje decyzję wraz z ograniczeniem?",
-      "Czy opisujesz wpływ wykraczający poza samo napisanie kodu?",
-      "Czy tytuł stanowiska jest potwierdzony przez treść doświadczenia?",
+      "Czy dwie ostatnie role pokazują progresję trudności lub odpowiedzialności?",
+      "Czy przy najważniejszym projekcie wiadomo, jakie wyzwanie rozwiązywałeś?",
+      "Czy przynajmniej jeden punkt zawiera ważny wybór i realne ograniczenie?",
+      "Czy rozróżniasz własny wkład od pracy całego zespołu?",
+      "Czy pokazujesz rezultat bez wymyślania liczb?",
+      "Czy współpraca ma konkretny przedmiot, a nie tylko listę działów?",
+      "Czy treść doświadczenia potwierdza poziom zapisany w tytule?",
     ],
   },
   {
