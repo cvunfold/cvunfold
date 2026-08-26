@@ -20,6 +20,9 @@ export type Analysis = {
   report: CVReport; feedback: AnalysisFeedback[]; durationMs?: number; purchase?: Purchase;
   model?: string; inputTokens?: number; outputTokens?: number; estimatedAiCost?: number | null;
   provenance?: ReviewProvenance;
+  // From the extraction diagnostics. Sizes how much traffic a scanned PDF costs
+  // us: every unreadable_document failure so far has been a PDF with no text layer.
+  documentKind?: "pdf" | "docx";
 };
 export type Purchase = { transactionId: string; value: number; currency: string; plan: Plan };
 export type PendingPayment = {
@@ -107,6 +110,7 @@ export async function saveAnalysis(token: string, analysis: Omit<Analysis, "toke
     access_token_hash: tokenHash, expires_at: analysis.expiresAt.toISOString(), paid_at: analysis.paid ? analysis.createdAt.toISOString() : null,
     completed_at: analysis.createdAt.toISOString(), duration_ms: analysis.durationMs ?? null,
     review_provenance: analysis.provenance ?? null,
+    document_kind: analysis.documentKind ?? null,
     runtime_environment: runtimeEnvironmentFrom(),
   });
   if (analysisError) throw new Error("SUPABASE_SAVE_FAILED");

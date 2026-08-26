@@ -95,6 +95,7 @@ export async function POST(request: Request) {
         model: "mock", requestedModel: "mock", fallbackUsed: false,
         modelConfig: { maxOutputTokens: null, timeoutMs: resolveReviewTimeoutMs(), fallbackDisabled: fallbackModelDisabled(), responseFormat: "cv_report", store: false },
         pricing: { inputUsdPerMillion: 0, outputUsdPerMillion: 0, source: "unknown" }, calibrationViolations: [] } };
+    let documentKind: "pdf" | "docx" | undefined;
     if (!mockMode) {
       const quota = await consumeAnalysisQuota(ipKey);
       if (!quota.allowed) return NextResponse.json(
@@ -103,6 +104,7 @@ export async function POST(request: Request) {
       );
       await validateSignature(file);
       const parsed = await parseDocument(file);
+      documentKind = parsed.diagnostics.document_kind;
       validateCvText(parsed.text);
       const [review, ats] = await Promise.all([
         reviewWithOpenAI({ segments: parsed.segments, targetRole, targetSeniority: seniority, jobDescription: jobDescription || undefined, locale }),
@@ -115,6 +117,7 @@ export async function POST(request: Request) {
       if (documentQaMode) {
         await validateSignature(file);
         const parsed = await parseDocument(file);
+        documentKind = parsed.diagnostics.document_kind;
         validateCvText(parsed.text);
         ats = await runAtsChecker(file, parsed);
       }
@@ -128,7 +131,7 @@ export async function POST(request: Request) {
       analysis: { id: randomUUID(), createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
         status: "complete" as const, paid: false, plan, locale, market, attribution,
         report, feedback: [], durationMs: Date.now() - startedAt, model: telemetry.model, inputTokens: telemetry.inputTokens,
-        outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost, provenance: telemetry.provenance },
+        outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost, provenance: telemetry.provenance, documentKind },
     }));
     await Promise.all([
       recordFunnelEvent({ name: "analysis_succeeded", analysisId, locale, market, properties: { plan, ...attribution, analysis_success: true, duration_ms: Date.now() - startedAt, model: telemetry.model, prompt_version: report.promptVersion, rubric_version: report.rubricVersion, input_tokens: telemetry.inputTokens, output_tokens: telemetry.outputTokens, estimated_cost: telemetry.estimatedCost, ...(paidClick ? { paid_click: true } : {}) } }),
