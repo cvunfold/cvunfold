@@ -24,7 +24,14 @@ function requestWithIp(ip: string, text: string) {
   form.set("seniority", "auto");
   form.set("locale", "pl");
   form.set("attribution", "{}");
-  parseDocument.mockResolvedValue({ text, segments: [{ id: "seg_1", text }], quality: "good" });
+  // diagnostics is required on ParsedDocument and is read on the success path, so a
+  // mock without it throws a TypeError and turns a clean 400 into a 502.
+  parseDocument.mockResolvedValue({
+    text,
+    segments: [{ id: "seg_1", text }],
+    quality: "good",
+    diagnostics: { document_kind: "pdf", file_size_bucket: "under_100_kb", parser: "pdf-parse", extracted_chars: text.length, threshold_chars: 0 },
+  });
   return new Request("http://localhost/api/analyses", {
     method: "POST",
     headers: { "x-forwarded-for": ip },
