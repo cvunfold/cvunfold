@@ -328,13 +328,13 @@ export const articles: Article[] = [
   {
     slug: "pierwsze-20-sekund-cv",
     category: "ATS i pierwsze wrażenie",
-    title: "ATS a pierwsze 20 sekund CV: co czyta system, co widzi człowiek",
-    description: "Jak ATS czyta CV, a co ocenia człowiek w pierwszych 20 sekundach? Oddziel parsowanie i słowa kluczowe od seniority, ownershipu i wpływu.",
-    excerpt: "ATS może wyciągnąć dane i wesprzeć wyszukiwanie. Pierwsze wrażenie człowieka odpowiada na inne pytanie: jaki profil i poziom naprawdę komunikuje dokument?",
+    title: "ATS i dopasowanie CV do oferty: co czyta system, co widzi człowiek",
+    description: "Jak dopasować CV do oferty i zachować czytelność dla ATS? Oddziel parsowanie oraz słowa kluczowe od prawdziwych dowodów seniority i wpływu.",
+    excerpt: "Dopasowane CV nie kopiuje ogłoszenia. Pomaga systemowi i człowiekowi znaleźć prawdziwe dowody istotne dla konkretnej roli.",
     readingTime: "8 min",
     publishedAt: "2026-08-08",
-    updatedAt: "2026-08-17",
-    intro: "CV przechodzi przez dwie różne warstwy oceny. System może wyciągnąć dane, ułatwić wyszukiwanie albo wesprzeć dopasowanie. Człowiek próbuje natomiast szybko zrozumieć rolę, poziom i wiarygodność doświadczenia. Wokół ATS powstał wygodny mit o jednej maszynie, która przyznaje uniwersalny wynik. Rzeczywistość jest mniej widowiskowa i bardziej użyteczna: możesz przygotować dokument tak, aby był łatwy do odczytania przez oprogramowanie i przekonujący w pierwszych 20 sekundach, ale są to dwa osobne zadania.",
+    updatedAt: "2026-09-04",
+    intro: "CV przechodzi przez dwie różne warstwy oceny. System może wyciągnąć dane, ułatwić wyszukiwanie albo wesprzeć dopasowanie do kryteriów konkretnej roli. Człowiek próbuje szybko zrozumieć profil, poziom i wiarygodność doświadczenia. Dlatego dopasowanie CV nie polega na przepisaniu ogłoszenia. Ma sprawić, że prawdziwe dowody na najważniejsze wymagania będą łatwe do odczytania przez oprogramowanie i zauważenia przez człowieka — bez udawania, że istnieje jeden uniwersalny wynik ATS.",
     sections: [
       {
         heading: "ATS to kategoria systemów, nie jeden egzamin",
@@ -367,13 +367,40 @@ export const articles: Article[] = [
         heading: "Krok drugi: wyszukiwanie i filtry zależą od pracodawcy",
         paragraphs: [
           "Wróćmy na moment do warstwy maszynowej, bo po zapisaniu aplikacji część systemów pozwala rekruterowi szukać słów i fraz w CV. Dostępne są również filtry oraz zapytania łączące terminy, na przykład wymagające jednocześnie nazwy roli i technologii. To nie jest tajny słownik. Kryteria wynikają z konkretnego stanowiska, sposobu pracy zespołu i ustawień użytkownika systemu.",
-          "Dlatego nazwa kluczowej technologii powinna pojawić się w CV, jeśli naprawdę jej używałeś i jest ważna dla oferty. Umieść ją nie tylko w sekcji umiejętności, ale także przy doświadczeniu, które pokazuje praktyczny zakres. Nie kopiuj całego ogłoszenia i nie powtarzaj jednego hasła w każdym punkcie. Dokument ma pozostać wiarygodny po otwarciu przez człowieka.",
+          "Dlatego nazwa kluczowej technologii powinna pojawić się w CV, jeśli naprawdę jej używałeś i jest ważna dla oferty. Umieść ją nie tylko w sekcji umiejętności, ale także przy doświadczeniu, które pokazuje praktyczny zakres. Nie ukrywaj Reacta pod określeniem „biblioteka interfejsowa”, ale też nie twórz pięciu wariantów tej samej nazwy.",
         ],
         example: {
           before: "React, React.js, ReactJS, frontend React, biblioteka React.",
           after: "React i TypeScript — rozwój checkoutu, optymalizacja renderowania i utrzymanie współdzielonej biblioteki komponentów.",
           note: "Druga wersja zawiera rozpoznawalną technologię, ale łączy ją z zakresem pracy zamiast sztucznie zwiększać liczbę powtórzeń.",
         },
+      },
+      {
+        heading: "Dopasowanie zacznij od trzech koszyków",
+        paragraphs: [
+          "Wypisz najważniejsze wymagania i przy każdym zaznacz jedną z trzech sytuacji. Pierwsza: masz już w CV konkretny dowód. Druga: masz doświadczenie, ale dokument je ukrywa albo opisuje zbyt ogólnie. Trzecia: nie masz podstaw, żeby daną kompetencję zadeklarować.",
+          "Tylko drugi koszyk wymaga naprawy ekspozycji. Trzeci nie staje się drugim po dodaniu słowa kluczowego. Jeśli nie pracowałeś z Kubernetesem, wpisanie go do umiejętności może pomóc w prostym wyszukiwaniu, lecz tworzy problem przy pierwszym pytaniu technicznym.",
+          "Dopasuj widoczność. Nie dopasowuj faktów.",
+        ],
+      },
+      {
+        heading: "Wymaganie zamień na pytanie o dowód",
+        paragraphs: [
+          "Ogłoszenia używają szerokich haseł: skalowalność, ownership, architektura, jakość albo współpraca z biznesem. Nie odpowiadaj na nie kolejną etykietą. Zapytaj, jakie zdarzenie z Twojej pracy pozwala czytelnikowi zobaczyć tę kompetencję bez wiary na słowo.",
+          "Dla ownershipu może to być temat doprowadzony od diagnozy do sprawdzenia efektu. Dla architektury — decyzja podjęta przy konkretnym ograniczeniu. Dla współpracy z biznesem — zakres lub priorytet, który pomogłeś uzgodnić. Etykieta wspiera skanowanie; dowód buduje wiarygodność.",
+        ],
+        example: {
+          before: "Ownership, skalowalność, współpraca z biznesem.",
+          after: "Przygotowałem etapowy plan migracji checkoutu, uzgodniłem kolejność z Product i Backendem oraz monitorowałem błędy po wdrożeniu.",
+          note: "Druga wersja nie kopiuje trzech haseł. Pokazuje zakres odpowiedzialności, współpracę i bezpieczny rollout.",
+        },
+      },
+      {
+        heading: "Zmieniaj hierarchię, nie historię kariery",
+        paragraphs: [
+          "Nie potrzebujesz CV pisanego od zera dla każdej aplikacji. Potrzebujesz mocnej wersji bazowej i świadomej zmiany priorytetów. Przenieś wyżej podsumowanie, projekty i punkty, które najlepiej odpowiadają na najważniejsze kryteria. Skróć informacje prawdziwe, ale drugorzędne dla tej roli.",
+          "Przy stanowisku skupionym na wydajności wyeksponuj diagnozę, Web Vitals, monitoring i rezultat. Przy roli związanej z design systemem wyżej powinny znaleźć się API komponentów, dostępność, wersjonowanie oraz wpływ na inne zespoły. Ta sama kariera może mieć różne uczciwe pierwsze plany.",
+        ],
       },
       {
         heading: "Matching i AI są dodatkowymi funkcjami, nie definicją każdego ATS",
@@ -393,7 +420,7 @@ export const articles: Article[] = [
         heading: "Praktyczny test CV przed wysłaniem",
         paragraphs: [
           "Najpierw sprawdź ekstrakcję. Otwórz PDF, zaznacz całą treść i wklej ją do prostego edytora tekstu. Zobacz, czy stanowiska, firmy, daty i punkty zachowują logiczną kolejność. Jeżeli aplikujesz przez formularz, sprawdź również pola uzupełnione po wgraniu pliku i popraw błędy przed wysłaniem.",
-          "Następnie porównaj dokument z ofertą. Zaznacz wymagania, które faktycznie spełniasz, i upewnij się, że ich dowody są widoczne w doświadczeniu. Oddziel trzy sytuacje: kompetencja jest pokazana, kompetencja istnieje, ale jest ukryta, albo nie masz podstaw, by ją deklarować. Tylko druga sytuacja wymaga lepszej ekspozycji. Trzeciej nie naprawiaj słowem kluczowym.",
+          "Następnie porównaj dokument z ofertą. Sprawdź, czy trzy najważniejsze wymagania prowadzą do konkretnych fragmentów doświadczenia. Usuń kompetencje dodane tylko dlatego, że pojawiły się w ogłoszeniu, i doprecyzuj te, które są prawdziwe, lecz zbyt ogólne.",
           "Na końcu przeczytaj pierwszą stronę jak człowiek, który nie zna Twojej historii. Czy w kilkanaście sekund wiadomo, jakiej roli szukasz, jaki poziom komunikuje dokument i który fragment jest najmocniejszym dowodem? Technicznie czytelny plik otwiera drzwi do oceny. Nie wykonuje tej pracy za Ciebie.",
         ],
       },

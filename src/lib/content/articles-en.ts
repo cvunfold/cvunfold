@@ -64,13 +64,13 @@ export const articlesEn: Article[] = [
   {
     slug: "the-first-20-seconds-of-a-cv",
     category: "ATS and first impression",
-    title: "ATS vs the first 20 seconds: what software reads and people judge",
-    description: "Learn what an ATS can extract from a CV and what a person may judge in the first 20 seconds. Separate parsing and keywords from seniority, ownership and impact.",
-    excerpt: "An ATS can extract information and support search. A person's first impression asks a different question: what profile and level does the document actually communicate?",
-    readingTime: "8 min",
+    title: "ATS and tailoring a CV: what software reads and people judge",
+    description: "Learn how to tailor a CV while keeping it readable for ATS. Separate parsing and keywords from truthful evidence of seniority, ownership and impact.",
+    excerpt: "A tailored CV does not echo an advert. It helps software and people find truthful evidence relevant to a particular role.",
+    readingTime: "7 min",
     publishedAt: "2026-08-08",
-    updatedAt: "2026-08-17",
-    intro: "A CV passes through two different layers of assessment. Software may extract information, support search or assist matching. A person tries to understand the role, level and credibility of the experience quickly. The phrase ‘beat the ATS’ turns recruitment software into one gatekeeper with one score. In practice, there is a more useful goal: make the document easy for software to read and meaningful in the first 20 seconds of human attention, while recognising that these are separate tasks.",
+    updatedAt: "2026-09-04",
+    intro: "A CV passes through two different layers of assessment. Software may extract information, support search or assist matching against criteria for a particular role. A person tries to understand the profile, level and credibility of the experience quickly. Tailoring therefore does not mean paraphrasing the job description. It means making truthful evidence for the most important requirements easy for software to read and for a person to notice — without pretending that one universal ATS score exists.",
     sections: [
       {
         heading: "An ATS is a category of software, not one exam",
@@ -103,13 +103,40 @@ export const articlesEn: Article[] = [
         heading: "Step two: search and filters reflect the employer's criteria",
         paragraphs: [
           "Back to the machine layer for a moment, because once an application is stored, some systems let recruiters search CVs for words and phrases. They may also offer filters or Boolean queries that combine terms, such as a role title and a technology. This is not a secret master list of keywords. The criteria come from a particular vacancy, team and user configuration.",
-          "If you genuinely used an important technology named in the job description, it should be easy to find in your CV. Do not leave it only in a skills list: connect it to experience that shows the practical scope. Avoid copying the whole advert or repeating one phrase in every bullet. The document still has to remain credible when a person opens it.",
+          "If you genuinely used an important technology named in the job description, it should be easy to find in your CV. Do not leave it only in a skills list: connect it to experience that shows the practical scope. Do not hide React behind ‘a user-interface library’, but do not manufacture five variants of the same name either.",
         ],
         example: {
           before: "React, React.js, ReactJS, frontend React, React library.",
           after: "React and TypeScript — checkout development, rendering optimisation and maintenance of a shared component library.",
           note: "The second version contains the recognisable technology, but connects it to work instead of manufacturing repetitions.",
         },
+      },
+      {
+        heading: "Start tailoring with three evidence buckets",
+        paragraphs: [
+          "List the most important requirements and assign each one to one of three groups. Evidence means the CV already contains a specific example. Hidden evidence means you have the experience, but the document buries it or describes it too broadly. A gap means you have no honest basis for claiming the skill.",
+          "Only the second group needs an exposure fix. The third does not become evidence after you add a keyword. If you have not used Kubernetes, placing it in a skills section might satisfy a simple search, but it creates a problem as soon as someone asks what you did with it.",
+          "Tailor visibility. Do not tailor the facts.",
+        ],
+      },
+      {
+        heading: "Turn each requirement into a question about proof",
+        paragraphs: [
+          "Job descriptions use broad labels: scalability, ownership, architecture, quality or stakeholder work. Do not answer a label with another label. Ask which event from your work would let the reader see that capability without taking it on trust.",
+          "Ownership might be a problem you carried from diagnosis to outcome. Architecture might be a decision shaped by a real constraint. Stakeholder work might be a scope or priority you helped resolve. A label supports scanning; evidence creates credibility.",
+        ],
+        example: {
+          before: "Ownership, scalable architecture and stakeholder management.",
+          after: "Designed a staged checkout migration, aligned sequencing with Product and Backend, and monitored errors after release.",
+          note: "The second version does not repeat three labels. It shows responsibility, collaboration and a controlled rollout.",
+        },
+      },
+      {
+        heading: "Change the hierarchy, not your career history",
+        paragraphs: [
+          "You do not need a completely new CV for every application. Keep a strong base version and change its priorities deliberately. Move the summary, projects and bullets that answer the most important criteria higher. Compress experience that is true but secondary for this role.",
+          "For a performance-focused position, foreground diagnosis, Web Vitals, monitoring and outcomes. For a design-system role, give more space to component APIs, accessibility, versioning and the effect on other teams. The same career can support different truthful foregrounds.",
+        ],
       },
       {
         heading: "Matching and AI are optional features, not the definition of every ATS",
@@ -129,7 +156,7 @@ export const articlesEn: Article[] = [
         heading: "A practical pre-submission test",
         paragraphs: [
           "Start with extraction. Open the PDF, select all of the content and paste it into a plain-text editor. Check whether job titles, employers, dates and bullets still follow a logical order. If an application form extracts details from the upload, review the populated fields and correct mistakes before submitting.",
-          "Then compare the CV with the job description. Mark the requirements you genuinely meet and make sure the evidence is visible in your experience. Separate three situations: the skill is shown; the skill exists but is hidden; or you have no basis to claim it. Only the second situation calls for better exposure. A keyword cannot safely fix the third.",
+          "Then compare the CV with the job description. Check whether the three most important requirements lead to specific experience. Remove skills added only because they appeared in the advert, and make genuine but vague experience more precise.",
           "Finally, read the first page as someone who does not know your story. Within a short scan, is the target role clear, does the document communicate an appropriate level and is the strongest evidence easy to find? A readable file enables assessment. It does not perform that assessment for you.",
         ],
       },
