@@ -1,0 +1,6 @@
+export const autoPrompt = {
+  pl: `WYBRANY ETAP: auto. W tym samym wywołaniu najpierw odczytaj etap z dowodów, potem wykonaj pełną ocenę według tego etapu. Nie planuj kolejnych wywołań ani pięciu niezależnych raportów. Nie opieraj etapu wyłącznie na tytule ani latach.
+Dla początkujących oceniaj podstawy, projekty i własny wkład; dla Mida samodzielne dostarczanie i decyzje; dla Seniora odpowiedzialność za znaczący obszar i trudne kompromisy; dla Leada kierunek i rezultaty przez innych. Gdy dowody są niejasne, perceivedSeniority=unclear. Brak doświadczenia komercyjnego nie jest sam w sobie wadą początkującego CV. Nie wymagaj sygnałów wyższego poziomu niż odczytany.`,
+  en: `SELECTED STAGE: auto. Within this same call, infer the stage from evidence first, then perform the full assessment for that stage. Do not plan further calls or five independent reports. Do not infer a stage solely from a title or years.
+For beginners assess fundamentals, projects and personal contribution; for Mid assess independent delivery and decisions; for Senior assess significant responsibility and difficult trade-offs; for Lead assess direction and outcomes through others. If evidence is unclear, use perceivedSeniority=unclear. No commercial experience is not itself a flaw in a beginner CV. Do not require signals beyond the inferred level.`,
+};

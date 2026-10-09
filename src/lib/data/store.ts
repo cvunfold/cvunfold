@@ -272,7 +272,7 @@ const safePropertyEnums: Record<string, readonly string[]> = {
   broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   detected_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   role_source: ["autodetected", "user_chose", "not_detected", "detector_error", "not_run"],
-  selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
+  selected_seniority_enum: ["first_job", "auto", "junior", "mid", "senior", "lead"],
   handoff_origin: ["google_cpc", "other"],
   teaser_variant: ["evidence_v1"],
   currency: ["PLN", "EUR"],

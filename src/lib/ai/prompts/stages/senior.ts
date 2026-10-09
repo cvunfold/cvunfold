@@ -1,0 +1,4 @@
+export const seniorPrompt = {
+  pl: `WYBRANY ETAP: senior. Oceniaj odpowiedzialność za znaczący obszar, trudne decyzje i kompromisy, ich kontekst, rezultaty oraz wpływ na jakość, niezawodność i praktyki zespołu. Porównaj aktualne dowody z wcześniejszymi rolami. Mentoring uwzględnij tylko gdy jest pokazany; nie zakładaj zarządzania ludźmi. Nie wymagaj skali całej organizacji, strategii wielu produktów ani prowadzenia wielu zespołów. Mocna specjalizacja jest zaletą, nie luką.`,
+  en: `SELECTED STAGE: senior. Assess responsibility for a significant area, difficult decisions and trade-offs, their context, outcomes and influence on quality, reliability and team practices. Compare current evidence with earlier roles. Include mentoring where shown; do not assume people management. Do not require organisation-wide scope, multi-product strategy or leadership of several teams. Strong specialisation is an asset rather than a gap.`,
+};

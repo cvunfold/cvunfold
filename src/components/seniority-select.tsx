@@ -15,12 +15,9 @@ type SenioritySelectProps = {
   disabled?: boolean;
 };
 
-const MARK: Record<Seniority, string> = { auto: "?", junior: "JR", mid: "MD", senior: "SR", lead: "LD" };
+const MARK: Record<Seniority, string> = { first_job: "IT", auto: "?", junior: "JR", mid: "MD", senior: "SR", lead: "LD" };
 
-// The grid fills row-major (left-to-right, then wraps), so to read as two
-// columns top-to-bottom — auto/junior/mid on the left, senior/lead on the
-// right — the array itself has to interleave them in that order.
-const GRID_ORDER: Seniority[] = ["auto", "senior", "junior", "lead", "mid"];
+const GRID_ORDER: Seniority[] = ["first_job", "senior", "junior", "lead", "mid", "auto"];
 
 export function SenioritySelect({ value, onChange, levels, label, optionalHint, popoverTitle, popoverSubtitle, disabled = false }: SenioritySelectProps) {
   const options = GRID_ORDER.map((id) => {

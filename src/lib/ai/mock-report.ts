@@ -1,3 +1,5 @@
+import { createCareerSample } from "./career-samples";
+import type { CareerContext } from "./career-context";
 import type { CVReport } from "./schemas/report";
 import type { AtsCheckResult } from "@/lib/ats-checker/types";
 import { getRubric, RUBRIC_VERSION, type Seniority } from "@/lib/rubrics/technical-v1";
@@ -17,7 +19,16 @@ const mockAts: AtsCheckResult = {
   ],
 };
 
-export function createMockReport(targetSeniority: Seniority = "auto", withJob = false, targetRole: TargetRoleId = "frontend_developer", locale: Locale = "pl"): CVReport {
+export function createMockReport(targetSeniority: Seniority = "auto", withJob = false, targetRole: TargetRoleId = "frontend_developer", locale: Locale = "pl", careerContext: CareerContext = "standard"): CVReport {
+  if (targetSeniority === "first_job") careerContext = "first_job";
+  if (targetSeniority === "first_job" || targetSeniority === "junior" || targetSeniority === "mid" || targetSeniority === "lead" || careerContext !== "standard") {
+    const id = careerContext !== "standard" && (targetSeniority === "auto" || targetSeniority === "junior") ? careerContext : targetSeniority === "auto" ? "senior" : targetSeniority;
+    const report = createCareerSample(id, locale, targetRole);
+    report.document.targetSeniority = targetSeniority;
+    report.document.careerContext = careerContext;
+    if (withJob) report.jobMatch = { score: 71, strongestMatches: [], missingEvidence: [], misplacedEvidence: [], recommendations: [locale === "pl" ? "Porównaj wymagania oferty z udokumentowanym własnym wkładem w projekty." : "Compare the job requirements with your documented personal project contribution."] };
+    return report;
+  }
   const role = getTargetRoleProfile(targetRole, locale);
   if (locale === "en") {
     const englishReport = structuredClone(sampleReportEn);
@@ -55,7 +66,7 @@ export function createMockReport(targetSeniority: Seniority = "auto", withJob = 
       biggestRisk: "Opisujesz przede wszystkim obowiązki, przez co wpływ Twojej pracy pozostaje niewidoczny." },
     recruiterPerspective: {
       profileSummary: `Solidny profil ${role.label}, którego dokument sygnalizuje Seniora, ale nie pokazuje jeszcze pełnej skali wpływu.`,
-      seniorityAlignment: targetSeniority === "senior" ? "aligned" : targetSeniority === "lead" ? "undersold" : "unclear",
+      seniorityAlignment: targetSeniority === "senior" ? "aligned" : "unclear",
       seniorityAlignmentExplanation: "Techniczna wiarygodność jest czytelna, natomiast ownership i rezultaty są słabiej udowodnione niż zakres wykonywanych zadań.",
       positiveSignals: [
         { title: "Spójny profil specjalistyczny", explanation: `Doświadczenie jest opisane w kontekście istotnym dla roli ${role.label}.`, evidenceRefs: ["seg_exp_1"] },

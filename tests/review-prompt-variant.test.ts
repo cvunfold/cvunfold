@@ -1,3 +1,4 @@
+import { CAREER_POLICY_VERSION } from "@/lib/ai/career-context";
 import { afterEach, describe, expect, it } from "vitest";
 import { activePromptVariant, getReviewPrompt } from "@/lib/ai/prompts";
 import { PL_RC_PROMPT_VERSION } from "@/lib/ai/prompts/review-pl-v1_6-rc1";
@@ -14,21 +15,21 @@ describe("review prompt variant", () => {
   it("serves the stable prompt when no variant is configured", () => {
     delete process.env.CV_REVIEW_PROMPT_VARIANT;
     expect(activePromptVariant()).toBe("stable");
-    expect(getReviewPrompt("pl").version).toBe(PROMPT_VERSION);
+    expect(getReviewPrompt("pl").version).toBe(`${PROMPT_VERSION}+${CAREER_POLICY_VERSION}:auto`);
   });
 
   it("falls back to stable for an unknown variant rather than failing open", () => {
     process.env.CV_REVIEW_PROMPT_VARIANT = "not-a-variant";
     expect(activePromptVariant()).toBe("stable");
-    expect(getReviewPrompt("pl").version).toBe(PROMPT_VERSION);
+    expect(getReviewPrompt("pl").version).toBe(`${PROMPT_VERSION}+${CAREER_POLICY_VERSION}:auto`);
   });
 
   it("serves v1.6-rc1 for Polish when that variant is selected", () => {
     process.env.CV_REVIEW_PROMPT_VARIANT = "v1.6-rc1";
     const resolved = getReviewPrompt("pl");
     expect(resolved.variant).toBe("v1.6-rc1");
-    expect(resolved.version).toBe("v1.6-rc1");
-    expect(resolved.version).toBe(PL_RC_PROMPT_VERSION);
+    expect(resolved.version).toBe(`v1.6-rc1+${CAREER_POLICY_VERSION}:auto`);
+    expect(resolved.version).toBe(`${PL_RC_PROMPT_VERSION}+${CAREER_POLICY_VERSION}:auto`);
     expect(resolved.systemPrompt).not.toBe(getReviewPrompt("en").systemPrompt);
   });
 
@@ -36,10 +37,10 @@ describe("review prompt variant", () => {
     process.env.CV_REVIEW_PROMPT_VARIANT = "v1.6-rc1";
     const resolved = getReviewPrompt("en");
     expect(resolved.variant).toBe("stable");
-    expect(resolved.version).toBe(EN_PROMPT_VERSION);
+    expect(resolved.version).toBe(`${EN_PROMPT_VERSION}+${CAREER_POLICY_VERSION}:auto`);
   });
 
   it("reports a version distinct from the stable one so stored reports stay attributable", () => {
-    expect(PL_RC_PROMPT_VERSION).not.toBe(PROMPT_VERSION);
+    expect(PL_RC_PROMPT_VERSION).not.toBe(`${PROMPT_VERSION}+${CAREER_POLICY_VERSION}:auto`);
   });
 });

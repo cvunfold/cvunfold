@@ -1,3 +1,4 @@
+import type { CareerContext } from "../career-context";
 import { z } from "zod";
 import type { AtsCheckResult } from "@/lib/ats-checker/types";
 
@@ -26,7 +27,7 @@ export const reportSchema = z.object({
     detectedLanguage: z.enum(["pl", "en", "mixed"]),
     parseQuality: z.enum(["good", "degraded"]),
     targetRole: z.string(),
-    targetSeniority: z.enum(["junior", "mid", "senior", "lead", "auto"]),
+    targetSeniority: z.enum(["first_job", "junior", "mid", "senior", "lead", "auto"]),
     perceivedRole: z.string(),
     perceivedSeniority: z.enum(["junior", "mid", "senior", "lead", "unclear"]),
     perceivedSeniorityConfidence: confidence,
@@ -41,13 +42,13 @@ export const reportSchema = z.object({
     profileSummary: z.string(),
     seniorityAlignment: z.enum(["aligned", "undersold", "unsupported", "unclear"]),
     seniorityAlignmentExplanation: z.string(),
-    positiveSignals: z.array(perspectiveSignal).min(2).max(4),
-    reservations: z.array(perspectiveSignal.extend({ kind: z.enum(["evidence", "gap"]) })).min(1).max(4),
+    positiveSignals: z.array(perspectiveSignal).max(4),
+    reservations: z.array(perspectiveSignal.extend({ kind: z.enum(["evidence", "gap"]) })).max(4),
     likelyInterviewQuestions: z.array(z.object({
       question: z.string(),
       whyThisQuestion: z.string(),
       evidenceRefs: z.array(evidenceRef),
-    })).min(2).max(5),
+    })).max(5),
   }),
   categoryScores: z.array(z.object({
     key: z.string(), label: z.string(), score: z.number().min(0).max(100),
@@ -82,7 +83,7 @@ export type EvidenceMap = Record<string, string>;
 // ats is server-computed by the deterministic checker (@/lib/ats-checker), not
 // part of the model's own Zod-validated output, and rides along in the same
 // stored JSON blob. Optional only for reports created before this field existed.
-export type CVReport = ModelReport & { evidenceMap?: EvidenceMap; ats?: AtsCheckResult };
+export type CVReport = ModelReport & { document: ModelReport["document"] & { careerContext?: CareerContext }; evidenceMap?: EvidenceMap; ats?: AtsCheckResult };
 
 export type TeaserSeverityCounts = { critical: number; important: number; minor: number };
 

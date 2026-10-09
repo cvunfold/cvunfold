@@ -1,16 +1,5 @@
--- Replaces the single "non_it" catch-all with a closed set of specific non-IT categories,
--- so "who clicks the ad by mistake" is answerable without ever storing free text or a
--- per-analysis timestamp. Same anonymization as before: a fixed enum, no analysis/report
--- identifier, no timestamp, and cells below ANONYMOUS_ROLE_MIN_CELL_COUNT stay suppressed
--- in the app layer. This must be kept in lockstep with src/lib/analytics/anonymous-role-statistics.ts.
--- The old constraint must go first: it does not allow other_non_it, so the fold-in below
--- would violate it. The table is briefly unconstrained on this column between here and the
--- new constraint a few statements down, all within one migration transaction.
 alter table public.anonymous_role_aggregates drop constraint anonymous_role_aggregates_role_category_check;
 
--- Fold existing non_it rows into the new other_non_it catch-all. The raw perceived role
--- behind these counts was never retained, so retroactive reclassification into a finer
--- bucket is not possible or attempted.
 insert into public.anonymous_role_aggregates (role_category, source_bucket, analysis_count)
 select 'other_non_it', source_bucket, analysis_count
 from public.anonymous_role_aggregates
@@ -50,8 +39,6 @@ begin
   then return 'unclear';
   end if;
 
-  -- Checked before the bare "developer" pattern below: business/sales development titles
-  -- contain "developer" but describe sales work, not software work.
   if normalized ~ '(business|sales) development|business developer' then return 'sales_marketing'; end if;
 
   if normalized ~ '(front[- ]?end|back[- ]?end|full[- ]?stack|software|web|mobile|android|ios|embedded|game) (developer|engineer|programmer|programist(a|ka))'

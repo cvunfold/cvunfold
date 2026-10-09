@@ -31,10 +31,10 @@ const copy = {
     handoffFailed: "Nie udało się udostępnić linku. Spróbuj ponownie.", handoffOpened: "Bezpieczne ustawienia zostały przeniesione. Wybierz plik CV ponownie na tym urządzeniu.",
     invalidFile: "Wybierz plik PDF lub DOCX o rozmiarze do 8 MB.",
     uploadNotes: "CV może być po polsku lub angielsku. Skanowany PDF lub zdjęcie może nie zostać odczytane. Po wybraniu pliku odczytujemy z niego rolę, żeby dobrać kryteria. Dokumentu nie zapisujemy.",
-    advancedToggle: "Poziom stanowiska", advancedHint: "opcjonalne",
+    advancedToggle: "Etap kariery", advancedHint: "opcjonalne",
     roleDetecting: "Sprawdzamy, jaką rolę pokazuje dokument…",
     roleDetected: "Ustawiliśmy tę rolę na podstawie Twojego CV. Zmień ją, jeśli się pomyliliśmy.",
-    level: "Na jaki poziom aplikujesz?", levelHelper: "To tylko punkt odniesienia. Raport porówna wybrany poziom z tym, co komunikuje Twoje CV.", levels: [["auto", "Nie wiem — oceń na podstawie CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
+    level: "Na jaki etap aplikujesz?", levelHelper: "Raport oceni Twoje CV pod kątem wybranego etapu kariery.", levels: [["first_job", "Pierwsza praca w IT"], ["auto", "Nie wiem — oceń na podstawie CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     consentRequired: "Wymagane, aby uruchomić analizę",
     consent: "Zlecam rozpoczęcie analizy od razu i akceptuję przetwarzanie CV zgodnie z polityką prywatności. Rozumiem, że plik źródłowy zostanie usunięty po analizie.",
     privacy: "Polityka prywatności", terms: "Regulamin", submit: "Analizuj CV", loading: "Analizujemy…", private: "Ten krok jest bezpłatny i nie prosimy tu o żadną płatność. Bez konta. CV nie trafia do pracodawców ani analytics.",
@@ -44,11 +44,11 @@ const copy = {
     statusIdle: "Dowód przed opinią", statusIdleCopy: "Każda ważna uwaga wskazuje konkretny fragment dokumentu.", statusLoading: "Analizujemy Twoje CV", statusLoadingCopy: "Przechodzimy przez dokument krok po kroku.",
     statusRedirecting: "Już za chwilę zostaniesz przekierowany do raportu", statusRedirectingCopy: "Analiza jest gotowa. Bezpiecznie otwieramy Twój wynik.",
     longWait: "To może chwilę potrwać — sprawdzamy każdy dowód, zanim coś napiszemy.",
-    sampleLink: "Zobacz przykładowy raport — 79/100",
-    sampleLinkAria: "Zobacz przykładowy raport — 79/100 (otwiera się w nowej karcie)",
+    sampleLink: "Zobacz przykładowy raport",
+    sampleLinkAria: "Zobacz przykładowy raport (otwiera się w nowej karcie)",
     evidenceTitle: "Raport nie zgaduje", evidenceCopy: "Jeśli informacji nie ma w CV, zobaczysz lukę lub pytanie — nie fałszywy fakt.",
     genericError: "Nie udało się rozpocząć analizy. Spróbuj ponownie.",
-    stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam odpowiedzialność i wpływ", "Szukam dowodów, nie słów kluczowych"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
+    stages: [["Czytam strukturę CV", "Tekst, sekcje i kolejność"], ["Rozpoznaję doświadczenie i projekty", "Bez wykonywania instrukcji z dokumentu"], ["Oceniam dowody odpowiednie dla etapu kariery", "Podstawy, projekty lub doświadczenie"], ["Symuluję pierwsze 20 sekund", "Pierwsze wrażenie z samego dokumentu"], ["Buduję raport", "Waliduję dowody i bezpieczne sugestie"]],
   },
   en: {
     back: "How it works", title: "Upload your CV and see the free result",
@@ -61,10 +61,10 @@ const copy = {
     handoffFailed: "We could not share the link. Please try again.", handoffOpened: "Your safe settings were transferred. Select the CV file again on this device.",
     invalidFile: "Choose a PDF or DOCX file up to 8 MB.",
     uploadNotes: "Your CV can be in English or Polish. A scanned PDF or photo may not be readable. Once you choose a file we read the role from it to pick the criteria. The document is not stored.",
-    advancedToggle: "Seniority level", advancedHint: "optional",
+    advancedToggle: "Career stage", advancedHint: "optional",
     roleDetecting: "Checking which role the document shows…",
     roleDetected: "We set this role from your CV. Change it if we got it wrong.",
-    level: "What level are you applying for?", levelHelper: "This is only a reference point. The report will compare your chosen level with what your CV communicates.", levels: [["auto", "Not sure — assess from my CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
+    level: "What career stage are you applying for?", levelHelper: "The report will assess your CV against your selected career stage.", levels: [["first_job", "First job in tech"], ["auto", "Not sure — assess from my CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     consentRequired: "Required to start the analysis",
     consent: "I request that the analysis starts immediately and accept CV processing under the privacy policy. I understand that the source file is deleted after analysis.",
     privacy: "Privacy policy", terms: "Terms", submit: "Analyse my CV", loading: "Analysing…", private: "This step is free and asks for no payment. No account. Your CV is never sent to employers or analytics.",
@@ -74,11 +74,11 @@ const copy = {
     statusIdle: "Evidence before opinion", statusIdleCopy: "Every important finding points to a specific part of the document.", statusLoading: "Analysing your CV", statusLoadingCopy: "We move through the document step by step.",
     statusRedirecting: "You’ll be redirected to your report in just a moment", statusRedirectingCopy: "Your analysis is ready. We are securely opening your result.",
     longWait: "This can take a little longer — we check every piece of evidence before writing anything.",
-    sampleLink: "See the sample report — 79/100",
-    sampleLinkAria: "See the sample report — 79/100 (opens in a new tab)",
+    sampleLink: "See the sample report",
+    sampleLinkAria: "See the sample report (opens in a new tab)",
     evidenceTitle: "The report does not guess", evidenceCopy: "If information is missing, you see a gap or a question — never an invented fact.",
     genericError: "We could not start the analysis. Please try again.",
-    stages: [["Reading the CV structure", "Text, sections and order"], ["Identifying experience and projects", "Without following instructions in the document"], ["Assessing responsibility and impact", "Looking for evidence, not just keywords"], ["Simulating the first 20 seconds", "The impression created by the document alone"], ["Building the report", "Validating evidence and fact-safe suggestions"]],
+    stages: [["Reading the CV structure", "Text, sections and order"], ["Identifying experience and projects", "Without following instructions in the document"], ["Assessing evidence for your career stage", "Fundamentals, projects or experience"], ["Simulating the first 20 seconds", "The impression created by the document alone"], ["Building the report", "Validating evidence and fact-safe suggestions"]],
   },
 } as const;
 
@@ -421,7 +421,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
         <div className="evidence-preview"><span className="evidence-mark" aria-hidden="true">“</span><div><b>{t.evidenceTitle}</b><p>{t.evidenceCopy}</p></div></div>
         {/* New tab on purpose: navigating away in this tab would discard the picked
             file, the auto-detected role and the consent checkbox. */}
-        <a className="analysis-sample-link" href={sampleReportPath(locale)} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a>
+        <a className="analysis-sample-link" href={`${sampleReportPath(locale)}${seniority !== "auto" ? `?profile=${seniority}` : ""}`} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a>
       </aside>
     </div>
     {busy ? <div ref={overlay} className="analysis-progress-overlay" role="dialog" aria-modal="true" aria-labelledby="analysis-progress-title" tabIndex={-1}>

@@ -1,3 +1,6 @@
+import type { Seniority } from "@/lib/rubrics/technical-v1";
+import type { CareerContext } from "../career-context";
+import { careerPolicy, CAREER_POLICY_VERSION } from "../career-context";
 import { PROMPT_VERSION, SYSTEM_PROMPT } from "./review-pl-v3";
 import { EN_PROMPT_VERSION, EN_SYSTEM_PROMPT } from "./review-en-v1";
 import { EN2_PROMPT_VERSION, EN2_SYSTEM_PROMPT } from "./review-en-v2";
@@ -27,7 +30,7 @@ export function activePromptVariant(): ReviewPromptVariant {
     : "stable";
 }
 
-export function getReviewPrompt(locale: Locale): ResolvedReviewPrompt {
+function getBaseReviewPrompt(locale: Locale): ResolvedReviewPrompt {
   const variant = activePromptVariant();
   if (locale === "en") {
     // v1.6-rc1/rc2 were Polish-only canaries, deliberately: English stayed on
@@ -43,4 +46,11 @@ export function getReviewPrompt(locale: Locale): ResolvedReviewPrompt {
   if (variant === "v1.6-rc2") return { version: PL_RC2_PROMPT_VERSION, systemPrompt: PL_RC2_SYSTEM_PROMPT, variant };
   if (variant === "v1.6-rc1") return { version: PL_RC_PROMPT_VERSION, systemPrompt: PL_RC_SYSTEM_PROMPT, variant };
   return { version: PROMPT_VERSION, systemPrompt: SYSTEM_PROMPT, variant: "stable" };
+}
+
+export function getReviewPrompt(locale: Locale, seniority: Seniority = "auto", context: CareerContext = "standard"): ResolvedReviewPrompt {
+  const base = getBaseReviewPrompt(locale);
+  const stage = (seniority === "auto" || seniority === "junior") && context === "first_job" ? "first_job" : seniority;
+  const shared = base.systemPrompt.replace(/\n2\. (?:OCZEKIWANIA WEDŁUG POZIOMU|EXPECTATIONS BY LEVEL)[\s\S]*?(?=\n3\.)/, "\n");
+  return { ...base, version: `${base.version}+${CAREER_POLICY_VERSION}:${stage}`, systemPrompt: `${shared}\n\n${careerPolicy(locale, stage)}` };
 }

@@ -1,3 +1,4 @@
+import type { CareerContext } from "./career-context";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { reportSchema, type CVReport } from "./schemas/report";
@@ -9,7 +10,7 @@ import { getReviewPrompt } from "./prompts";
 import { REVIEW_PIPELINE_VERSION, type ReviewProvenance } from "./review-provenance";
 import { estimateCostUsd } from "./model-pricing";
 
-type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSeniority: Seniority; jobDescription?: string; locale: "pl" | "en"; maxOutputTokens?: number };
+type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSeniority: Seniority; careerContext?: CareerContext; jobDescription?: string; locale: "pl" | "en"; maxOutputTokens?: number };
 export type ReviewTelemetry = { model: string; inputTokens: number; outputTokens: number; estimatedCost: number | null; provenance: ReviewProvenance };
 
 const retryableStatuses = new Set([408, 409, 429, 500, 502, 503, 504, 520]);
@@ -74,9 +75,10 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
   const fallbackModel = fallbackDisabled ? undefined : process.env.OPENAI_REVIEW_FALLBACK_MODEL?.trim();
   const timeoutMs = resolveReviewTimeoutMs();
   const client = new OpenAI({ apiKey, timeout: timeoutMs, maxRetries: 2 });
+  const careerContext = input.targetSeniority === "first_job" ? "first_job" : input.careerContext || "standard";
   const roleProfile = getTargetRoleProfile(input.targetRole, input.locale);
-  const rubric = getRubric(input.targetSeniority, input.targetRole, input.locale);
-  const { version: promptVersion, systemPrompt, variant: promptVariant } = getReviewPrompt(input.locale);
+  const rubric = getRubric(input.targetSeniority, input.targetRole, input.locale, careerContext);
+  const { version: promptVersion, systemPrompt, variant: promptVariant } = getReviewPrompt(input.locale, input.targetSeniority, careerContext);
   const payload = {
     locale: input.locale,
     targetRole: roleProfile.label,
@@ -88,6 +90,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
       systemsCategory: roleProfile.systemsLabel,
     },
     targetSeniority: input.targetSeniority,
+    careerContext: careerContext,
     requiredPromptVersion: promptVersion,
     rubric,
     evidence: input.segments,
@@ -120,6 +123,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     scoringSeniority(input.targetSeniority, response.output_parsed.document.perceivedSeniority),
     input.targetRole,
     input.locale,
+    careerContext,
   );
   const normalized = applyServerRubric({
     ...response.output_parsed,
@@ -136,6 +140,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     new Set(input.segments.map((segment) => segment.id)),
     Object.fromEntries(input.segments.map((segment) => [segment.id, segment.text])),
   );
+  report.document.careerContext = careerContext;
   const inputTokens = response.usage?.input_tokens || 0;
   const outputTokens = response.usage?.output_tokens || 0;
   // Price the model that actually answered, which is not always the requested one.

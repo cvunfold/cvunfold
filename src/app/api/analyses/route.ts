@@ -1,3 +1,4 @@
+import { parseCareerContext } from "@/lib/ai/career-context";
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { createMockReport } from "@/lib/ai/mock-report";
@@ -52,8 +53,11 @@ export async function POST(request: Request) {
     validateUpload(file);
     const targetRole = parseTargetRoleId(form.get("role") || "frontend_developer");
     if (!targetRole) throw new Error("INVALID_TARGET_ROLE");
-    const seniority = parseSeniority(form.get("seniority") || "auto");
+    let seniority = parseSeniority(form.get("seniority") || "auto");
     if (!seniority) throw new Error("INVALID_TARGET_SENIORITY");
+    const careerContext = parseCareerContext(form.get("careerContext") ?? (seniority === "first_job" ? "first_job" : "standard"));
+    if (!careerContext) throw new Error("INVALID_CAREER_CONTEXT");
+    if (careerContext === "first_job" && (seniority === "auto" || seniority === "junior")) seniority = "first_job";
     const jobDescription = String(form.get("jobDescription") || "").trim();
     const requestedPlan = String(form.get("plan") || "") as Plan | "";
     if (requestedPlan && requestedPlan !== "full_review" && requestedPlan !== "job_match") throw new Error("INVALID_PLAN");
@@ -107,7 +111,7 @@ export async function POST(request: Request) {
       documentKind = parsed.diagnostics.document_kind;
       validateCvText(parsed.text);
       const [review, ats] = await Promise.all([
-        reviewWithOpenAI({ segments: parsed.segments, targetRole, targetSeniority: seniority, jobDescription: jobDescription || undefined, locale }),
+        reviewWithOpenAI({ segments: parsed.segments, targetRole, targetSeniority: seniority, careerContext, jobDescription: jobDescription || undefined, locale }),
         runAtsChecker(file, parsed),
       ]);
       report = { ...review.report, ats };
@@ -121,10 +125,11 @@ export async function POST(request: Request) {
         validateCvText(parsed.text);
         ats = await runAtsChecker(file, parsed);
       }
-      const mock = createMockReport(seniority, jobDescription.length > 0, targetRole, locale);
+      const mock = createMockReport(seniority, jobDescription.length > 0, targetRole, locale, careerContext);
       const mockEvidence = mock.evidenceMap || {};
       report = { ...validateEvidence(mock, new Set(Object.keys(mockEvidence)), mockEvidence), ...(ats ? { ats } : {}) };
     }
+    report.document.careerContext = careerContext;
     const retentionDays = Number(process.env.REPORT_RETENTION_DAYS || 30);
     const { token, analysisId } = await saveAnalysisWithRetry(() => ({
       token: createAccessToken(),
@@ -149,7 +154,7 @@ export async function POST(request: Request) {
       OPENAI_RATE_LIMITED: "Analiza AI jest chwilowo przeciążona. Spróbuj ponownie za chwilę.",
       NOT_A_CV: "Ten dokument nie wygląda jak CV. Prześlij dokument zawierający doświadczenie, umiejętności i historię zawodową.",
       INVALID_TARGET_ROLE: "Wybierz rolę z listy.",
-      INVALID_TARGET_SENIORITY: "Wybierz obsługiwany poziom seniority.", INVALID_PLAN: "Wybierz obsługiwany wariant raportu.",
+      INVALID_CAREER_CONTEXT: "Wybierz obsługiwany kontekst kariery.", INVALID_TARGET_SENIORITY: "Wybierz obsługiwany poziom seniority.", INVALID_PLAN: "Wybierz obsługiwany wariant raportu.",
       MISSING_JOB_DESCRIPTION: "Wklej treść ogłoszenia, aby dopasować analizę do oferty.",
       DOCUMENT_TEXT_TOO_LONG: "Dokument zawiera zbyt dużo tekstu. Skróć CV do najważniejszych informacji.",
       OPENAI_INVALID_RESPONSE: "Analiza nie przeszła walidacji. Spróbuj ponownie.",
@@ -164,7 +169,7 @@ export async function POST(request: Request) {
       EMPTY_FILE: "empty_file", FILE_TOO_LARGE: "file_too_large", UNSUPPORTED_FILE_TYPE: "unsupported_file_type",
       INVALID_FILE_SIGNATURE: "invalid_file_signature", INVALID_FILE_MIME: "invalid_file_mime", DOCX_ARCHIVE_UNSAFE: "unsafe_archive",
       UNREADABLE_DOCUMENT: "unreadable_document", DOCUMENT_TEXT_TOO_LONG: "document_too_long", NOT_A_CV: "not_a_cv",
-      INVALID_TARGET_ROLE: "invalid_target_role", INVALID_TARGET_SENIORITY: "invalid_target_seniority", INVALID_PLAN: "invalid_job_description", MISSING_JOB_DESCRIPTION: "invalid_job_description", RATE_LIMIT_CHECK_FAILED: "rate_limit", ANALYSIS_TIMEOUT: "timeout",
+      INVALID_TARGET_ROLE: "invalid_target_role", INVALID_TARGET_SENIORITY: "invalid_target_seniority", INVALID_CAREER_CONTEXT: "invalid_career_context", INVALID_PLAN: "invalid_job_description", MISSING_JOB_DESCRIPTION: "invalid_job_description", RATE_LIMIT_CHECK_FAILED: "rate_limit", ANALYSIS_TIMEOUT: "timeout",
       OPENAI_NOT_CONFIGURED: "configuration", OPENAI_AUTH_FAILED: "configuration", OPENAI_RATE_LIMITED: "rate_limit",
       OPENAI_INVALID_RESPONSE: "model", INVALID_RUBRIC_WEIGHTS: "model",
       SUPABASE_SAVE_FAILED: "storage", ANALYSIS_FAILED: "unknown",
@@ -229,7 +234,7 @@ export async function POST(request: Request) {
       INVALID_FILE_MIME: "The file type does not match its extension. Export the CV again as PDF or DOCX.",
       DOCX_ARCHIVE_UNSAFE: "This DOCX has an unusual or excessively large structure. Export it again or use PDF.",
       NOT_A_CV: "This document does not appear to be a CV.", INVALID_TARGET_ROLE: "Choose a role from the list.",
-      INVALID_TARGET_SENIORITY: "Choose a supported seniority level.", INVALID_PLAN: "Choose a supported report option.",
+      INVALID_CAREER_CONTEXT: "Choose a supported career context.", INVALID_TARGET_SENIORITY: "Choose a supported seniority level.", INVALID_PLAN: "Choose a supported report option.",
       MISSING_JOB_DESCRIPTION: "Paste the job description to match the analysis to this role.",
       RATE_LIMIT_CHECK_FAILED: "We cannot safely start the analysis right now. Try again shortly.",
       DOCUMENT_TEXT_TOO_LONG: "The document contains too much text. Shorten the CV to its most relevant information.",

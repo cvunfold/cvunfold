@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { ReportView } from "@/components/report-view";
-import { sampleProfile, sampleReport } from "@/lib/ai/sample-report";
-import { DEFAULT_MEASUREMENT_CONTEXT } from "@/lib/audience";
+import { CareerSamplePage } from "@/components/career-sample-page";
 
-export const metadata: Metadata = { title: "Pełny przykładowy raport CV Frontend Developera", description: "Syntetyczny przykład raportu: seniority, pierwsze 20 sekund, ownership, dowody i bezpieczny plan zmian.", alternates: { canonical: "/przykladowy-raport", languages: { "pl-PL": "/przykladowy-raport", en: "/en/sample-report", "x-default": "/przykladowy-raport" } } };
-export default function Page() { return <ReportView paid data={sampleReport} mockMode={false} locale="pl" demo={sampleProfile} measurementContext={{ ...DEFAULT_MEASUREMENT_CONTEXT, selected_seniority_enum: "senior" }}/>; }
+export const metadata: Metadata = { title: "Pełny przykładowy raport CV Frontend Developera", description: "Przykładowe raporty od pierwszej pracy po Lead: projekty, umiejętności, doświadczenie, dowody i bezpieczny plan zmian.", alternates: { canonical: "/przykladowy-raport", languages: { "pl-PL": "/przykladowy-raport", en: "/en/sample-report", "x-default": "/przykladowy-raport" } } };
+export default async function Page({ searchParams }: { searchParams: Promise<{ profile?: string }> }) {
+  const params = await searchParams;
+  return <CareerSamplePage locale="pl" profile={params.profile}/>;
+}

@@ -192,12 +192,12 @@ describe("report header", () => {
   });
 
   it("shows separate dots when the document impression differs from the target", () => {
-    const { container } = render(<ReportView paid data={createMockReport("mid")} mockMode={false} locale="pl"/>);
+    const { container } = render(<ReportView paid data={{ ...createMockReport("senior"), document: { ...createMockReport("senior").document, targetSeniority: "lead" } }} mockMode={false} locale="pl"/>);
     const track = container.querySelector(".seniority-track");
 
     expect(track?.querySelectorAll(".is-perceived i, .is-target i")).toHaveLength(2);
     expect(track?.querySelector(".is-perceived")?.textContent).toContain("WrażenieSenior");
-    expect(track?.querySelector(".is-target")?.textContent).toContain("MidAplikujesz");
+    expect(track?.querySelector(".is-target")?.textContent).toContain("LeadAplikujesz");
   });
 
   it("says the level was inferred when no target was chosen", () => {
@@ -267,4 +267,36 @@ describe("severity wording matches between teaser and full report", () => {
     expect(badges).toEqual(badges.map(() => "Istotny"));
     expect(badges.some((text) => text?.toLowerCase() === "important")).toBe(false);
   });
+});
+
+
+describe("career-stage report presentation", () => {
+  for (const locale of ["pl", "en"] as const) it(`focuses the bootcamp report on projects rather than a seniority ladder (${locale})`, () => {
+    const report = createMockReport("auto", false, "frontend_developer", locale, "first_job");
+    report.issues[0].category = "ownership";
+    const { container } = render(<ReportView paid data={report} mockMode={false} locale={locale}/>);
+    expect(container.querySelector(".seniority-track")).toBeNull();
+    expect(container.querySelector(".career-focus")?.textContent).toContain(locale === "pl" ? "Podstawy, projekty i własny wkład" : "Fundamentals, projects and personal contribution");
+    expect(container.textContent).toContain(locale === "pl" ? "Twój wkład w projekty" : "Your project contribution");
+    expect(container.textContent).not.toMatch(/Dlaczego ownership jest ważny|Why ownership matters|Jak pokazać seniority|How to show seniority/);
+    expect(container.textContent).not.toMatch(/Ownership i odpowiedzialność|Ownership and responsibility|Sygnały poziomu w kategoriach|Seniority signals by category/);
+  });
+
+  it("focuses Mid on independence and decisions without removing Senior's ladder", () => {
+    const mid = render(<ReportView paid data={createMockReport("mid")} mockMode={false} locale="pl"/>);
+    expect(mid.container.querySelector(".seniority-track")).toBeNull();
+    expect(mid.container.textContent).toContain("Samodzielność i zakres zadań");
+    mid.unmount();
+    const senior = render(<ReportView paid data={createMockReport("senior")} mockMode={false} locale="pl"/>);
+    expect(senior.container.querySelector(".seniority-track")).not.toBeNull();
+  });
+});
+
+
+it("uses the Mid presentation when auto detects a Mid profile", () => {
+  const report = createMockReport("mid");
+  report.document.targetSeniority = "auto";
+  const { container } = render(<ReportView paid data={report} mockMode={false} locale="en"/>);
+  expect(container.querySelector(".seniority-track")).toBeNull();
+  expect(container.textContent).toContain("Skills and independence shown in the CV");
 });
