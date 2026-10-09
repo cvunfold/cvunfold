@@ -26,7 +26,7 @@ for (const locale of ["pl", "en"] as const) {
   test(`bootcamp selection survives browser to API to private report (${locale})`, async ({ page }) => {
     const path = locale === "pl" ? "/analiza" : "/en/analysis";
     await page.goto(path);
-    await page.getByRole("combobox", { name: locale === "pl" ? "Etap kariery (opcjonalne)" : "Career stage (optional)" }).click();
+    await page.getByRole("combobox", { name: locale === "pl" ? "Etap kariery (wymagane)" : "Career stage (required)" }).click();
     await page.getByRole("option", { name: locale === "pl" ? /Pierwsza praca w IT/ : /First job in tech/ }).click();
     await expect(page.getByRole("combobox", { name: locale === "pl" ? /Etap kariery/ : /Career stage/ })).toContainText(locale === "pl" ? "Pierwsza praca w IT" : "First job in tech");
     await page.locator(".consent input").check();

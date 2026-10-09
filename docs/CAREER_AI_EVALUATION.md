@@ -4,7 +4,7 @@
 
 - Each resolved PL/EN prompt records `career-v2.0.0:<stage>` in provenance. One shared evidence-safety base and exactly one stage module are included.
 - Rubric: `technical-v1.3.0`. Category keys and numerical weights remain compatible. Labels and expectations differ by stage.
-- One visible stage choice: `first_job`, `junior`, `mid`, `senior`, `lead`, `auto`. First job covers bootcamp graduates, university graduates and self-taught applicants. There is no separate context control.
+- One visible stage choice: `first_job`, `junior`, `mid`, `senior`, `lead`. The form starts empty and requires a concrete stage; legacy `auto` remains an internal analysis mode, not a form option. First job covers bootcamp graduates, university graduates and self-taught applicants. There is no separate context control.
 - The selected stage is server-validated and persisted as the target. Historical `bootcamp` context values normalize to `first_job`; the internal context field is retained only for report/legacy compatibility. Analytics accepts the closed first-job stage enum without source content.
 - No new account, panel, batch upload, pricing, payment or infrastructure changes.
 
@@ -81,3 +81,7 @@ Persistence requires `supabase/migrations/20261009194033_first_job_stage.sql` be
 Final local verification of the simplified stage flow on 2026-10-09: 441 automated tests, 10 PL/EN desktop/mobile browser tests, type checking, lint and build passed. The migration was executed against an isolated in-memory PostgreSQL instance. Checks passed for legacy-row retention, first-job insertion, invalid-stage rejection, unchanged payment mismatch handling, idempotent fulfillment, first-job purchase measurement and service-role-only function execution. No remote migration or deployment was performed.
 
 The approved first-job stage migration was applied as 20261009194033 on 2026-10-09. Live verification confirmed the new constraint, measurement allowlist and unchanged service-role-only execution privileges.
+
+## Transparent stage prefill
+
+The existing transient document detector now also returns a stage when the CV heading/profile declares one clearly. No extra AI call, persistence or document logging is introduced. Declared experience years corroborate the title and flag strongly contradictory declarations; years alone do not assign Senior or Lead. History titles and references to colleagues are excluded. First-job intent can override a Junior heading. Conflicts leave the field empty. The PL/EN notice asks visitors to verify that the suggestion matches their application target; manual selections and handoff stages are preserved. New files invalidate earlier automatic suggestions and in-flight results.

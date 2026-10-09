@@ -30,18 +30,18 @@ afterEach(() => {
 const props = {
   mockMode: false,
   initialRole: "frontend_developer" as const,
-  initialSeniority: "auto" as const,
+  initialSeniority: "junior" as const,
   handoffFromMobile: false,
   locale: "pl" as const,
 };
 
 describe("mobile upload measurement", () => {
-  it("shows the seniority field as a dropdown matching the role field, defaulting to auto", () => {
-    const { container } = render(<UploadFlow {...props}/>);
+  it("shows the seniority field as a dropdown matching the role field, with an empty required stage", () => {
+    const { container } = render(<UploadFlow {...props} initialSeniority={null}/>);
     const trigger = screen.getByRole("combobox", { name: /Etap kariery/ });
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    expect(trigger.textContent).toContain("Nie wiem — oceń na podstawie CV");
-    expect(container.querySelector(".role-label-optional")?.textContent).toBe("(opcjonalne)");
+    expect(trigger.textContent).toContain("Wybierz etap kariery");
+    expect(container.querySelector(".role-label-optional")?.textContent).toBe("(wymagane)");
     expect(screen.queryByRole("radio")).toBeNull();
 
     fireEvent.click(trigger);
@@ -102,7 +102,7 @@ describe("mobile upload measurement", () => {
     const link = aside.querySelector<HTMLAnchorElement>(".analysis-sample-link")!;
     expect(link).not.toBeNull();
     expect(aside.lastElementChild).toBe(link);
-    expect(link.getAttribute("href")).toBe("/przykladowy-raport");
+    expect(link.getAttribute("href")).toBe("/przykladowy-raport?profile=junior");
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toContain("noopener");
     expect(link.getAttribute("aria-label")).toContain("nowej karcie");
@@ -111,7 +111,7 @@ describe("mobile upload measurement", () => {
   it("points the sample link at the English report for English visitors", () => {
     const { container } = render(<UploadFlow {...props} locale="en"/>);
     const link = container.querySelector<HTMLAnchorElement>(".analysis-sample-link")!;
-    expect(link.getAttribute("href")).toBe("/en/sample-report");
+    expect(link.getAttribute("href")).toBe("/en/sample-report?profile=junior");
     expect(link.getAttribute("aria-label")).toContain("new tab");
   });
 
@@ -404,7 +404,7 @@ describe("career context selection", () => {
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "share", { configurable: true, value: share });
     render(<UploadFlow {...props}/>);
-    fireEvent.click(screen.getByRole("combobox", { name: "Etap kariery (opcjonalne)" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "Etap kariery (wymagane)" }));
     fireEvent.click(screen.getByRole("option", { name: /Pierwsza praca w IT/ }));
     expect(screen.getByRole("combobox", { name: /Etap kariery/ }).textContent).toContain("Pierwsza praca w IT");
     expect(screen.getByRole("link", { name: /Zobacz przykładowy raport/ }).getAttribute("href")).toBe("/przykladowy-raport?profile=first_job");
@@ -420,7 +420,7 @@ describe("career context selection", () => {
     const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ reportPath: "/en/report" }) });
     vi.stubGlobal("fetch", fetch);
     render(<UploadFlow {...props} mockMode locale="en" initialSeniority="junior"/>);
-    fireEvent.click(screen.getByRole("combobox", { name: "Career stage (optional)" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "Career stage (required)" }));
     fireEvent.click(screen.getByRole("option", { name: /First job in tech/ }));
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByRole("button", { name: "Analyse my CV" }));
@@ -429,5 +429,40 @@ describe("career context selection", () => {
     expect(form.has("careerContext")).toBe(false);
     expect(form.get("seniority")).toBe("first_job");
     expect(JSON.stringify(trackAnalyticsEvent.mock.calls)).not.toContain("careerContext");
+  });
+});
+
+
+describe("transparent career-stage prefill", () => {
+  const pick = (container: HTMLElement) => fireEvent.change(container.querySelector('input[type="file"]')!, { target: { files: [new File(["%PDF-1.4"], "cv.pdf", { type: "application/pdf" })] } });
+  it("requires a choice and offers five stages without an unknown option", () => {
+    render(<UploadFlow {...props} mockMode initialSeniority={null}/>);
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect((screen.getByRole("button", { name: "Analizuj CV" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("combobox", { name: /Etap kariery/ }));
+    expect(screen.getAllByRole("option")).toHaveLength(5);
+    expect(screen.queryByText(/Nie wiem/)).toBeNull();
+    fireEvent.click(screen.getByRole("option", { name: "Junior" }));
+    expect((screen.getByRole("button", { name: "Analizuj CV" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+  it("prefills a clear stage even when no specialization is detected", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ detected: false, seniority: "junior" }) }));
+    const { container } = render(<UploadFlow {...props} initialSeniority={null}/>);
+    pick(container);
+    await waitFor(() => expect(screen.getByRole("combobox", { name: /Etap kariery/ }).textContent).toContain("Junior"));
+    expect(screen.getByText(/Wykryliśmy etap na podstawie CV/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("combobox", { name: /Etap kariery/ }));
+    fireEvent.click(screen.getByRole("option", { name: "Mid" }));
+    expect(screen.queryByText(/Wykryliśmy etap/)).toBeNull();
+    pick(container);
+    await act(async () => {});
+    expect(screen.getByRole("combobox", { name: /Etap kariery/ }).textContent).toContain("Mid");
+  });
+  it("leaves uncertain stages empty in English", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ detected: true, role: "backend_developer", seniority: null }) }));
+    const { container } = render(<UploadFlow {...props} initialSeniority={null} locale="en"/>);
+    pick(container);
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Target role" }).textContent).toContain("Backend"));
+    expect(screen.getByRole("combobox", { name: /Career stage/ }).textContent).toContain("Choose a career stage");
   });
 });

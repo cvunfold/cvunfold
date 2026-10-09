@@ -16,8 +16,9 @@ type SearchParams = { role?: string; seniority?: string; handoff?: string; hando
 
 export default async function AnalysisPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
-  const selected = parseSeniority(params.seniority) || "auto";
-  const stage = parseCareerContext(params.careerContext) === "first_job" && (selected === "auto" || selected === "junior") ? "first_job" : selected;
+  const parsedStage = parseSeniority(params.seniority);
+  const selected = parsedStage === "auto" ? null : parsedStage;
+  const stage = parseCareerContext(params.careerContext) === "first_job" && (!selected || selected === "junior") ? "first_job" : selected;
   return <UploadFlow
     mockMode={process.env.MOCK_MODE === "true"}
     initialRole={parseTargetRoleId(params.role) || "frontend_developer"}

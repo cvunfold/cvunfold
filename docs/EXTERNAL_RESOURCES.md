@@ -47,3 +47,5 @@ The approved first-job stage migration was applied as 20261009194033 on 2026-10-
 ## Simpler Preview test access, 2026-10-09
 
 Fresh GitHub CLI checks confirmed account pawelmaczkaczarnecki, organization cvunfold, repository cvunfold/cvunfold, ADMIN access. Writes use feat/preview-test-code. Vercel deployment and environment metadata confirmed account/principal 6I778X3suBF4Vk1QIWkFhnDt, team team_EvE1UIid0T9jxS7TG10FPaAh (pawelmaczkaczarnecki's projects), project cvunfold/prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A. Only branch-scoped Preview variables and a new Preview deployment are changed. The owner requested a simpler code and removal/repositioning of the test UI. No production configuration, database or Stripe writes are involved.
+
+The owner additionally requested transparent stage prefill and using experience years as a supporting signal. The same CVUnfold GitHub branch/PR and branch-scoped Vercel Preview are used for this follow-up, with no database, production environment or Stripe changes.

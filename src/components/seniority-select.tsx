@@ -4,7 +4,8 @@ import { PopoverSelect } from "@/components/popover-select";
 import type { Seniority } from "@/lib/rubrics/technical-v1";
 
 type SenioritySelectProps = {
-  value: Seniority;
+  value: Seniority | null;
+  placeholder: string;
   onChange: (value: Seniority) => void;
   /** [value, label] pairs, already localized by the caller. */
   levels: readonly (readonly [Seniority, string])[];
@@ -17,9 +18,9 @@ type SenioritySelectProps = {
 
 const MARK: Record<Seniority, string> = { first_job: "IT", auto: "?", junior: "JR", mid: "MD", senior: "SR", lead: "LD" };
 
-const GRID_ORDER: Seniority[] = ["first_job", "senior", "junior", "lead", "mid", "auto"];
+const GRID_ORDER: Seniority[] = ["first_job", "senior", "junior", "lead", "mid"];
 
-export function SenioritySelect({ value, onChange, levels, label, optionalHint, popoverTitle, popoverSubtitle, disabled = false }: SenioritySelectProps) {
+export function SenioritySelect({ value, placeholder, onChange, levels, label, optionalHint, popoverTitle, popoverSubtitle, disabled = false }: SenioritySelectProps) {
   const options = GRID_ORDER.map((id) => {
     const level = levels.find(([levelId]) => levelId === id);
     return { id, mark: MARK[id], label: level?.[1] ?? id };
@@ -27,6 +28,8 @@ export function SenioritySelect({ value, onChange, levels, label, optionalHint, 
   return <PopoverSelect
     label={<>{label} <span className="role-label-optional">({optionalHint})</span></>}
     value={value}
+    placeholder={placeholder}
+    required
     // Same two-up grid as the role field, so five options take two short rows
     // instead of five, matching the height saving the role field already gets.
     columns={2}
