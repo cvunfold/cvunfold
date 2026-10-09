@@ -14,6 +14,7 @@ describe("model pricing", () => {
   it.each([
     ["gpt-5.6-sol", 5, 30],
     ["gpt-5.6-terra", 2, 12],
+    ["gpt-6-luna", 0.1, 0.5],
     ["gpt-5.6-luna", 0.2, 1.2],
     ["gpt-5.4-mini", 0.75, 4.5],
   ])("prices %s from the table", (model, input, output) => {
