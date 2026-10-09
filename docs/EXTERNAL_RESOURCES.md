@@ -43,3 +43,7 @@ Only the new first-job stage migration is intended as new DDL. Existing migratio
 The owner explicitly approved the described shared-database stage migration after the automatic review explained its constraint/payment-function risk on 2026-10-09. Only the existing stage allowlist is extended; prices, amounts, payment checks and execution privileges are preserved.
 
 The approved first-job stage migration was applied as 20261009194033 on 2026-10-09. Live verification confirmed the new constraint, measurement allowlist and unchanged service-role-only execution privileges.
+
+## Simpler Preview test access, 2026-10-09
+
+Fresh GitHub CLI checks confirmed account pawelmaczkaczarnecki, organization cvunfold, repository cvunfold/cvunfold, ADMIN access. Writes use feat/preview-test-code. Vercel deployment and environment metadata confirmed account/principal 6I778X3suBF4Vk1QIWkFhnDt, team team_EvE1UIid0T9jxS7TG10FPaAh (pawelmaczkaczarnecki's projects), project cvunfold/prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A. Only branch-scoped Preview variables and a new Preview deployment are changed. The owner requested a simpler code and removal/repositioning of the test UI. No production configuration, database or Stripe writes are involved.

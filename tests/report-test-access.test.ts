@@ -8,7 +8,8 @@ import { REPORT_SESSION_COOKIE } from "@/lib/security/report-session";
 import { createMockReport } from "@/lib/ai/mock-report";
 import { getAnalysis, saveAnalysis } from "@/lib/data/store";
 
-const code = "synthetic-test-code-only-not-a-deployment-secret";
+const code = "bootcamp";
+const secret = "synthetic-signing-secret-only-not-a-deployment-secret";
 let token: string;
 let cookie: string;
 beforeEach(async () => {
@@ -16,6 +17,7 @@ beforeEach(async () => {
   vi.stubEnv("VERCEL_TARGET_ENV", "preview");
   vi.stubEnv("REPORT_TEST_ACCESS_ENABLED", "true");
   vi.stubEnv("REPORT_TEST_ACCESS_CODE", code);
+  vi.stubEnv("REPORT_TEST_ACCESS_SECRET", secret);
   vi.stubEnv("MOCK_MODE", "true");
   token = createAccessToken(); cookie = `${REPORT_SESSION_COOKIE}=${token}`;
   await saveAnalysis(token, { id: randomUUID(), createdAt: new Date(), expiresAt: new Date(Date.now() + 3600_000), status: "complete", paid: false, plan: "full_review", locale: "pl", market: "pl", attribution: {}, report: createMockReport(), feedback: [] });
@@ -50,7 +52,9 @@ describe("preview test access boundary", () => {
     expect(reportTestAccessEnabled()).toBe(false);
     vi.stubEnv("VERCEL_TARGET_ENV", "preview"); vi.stubEnv("REPORT_TEST_ACCESS_ENABLED", "false");
     expect(reportTestAccessEnabled()).toBe(false);
-    vi.stubEnv("REPORT_TEST_ACCESS_ENABLED", "true"); vi.stubEnv("REPORT_TEST_ACCESS_CODE", "short");
+    vi.stubEnv("REPORT_TEST_ACCESS_ENABLED", "true"); vi.stubEnv("REPORT_TEST_ACCESS_CODE", "x");
+    expect(reportTestAccessEnabled()).toBe(false);
+    vi.stubEnv("REPORT_TEST_ACCESS_CODE", code); vi.stubEnv("REPORT_TEST_ACCESS_SECRET", "");
     expect(reportTestAccessEnabled()).toBe(false);
   });
 

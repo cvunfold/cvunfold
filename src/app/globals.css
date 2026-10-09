@@ -1703,3 +1703,9 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 
 .career-focus { margin: 18px 0; line-height: 1.55; }
 .career-focus p, .career-score-note { font-size: 13px; line-height: 1.55; }
+
+.report-test-access { width: min(100%, 680px); margin: 24px auto 0; padding-top: 20px; border-top: 1px solid #dce2e8; text-align: left; }
+.report-test-access form { display: grid; gap: 12px; }
+.report-test-access label { display: grid; gap: 8px; font-size: 13px; }
+.report-test-access input { width: 100%; min-width: 0; padding: 12px; border: 1px solid #dce2e8; border-radius: 6px; background: white; color: var(--ink); }
+.report-test-access .button { width: 100%; margin: 0; }
