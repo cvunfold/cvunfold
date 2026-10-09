@@ -12,6 +12,8 @@ import type { MeasurementContext } from "@/lib/audience";
 
 type ReportResponse = {
   paid: boolean;
+  fullAccess?: boolean;
+  accessMode?: "preview_test" | "purchase" | "teaser";
   plan: Plan;
   locale: Locale;
   expiresAt: string;
@@ -39,11 +41,14 @@ const messages = {
   },
 } as const;
 
-export function ReportSessionPage({ locale, mockMode }: { locale: Locale; mockMode: boolean }) {
+export function ReportSessionPage({ locale, mockMode, testAccessEnabled = false }: { locale: Locale; mockMode: boolean; testAccessEnabled?: boolean }) {
   const t = messages[locale];
   const [data, setData] = useState<ReportResponse | null>(null);
   const [error, setError] = useState(false);
   const [pending, setPending] = useState(false);
+  const [testCode, setTestCode] = useState("");
+  const [testBusy, setTestBusy] = useState(false);
+  const [testError, setTestError] = useState(false);
   const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
@@ -81,14 +86,14 @@ export function ReportSessionPage({ locale, mockMode }: { locale: Locale; mockMo
         if (!cancelled) setNotice(t.cancelled);
         window.history.replaceState(null, "", window.location.pathname);
       }
-      if (checkoutState === "success" && !report.paid) {
+      if (checkoutState === "success" && !(report.fullAccess ?? report.paid)) {
         if (!cancelled) setPending(true);
-        for (let attempt = 0; attempt < 8 && !cancelled && !report.paid; attempt += 1) {
+        for (let attempt = 0; attempt < 8 && !cancelled && !(report.fullAccess ?? report.paid); attempt += 1) {
           await new Promise((resolve) => window.setTimeout(resolve, 1500));
           report = await load() || report;
         }
         if (!cancelled) setPending(false);
-        if (!report.paid && !cancelled) setNotice(t.pendingLong);
+        if (!(report.fullAccess ?? report.paid) && !cancelled) setNotice(t.pendingLong);
       }
       if (checkoutState === "success" && report.paid) window.history.replaceState(null, "", window.location.pathname);
     }
@@ -96,7 +101,23 @@ export function ReportSessionPage({ locale, mockMode }: { locale: Locale; mockMo
     return () => { cancelled = true; };
   }, [load, locale, t.cancelled, t.pendingLong]);
 
+  async function unlockTest(event: React.FormEvent) {
+    event.preventDefault();
+    setTestBusy(true); setTestError(false);
+    try {
+      const response = await fetch("/api/report/test-access", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: testCode }) });
+      setTestCode("");
+      if (!response.ok || !await load()) setTestError(true);
+    } catch { setTestError(true); } finally { setTestBusy(false); }
+  }
+
   if (error) return <main className="report-state"><Logo locale={locale}/><h1>{t.missing}</h1><button className="button" onClick={() => window.location.reload()}>{t.retry}</button></main>;
   if (!data || pending) return <main className="report-state"><Logo locale={locale}/><div className="analysis-spinner"/><h1>{pending ? t.pending : t.loading}</h1></main>;
-  return <>{notice ? <div className="payment-notice" role="status">{notice}</div> : null}<ReportView paid={data.paid} plan={data.plan} purchase={data.purchase} data={data.report} locale={data.locale} expiresAt={data.expiresAt} mockMode={mockMode} measurementContext={data.measurementContext}/></>;
+  return <>{testAccessEnabled ? <section className="payment-notice" aria-label={locale === "pl" ? "Dostęp testowy" : "Test access"}>
+    {data.accessMode === "preview_test" ? <p role="status">{locale === "pl" ? "Dostęp testowy do raportu. Płatność nie została wykonana." : "Test access to this report. No payment was made."}</p> : !data.paid ? <form onSubmit={unlockTest}>
+      <label>{locale === "pl" ? "Kod dostępu testowego" : "Test access code"}<input type="password" autoComplete="off" maxLength={256} value={testCode} onChange={event => setTestCode(event.target.value)} disabled={testBusy}/></label>
+      <button className="button" disabled={testBusy || !testCode}>{locale === "pl" ? "Otwórz raport testowo" : "Open report for testing"}</button>
+      {testError ? <p role="alert">{locale === "pl" ? "Nie udało się przyznać dostępu testowego." : "Test access could not be granted."}</p> : null}
+    </form> : null}
+  </section> : null}{notice ? <div className="payment-notice" role="status">{notice}</div> : null}<ReportView paid={data.fullAccess ?? data.paid} testAccess={data.accessMode === "preview_test"} plan={data.plan} purchase={data.purchase} data={data.report} locale={data.locale} expiresAt={data.expiresAt} mockMode={mockMode} measurementContext={data.measurementContext}/></>;
 }

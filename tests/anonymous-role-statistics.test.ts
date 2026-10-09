@@ -10,7 +10,7 @@ import {
 const migration = readFileSync(new URL("../supabase/migrations/20260814112020_anonymous_role_statistics.sql", import.meta.url), "utf8");
 const permissionFix = readFileSync(new URL("../supabase/migrations/20260814153118_grant_anonymous_role_trigger_permissions.sql", import.meta.url), "utf8");
 const triggerFix = readFileSync(new URL("../supabase/migrations/20260814153226_fix_anonymous_role_trigger_variable_conflict.sql", import.meta.url), "utf8");
-const categoryExpansion = readFileSync(new URL("../supabase/migrations/20260819130000_expand_anonymous_role_categories.sql", import.meta.url), "utf8");
+const categoryExpansion = readFileSync(new URL("../supabase/migrations/20260819124938_expand_anonymous_role_categories.sql", import.meta.url), "utf8");
 const tableDefinition = migration.match(/create table if not exists public\.anonymous_role_aggregates \(([\s\S]*?)\n\);/)?.[1] || "";
 
 describe("anonymous role statistics", () => {

@@ -72,13 +72,13 @@ const enumValues: Record<string, readonly string[]> = {
   locale: ["pl", "en"], market: ["pl", "en"], plan: ["full_review", "job_match"],
   broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
   detected_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
-  selected_seniority_enum: ["auto", "junior", "mid", "senior", "lead"],
+  selected_seniority_enum: ["first_job", "auto", "junior", "mid", "senior", "lead"],
   role_source: roleSources,
   landing_variant: ["developer"], handoff_origin: ["google_cpc", "other"],
   teaser_variant: [TEASER_VARIANT],
   upload_entrypoint: ["picker", "drop"], handoff_method: ["web_share", "clipboard"],
   purchase_surface: purchaseSurfaces, payment_method: purchasePaymentMethods, reason: walletUnavailableReasons,
-  currency: ["PLN", "EUR"], error_category: ["empty_file", "file_too_large", "unsupported_file_type", "invalid_file_signature", "invalid_file_mime", "unsafe_archive", "unreadable_document", "document_too_long", "not_a_cv", "invalid_target_role", "invalid_target_seniority", "invalid_job_description", "rate_limit", "verification", "model", "storage", "timeout", "configuration", "unknown"],
+  currency: ["PLN", "EUR"], error_category: ["empty_file", "file_too_large", "unsupported_file_type", "invalid_file_signature", "invalid_file_mime", "unsafe_archive", "unreadable_document", "document_too_long", "not_a_cv", "invalid_target_role", "invalid_target_seniority", "invalid_career_context", "invalid_job_description", "rate_limit", "verification", "model", "storage", "timeout", "configuration", "unknown"],
 };
 
 export function safeAnalyticsPayload(event: AnalyticsEvent, properties: Record<string, string | number | boolean> = {}) {

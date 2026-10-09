@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const migration = readFileSync(new URL("../supabase/migrations/20260811203319_feedback_quality_aggregates.sql", import.meta.url), "utf8");
 const tableDefinition = migration.match(/create table if not exists public\.feedback_quality_aggregates \(([\s\S]*?)\n\);/)?.[1] || "";
-const notesMigration = readFileSync(new URL("../supabase/migrations/20260818140000_retained_feedback_notes.sql", import.meta.url), "utf8");
+const notesMigration = readFileSync(new URL("../supabase/migrations/20260818123311_retained_feedback_notes.sql", import.meta.url), "utf8");
 const notesTableDefinition = notesMigration.match(/create table if not exists public\.feedback_notes \(([\s\S]*?)\n\);/)?.[1] || "";
 
 describe("feedback quality retention", () => {

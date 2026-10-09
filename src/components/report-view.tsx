@@ -9,6 +9,7 @@ import type { AtsCheckId, AtsCheckResult, AtsCheckStatus } from "@/lib/ats-check
 import type { Purchase } from "@/lib/data/store";
 import type { Plan } from "@/lib/plans";
 import { formatPlanPrice, REWRITE_SERVICE_REFERENCE } from "@/lib/plans";
+import { careerContextLabels, parseCareerContext } from "@/lib/ai/career-context";
 import { analysisPath, articlesPath, homePath, sampleReportPath, type Locale } from "@/lib/i18n";
 import { trackAnalyticsEvent, trackPurchaseConversion } from "@/lib/analytics/client";
 import type { PurchaseSurface } from "@/lib/analytics/events";
@@ -26,6 +27,7 @@ const ExpressWalletCheckout = dynamic(
 type SampleProfile = { name: string; note: string; evidence: Record<string, string> };
 type Props = {
   paid: boolean;
+  testAccess?: boolean;
   plan?: Plan;
   purchase?: Purchase;
   data: CVReport | TeaserReport;
@@ -200,7 +202,7 @@ function AtsPanel({ ats, locale }: { ats?: AtsCheckResult; locale: Locale }) {
   </div>;
 }
 
-const seniorityLabel = (value: string) => value === "unclear" ? "—" : value[0].toUpperCase() + value.slice(1);
+const seniorityLabel = (value: string, locale: Locale = "pl") => value === "first_job" ? (locale === "pl" ? "Pierwsza praca w IT" : "First job in tech") : value === "unclear" ? "?" : value[0].toUpperCase() + value.slice(1);
 const senioritySteps = ["junior", "mid", "senior", "lead"] as const;
 const decisionLabel = {
   pl: { interview: "DO ROZMOWY", maybe: "DO ROZWAŻENIA", reject: "RACZEJ NIE" },
@@ -297,8 +299,20 @@ const reportTopics = {
   },
 } as const;
 
-export function ReportView({ paid, plan = "full_review", purchase, data: reportData, mockMode, locale, expiresAt, demo, measurementContext = DEFAULT_MEASUREMENT_CONTEXT }: Props) {
-  const t = copy[locale];
+export function ReportView({ paid, plan = "full_review", purchase, testAccess = false, data: reportData, mockMode, locale, expiresAt, demo, measurementContext = DEFAULT_MEASUREMENT_CONTEXT }: Props) {
+  const firstJob = "document" in reportData && (reportData.document.targetSeniority === "first_job" || parseCareerContext(reportData.document.careerContext) === "first_job");
+  const earlyCareer = "document" in reportData && (reportData.document.targetSeniority === "first_job" || reportData.document.targetSeniority === "junior"
+    || (reportData.document.targetSeniority === "auto" && reportData.document.perceivedSeniority === "junior")
+    || (reportData.document.careerContext !== undefined && reportData.document.careerContext !== "standard"));
+  const lowerCareer = earlyCareer || ("document" in reportData && (reportData.document.targetSeniority === "mid"
+    || (reportData.document.targetSeniority === "auto" && reportData.document.perceivedSeniority === "mid")));
+  const t = { ...copy[locale], ...(lowerCareer ? (locale === "pl" ? {
+    perceivedLevel: "PROFIL Z CV", categories: earlyCareer ? "Podstawy i projekty widoczne w CV" : "Umiejętności i samodzielność widoczne w CV",
+    profile: firstJob ? "Jak CV pokazuje przygotowanie do pierwszej roli" : earlyCareer ? "Jak CV pokazuje podstawy i praktykę" : "Jak CV pokazuje Twoje doświadczenie", targetLevel: "Cel aplikacji",
+  } : {
+    perceivedLevel: "CV PROFILE", categories: earlyCareer ? "Fundamentals and projects shown in the CV" : "Skills and independence shown in the CV",
+    profile: firstJob ? "How the CV shows preparation for a first role" : earlyCareer ? "How the CV shows fundamentals and practice" : "How the CV presents your experience", targetLevel: "Application target",
+  }) : {}) };
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -319,13 +333,14 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
   const price = formatPlanPrice(plan, locale);
 
   useEffect(() => {
+    if (testAccess) return;
     const event = demo ? "sample_report_viewed" : paid ? "full_report_viewed" : "teaser_viewed";
     if (!trackedViews.current.has(event)) {
       trackedViews.current.add(event);
       trackAnalyticsEvent(event, { plan, locale, market: locale, ...(isFree ? { teaser_variant: TEASER_VARIANT } : {}), ...measurementContext });
     }
     if (paid && purchase) trackPurchaseConversion({ ...purchase, locale, market: locale, teaserVariant: TEASER_VARIANT, ...measurementContext });
-  }, [demo, isFree, locale, measurementContext, paid, plan, purchase]);
+  }, [demo, isFree, locale, measurementContext, paid, plan, purchase, testAccess]);
 
   useEffect(() => {
     if (paid || demo || !reportRoot.current || !("IntersectionObserver" in window)) return;
@@ -495,7 +510,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
             </article> : <div className="teaser-lock"><LockIcon/><span>{locale === "pl" ? "Pełny raport zawiera diagnozy wraz z dowodami i priorytetami." : "The full report contains diagnoses with evidence and priorities."}</span></div>}
           </section>
 
-          <section ref={paywall} className="locked"><LockIcon/><h2>{locale === "pl" ? "To była jedna poprawka. Pod spodem jest cała diagnoza." : "That was one improvement. The full diagnosis is below."}</h2><aside className="price-anchor"><b>{t.anchorTitle}</b><p>{t.anchor}</p></aside><p><b>{t.lockedOutcome}</b></p><ul className="locked-value"><li>{locale === "pl" ? "jak rekruter czyta Twoje CV po 5, 10 i 20 sekundach" : "how a recruiter reads your CV after 5, 10 and 20 seconds"}</li><li>{locale === "pl" ? "co budzi rezerwę i o co mogą zapytać na rozmowie" : "what creates doubt, and what they may ask about it"}</li><li>{locale === "pl" ? "każda poprawka z cytatem z Twojego dokumentu" : "every improvement quoted from your own document"}</li><li>{locale === "pl" ? "kolejność: co zmienić najpierw i dlaczego" : "the order: what to change first, and why"}</li><li>{locale === "pl" ? "sugestie bez dopisywania faktów, których nie ma w CV" : "suggestions that never invent facts your CV does not have"}</li><li>{locale === "pl" ? "sygnały poziomu w kategoriach i mocne strony dokumentu" : "seniority signals by category, and the document's strengths"}</li></ul><a className="locked-sample-link" href={sampleReportPath(locale)} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a><div className="locked-payment-actions"><button ref={paywallCta} onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={() => {}}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
+          <section ref={paywall} className="locked"><LockIcon/><h2>{locale === "pl" ? "To była jedna poprawka. Pod spodem jest cała diagnoza." : "That was one improvement. The full diagnosis is below."}</h2><aside className="price-anchor"><b>{t.anchorTitle}</b><p>{t.anchor}</p></aside><p><b>{t.lockedOutcome}</b></p><ul className="locked-value"><li>{locale === "pl" ? "jak rekruter czyta Twoje CV po 5, 10 i 20 sekundach" : "how a recruiter reads your CV after 5, 10 and 20 seconds"}</li><li>{locale === "pl" ? "co budzi rezerwę i o co mogą zapytać na rozmowie" : "what creates doubt, and what they may ask about it"}</li><li>{locale === "pl" ? "każda poprawka z cytatem z Twojego dokumentu" : "every improvement quoted from your own document"}</li><li>{locale === "pl" ? "kolejność: co zmienić najpierw i dlaczego" : "the order: what to change first, and why"}</li><li>{locale === "pl" ? "sugestie bez dopisywania faktów, których nie ma w CV" : "suggestions that never invent facts your CV does not have"}</li><li>{locale === "pl" ? "kryteria dopasowane do etapu kariery i mocne strony dokumentu" : "criteria tailored to your career stage and the document's strengths"}</li></ul><a className="locked-sample-link" href={sampleReportPath(locale)} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a><div className="locked-payment-actions"><button ref={paywallCta} onClick={() => void unlock("report_paywall")} disabled={busy} className="button" data-purchase-surface="report_paywall" data-payment-method="standard"><LockIcon/>{busy ? "…" : `${t.unlock} — ${price}`}</button><ExpressWalletCheckout enabled={!mockMode} locale={locale} plan={plan} measurementContext={measurementContext} purchaseSurface="report_paywall" onAvailabilityChange={() => {}}/></div><div className="payment-methods-list" aria-label={t.paymentMethodsLabel}><span>{t.paymentMethodsLabel}</span><ul>{t.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul></div><small>{t.oneTime}</small></section>
         </div>
       </div>
       <button className="report-mobile-sticky-cta" data-visible={mobileStickyVisible ? "true" : "false"} data-purchase-surface="mobile_sticky" data-payment-method="standard" aria-hidden={!mobileStickyVisible} tabIndex={mobileStickyVisible ? 0 : -1} disabled={busy} onClick={() => void unlock("mobile_sticky")}><span><LockIcon/>{busy ? "…" : t.unlock}</span><strong>{price}</strong></button>
@@ -506,21 +521,21 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
   const counts = paid && full
     ? { issues: full.issues.length, strengths: full.strengths.length, nextSteps: full.nextSteps.length }
     : { issues: 0, strengths: 0, nextSteps: 0 };
-  const topicKeys = [...new Set([...(full?.issues.map((issue) => issue.category) || []), "seniority", "ownership"])]
-    .filter((key): key is keyof typeof reportTopics.pl => key in reportTopics[locale]).slice(0, 3);
+  const topicKeys = [...new Set([...(full?.issues.map((issue) => issue.category) || []), ...(lowerCareer ? ["clarity", "credibility"] : ["seniority", "ownership"])])]
+    .filter((key): key is keyof typeof reportTopics.pl => key in reportTopics[locale] && (!lowerCareer || !["ownership", "seniority", "impact"].includes(key))).slice(0, 3);
 
   return <main ref={reportRoot} className={`report-page report-v2${demo ? " sample-report-page" : ""}`}>
     <header className="report-mobile-header"><Logo locale={locale}/><Link href={homePath(locale)}>{locale === "pl" ? "Wróć" : "Back"}</Link></header>
     <div className="report-layout">
       <aside className="report-sidebar">
         <Logo locale={locale}/>
-        <div className="seniority-track" aria-label={`${t.perceivedLevel}: ${seniorityLabel(data.document.perceivedSeniority)}${targetSeniority && targetSeniority !== "auto" ? `; ${t.targetLevel}: ${seniorityLabel(targetSeniority)}` : ""}`}>
+        {lowerCareer ? <div className="career-focus"><strong>{earlyCareer ? (locale === "pl" ? "Podstawy, projekty i własny wkład" : "Fundamentals, projects and personal contribution") : (locale === "pl" ? "Umiejętności, decyzje i samodzielność" : "Skills, decisions and independence")}</strong><p>{targetSeniority !== "auto" ? `${t.targetLevel}: ${seniorityLabel(targetSeniority || "unclear", locale)}` : (locale === "pl" ? "Ocena dowodów widocznych w CV" : "Assessment of evidence shown in the CV")}</p></div> : <div className="seniority-track" aria-label={`${t.perceivedLevel}: ${seniorityLabel(data.document.perceivedSeniority)}${targetSeniority && targetSeniority !== "auto" ? `; ${t.targetLevel}: ${seniorityLabel(targetSeniority, locale)}` : ""}`}>
           <ol>{senioritySteps.map((level) => {
             const isPerceived = level === data.document.perceivedSeniority;
             const isTarget = targetSeniority !== "auto" && level === targetSeniority;
             return <li key={level} className={`${isPerceived ? "is-perceived " : ""}${isTarget ? "is-target" : ""}`}><b className="perception-marker">{isPerceived ? t.perceptionMarker : null}</b><i aria-hidden="true"/><strong>{seniorityLabel(level)}</strong><b className="target-marker">{isTarget ? t.targetMarker : null}</b></li>;
           })}</ol>{targetSeniority === "auto" ? <p className="seniority-auto">{t.targetAuto}</p> : null}
-        </div>
+        </div>}
         <span className="overline">{t.first20}</span>
         <strong className={`sidebar-decision ${data.recruiterSimulation.simulatedDecision}`}>{decisionLabel[locale][data.recruiterSimulation.simulatedDecision]}</strong>
         <div className="secondary-score"><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale} captionBelow/><span>{t.overall}</span></div>
@@ -534,7 +549,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
       <div className="report-content">
         {demo ? <div className="sample-disclosure"><div><b>{t.sample}</b><small>{t.samplePrivate}</small></div><p>{demo.note}</p><Link className="sample-home-link" href={homePath(locale)}>{t.backHome}<ArrowIcon/></Link></div> : null}
         <header className="report-title">
-          <div><h1>{demo ? t.sampleReport : t.yourReport}</h1><h2>{demo ? `${demo.name} · ` : ""}{profileRole}</h2><span>{t.documentPerception}</span><p>{locale === "pl" ? "Na podstawie treści i struktury CV. To nie jest ocena osoby." : "Based on the CV's content and structure. This is not an assessment of the person."}</p></div>
+          <div><h1>{demo ? t.sampleReport : t.yourReport}</h1><h2>{demo ? `${demo.name} · ` : ""}{profileRole}</h2><span>{t.documentPerception}</span><p>{locale === "pl" ? "Na podstawie treści i struktury CV. To nie jest ocena osoby." : "Based on the CV's content and structure. This is not an assessment of the person."}</p><p className="career-score-note">{locale === "pl" ? "Wynik opisuje jakość CV względem celu aplikacji." : "The score describes CV quality against the application target."}{data.document.careerContext && data.document.careerContext !== "standard" ? ` ${careerContextLabels[locale][parseCareerContext(data.document.careerContext) || "standard"]}.` : ""}</p></div>
           <div className="report-actions">
             {demo || paid ? <button className="report-download" onClick={() => window.print()}>{t.print}</button> : null}
             {!demo ? <button className="report-download" onClick={copySecureLink}>{linkState === "copied" ? t.copied : linkState === "error" ? t.copyFailed : t.copyLink}</button> : null}
@@ -545,7 +560,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
           <div className="report-mobile-score"><ScoreRing score={data.summary.overallScore} ariaLabel={locale === "pl" ? `Wynik ${data.summary.overallScore} na 100` : `Score ${data.summary.overallScore} out of 100`} locale={locale} captionBelow/><span>{t.overall}</span></div>
             <div className="report-mobile-summary-copy">
             <span className="report-mobile-summary-title">{!paid && !demo ? t.mobileSummary : t.overall}</span>
-            <div className="report-mobile-signals"><div><span>{t.perceivedLevel}</span><strong>{profileRole}</strong></div>{targetSeniority && targetSeniority !== "auto" ? <div><span>{t.targetLevel}</span><strong>{seniorityLabel(targetSeniority)}</strong></div> : null}<div><span>{t.first20}</span><strong className={data.recruiterSimulation.simulatedDecision}>{decisionLabel[locale][data.recruiterSimulation.simulatedDecision]}</strong></div></div>
+            <div className="report-mobile-signals"><div><span>{t.perceivedLevel}</span><strong>{profileRole}</strong></div>{targetSeniority && targetSeniority !== "auto" ? <div><span>{t.targetLevel}</span><strong>{seniorityLabel(targetSeniority, locale)}</strong></div> : null}<div><span>{t.first20}</span><strong className={data.recruiterSimulation.simulatedDecision}>{decisionLabel[locale][data.recruiterSimulation.simulatedDecision]}</strong></div></div>
             <p className="verdict">{data.summary.oneSentenceVerdict}</p>
           </div>
         </section>
@@ -553,7 +568,7 @@ export function ReportView({ paid, plan = "full_review", purchase, data: reportD
 
         <section className="report-section recruiter-perspective">
           <div className="section-heading"><span>01</span><h2>{t.profile}</h2></div>
-          <div className="recruiter-profile"><div><span>{t.perceivedLevel}</span><p>{data.recruiterPerspective.profileSummary}</p></div><aside className={`seniority-alignment ${data.recruiterPerspective.seniorityAlignment}`}><strong>{seniorityLabel(data.document.perceivedSeniority)}</strong><p>{data.recruiterPerspective.seniorityAlignmentExplanation}</p></aside></div>
+          <div className="recruiter-profile"><div><span>{t.perceivedLevel}</span><p>{data.recruiterPerspective.profileSummary}</p></div><aside className={`seniority-alignment ${data.recruiterPerspective.seniorityAlignment}`}><strong>{lowerCareer ? t.targetLevel : seniorityLabel(data.document.perceivedSeniority)}</strong><p>{data.recruiterPerspective.seniorityAlignmentExplanation}</p></aside></div>
           {full ? <div className="recruiter-map"><div><h3>{t.signals}</h3>{full.recruiterPerspective.positiveSignals.map((signal) => <article key={signal.title}><CheckIcon/><div><b>{signal.title}</b><p>{signal.explanation}</p></div></article>)}</div><div><h3>{t.reservations}</h3>{full.recruiterPerspective.reservations.map((item) => <article key={item.title}><span aria-hidden="true">!</span><div><b>{item.title}</b><p>{item.explanation}</p></div></article>)}</div><div><h3>{t.questions}</h3>{full.recruiterPerspective.likelyInterviewQuestions.map((item, index) => <article key={item.question}><span>{index + 1}</span><div><b>{item.question}</b><p>{item.whyThisQuestion}</p></div></article>)}</div></div> : null}
         </section>
 

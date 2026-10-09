@@ -1,3 +1,4 @@
+import type { CareerContext } from "@/lib/ai/career-context";
 export const locales = ["pl", "en"] as const;
 export type Locale = (typeof locales)[number];
 
@@ -24,6 +25,7 @@ export type AnalysisPathOptions = {
   role?: TargetRoleId;
   seniority?: Seniority;
   handoff?: "mobile";
+  careerContext?: CareerContext;
 };
 
 export function analysisPath(locale: Locale, withJobOrOptions: boolean | AnalysisPathOptions = false): string {
@@ -36,6 +38,7 @@ export function analysisPath(locale: Locale, withJobOrOptions: boolean | Analysi
   else if (options.withJob) params.set("job", "1");
   if (options.role) params.set("role", options.role);
   if (options.seniority) params.set("seniority", options.seniority);
+  if (options.careerContext && options.careerContext !== "standard") params.set("careerContext", options.careerContext);
   if (options.handoff) params.set("handoff", options.handoff);
   const query = params.toString();
   return query ? `${path}?${query}` : path;

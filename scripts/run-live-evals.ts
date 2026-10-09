@@ -31,7 +31,10 @@ type Result = {
 
 const execute = process.argv.includes("--execute");
 const casePath = join(process.cwd(), "fixtures", "live-eval-cases.json");
-const allCases = JSON.parse(readFileSync(casePath, "utf8")) as LiveEvalCase[];
+const allCases = [
+  ...JSON.parse(readFileSync(casePath, "utf8")),
+  ...JSON.parse(readFileSync(join(process.cwd(), "fixtures", "career-eval-cases.json"), "utf8")),
+] as LiveEvalCase[];
 const requestedCaseIds = new Set((process.env.OPENAI_EVAL_CASE_IDS || "").split(",").map((value) => value.trim()).filter(Boolean));
 const cases = requestedCaseIds.size ? allCases.filter((item) => requestedCaseIds.has(item.id)) : allCases;
 // A canary usually targets one locale: the v1.6-rc1 prompt is Polish-only, so
@@ -65,7 +68,7 @@ const rawWorstCaseCostPln = ratesConfigured ? estimateWorstCaseCostPln({
   cases: runnable.map(({ item, locale }) => ({ cv: item.cv[locale], jobDescription: item.jobDescription?.[locale] })),
   // Estimate against the prompt that will actually run: v1.6-rc1 is roughly an
   // order of magnitude longer than the stable one, which moves the cost cap.
-  systemPromptCharacters: Math.max(...locales.map((locale) => getReviewPrompt(locale).systemPrompt.length)),
+  systemPromptCharacters: Math.max(0, ...runnable.map(({ item, locale }) => getReviewPrompt(locale, item.targetSeniority, item.careerContext).systemPrompt.length)),
   inputUsdPerMillion: inputRate,
   outputUsdPerMillion: outputRate,
   maxOutputTokens,
@@ -112,6 +115,7 @@ async function main(): Promise<void> {
           segments,
           targetRole: item.targetRole,
           targetSeniority: item.targetSeniority,
+          careerContext: item.careerContext,
           jobDescription: item.jobDescription?.[locale],
           locale,
           maxOutputTokens,
@@ -171,7 +175,7 @@ async function main(): Promise<void> {
     model: process.env.OPENAI_REVIEW_MODEL,
     // Provenance of this run. Never compare two summaries whose provenance differs.
     promptVariant: activePromptVariant(),
-    promptVersions: Object.fromEntries(locales.map((locale) => [locale, getReviewPrompt(locale).version])),
+    promptVersions: Object.fromEntries(runnable.map(({ item, locale }) => [`${item.id}:${locale}`, getReviewPrompt(locale, item.targetSeniority, item.careerContext).version])),
     pipelineVersion: REVIEW_PIPELINE_VERSION,
     locales,
     maxCostPln,

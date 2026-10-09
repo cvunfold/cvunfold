@@ -185,12 +185,12 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
 
 export function withRecruiterPerspective(report: CVReport): CVReport {
   if (report.recruiterPerspective) return report;
-  const ranks = { junior: 0, mid: 1, senior: 2, lead: 3 } as const;
+  const ranks = { first_job: 0, junior: 0, mid: 1, senior: 2, lead: 3 } as const;
   const target = report.document.targetSeniority;
   const perceived = report.document.perceivedSeniority;
   const seniorityAlignment = target === "auto" || perceived === "unclear"
     ? "unclear"
-    : target === perceived
+    : target === perceived || (target === "first_job" && perceived === "junior")
       ? "aligned"
       : ranks[perceived] < ranks[target]
         ? "undersold"

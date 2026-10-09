@@ -29,3 +29,17 @@ employer resources remain forbidden.
 Before any write, revalidate the service, account, organization/team, project,
 and environment in the destination. If any field differs or is missing, stop
 the write and update this registry only after explicit verification.
+
+## Career-stage release preflight, 2026-10-09
+
+| Service | Account | Organization/team | Project | Environment | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| GitHub | pawelmaczkaczarnecki | cvunfold (Organization) | cvunfold/cvunfold | feat/career-stage-analysis, then main | CLI user and repository admin/push permissions verified; remote main 385a5a8 |
+| Vercel | pawelmaczkaczarnecki (principal 6I778X3suBF4Vk1QIWkFhnDt) | pawelmaczkaczarnecki's projects, team_EvE1UIid0T9jxS7TG10FPaAh | cvunfold, prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A | branch-scoped Preview, then Git main Production | Live project, team, deployment creator and Git metadata verified; production deployment dpl_9jK2ox5tSwAYJG38jTfA4hb6wZXt belongs to cvunfold/cvunfold at 385a5a8 |
+| Supabase | connected owner's private-business Supabase account | CVUnfold, knjrcparhtiwcskiisjh | cvunfold-prod, yttktyctjbciyqjpvunv | Production database also used by Preview; preview test rows explicitly labelled preview | Live project/org metadata, Vercel SUPABASE_URL and migration history verified; no new project or branch provisioned |
+
+Only the new first-job stage migration is intended as new DDL. Existing migration filenames/content are reconciled to actual applied history in Git, without replaying or rewriting production migration history. Test-access variables will be limited to this feature branch's Preview environment. No Stripe resources or real payment are part of this release test.
+
+The owner explicitly approved the described shared-database stage migration after the automatic review explained its constraint/payment-function risk on 2026-10-09. Only the existing stage allowlist is extended; prices, amounts, payment checks and execution privileges are preserved.
+
+The approved first-job stage migration was applied as 20261009194033 on 2026-10-09. Live verification confirmed the new constraint, measurement allowlist and unchanged service-role-only execution privileges.

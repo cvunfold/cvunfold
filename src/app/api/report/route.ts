@@ -1,3 +1,4 @@
+import { hasReportTestAccess } from "@/lib/security/report-test-access";
 import { NextResponse } from "next/server";
 import { deleteAnalysis, getAnalysis, recordFunnelEvent } from "@/lib/data/store";
 import { toTeaser, withRecruiterPerspective } from "@/lib/ai/validate-report";
@@ -13,8 +14,9 @@ export async function GET(request: Request) {
   if (!token) return NextResponse.json({ error: "REPORT_SESSION_REQUIRED" }, { status: 401 });
   let item = await getAnalysis(token);
   if (!item) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
+  const testAccess = hasReportTestAccess(request, token);
   const sessionId = new URL(request.url).searchParams.get("session_id");
-  if (!item.paid && sessionId && process.env.MOCK_MODE !== "true") {
+  if (!item.paid && !testAccess && sessionId && process.env.MOCK_MODE !== "true") {
     try {
       await fulfillCheckoutSession(sessionId, `checkout-verify:${sessionId}`, item.id);
       item = await getAnalysis(token) || item;
@@ -22,9 +24,10 @@ export async function GET(request: Request) {
       // The signed webhook remains authoritative; the UI keeps polling safely.
     }
   }
+  const fullAccess = item.paid || testAccess;
   const report = withRecruiterPerspective(item.report);
   const measurementContext = measurementContextFromAttribution(item.attribution);
-  await recordFunnelEvent({
+  if (!testAccess) await recordFunnelEvent({
     name: item.paid ? "full_report_viewed" : "teaser_viewed",
     analysisId: item.id,
     locale: item.locale,
@@ -34,10 +37,12 @@ export async function GET(request: Request) {
   }).catch(() => undefined);
   return NextResponse.json({
     paid: item.paid,
+    fullAccess,
+    accessMode: testAccess ? "preview_test" : item.paid ? "purchase" : "teaser",
     plan: item.plan,
     locale: item.locale,
     expiresAt: item.expiresAt.toISOString(),
-    report: item.paid ? report : toTeaser(report),
+    report: fullAccess ? report : toTeaser(report),
     purchase: item.paid ? item.purchase : undefined,
     measurementContext,
   }, { headers: { "Cache-Control": "private, no-store, max-age=0", "Referrer-Policy": "no-referrer" } });

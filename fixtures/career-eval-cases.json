@@ -1,0 +1,224 @@
+[
+  {
+    "id": "career-first_job-strong",
+    "title": "Strong first_job evidence",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Podsumowanie: szukam pierwszej pracy jako Junior Frontend Developer. Brak doświadczenia komercyjnego.\nKursy: React i TypeScript.\nZainteresowania: aplikacje webowe.\n\nProjekt własny: wyszukiwarka wydarzeń. Samodzielna implementacja filtrów w React i TypeScript, rozdzielenie pobierania danych od widoków, obsługa błędów API i testy filtrów.\n\nProjekt zespołowy: planer nauki. Odpowiedzialność za formularze i walidację, nawigację klawiaturą oraz testy; uzgodnienie kontraktu API z drugą osobą i wzajemne code review.",
+      "en": "Summary: seeking a first job as a Junior Frontend Developer. No commercial experience.\nCourses: React and TypeScript.\nInterests: web applications.\n\nPersonal project: event search. Independently implemented filters in React and TypeScript, separated data fetching from views, handled API errors and tested the filters.\n\nTeam project: study planner. Responsible for forms and validation, keyboard navigation and tests; agreed the API contract with a teammate and exchanged code reviews."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "junior"
+      ],
+      "minimumScore": 80,
+      "forbiddenAdvice": [
+        "(?:brak|brakuje|missing|lack of|no)\\s+(?:doświadczenia komercyjnego|commercial experience)",
+        "(?:dodaj|pokaż|wykaż|add|show|demonstrate|missing|brak)\\s+(?:mentoring|mentoringu|wpływ organizacyjny|organisation.wide impact|organizational impact)",
+        "(?:dodaj|pokaż|add|show)\\s+(?:przychody|revenue|liczbę klientów|customer counts)"
+      ]
+    }
+  },
+  {
+    "id": "career-bootcamp-strong",
+    "title": "Strong bootcamp evidence",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Podsumowanie: pierwsza praca po bootcampie, Junior Frontend Developer. Brak doświadczenia komercyjnego.\nCertyfikaty: ukończony bootcamp frontendowy.\nZainteresowania: aplikacje webowe.\n\nProjekt bootcampowy: wyszukiwarka wydarzeń w React i TypeScript. Po części prowadzonej według instrukcji samodzielne dodanie filtrów, obsługi błędów API i testów; rozdzielenie pobierania danych od widoków.\n\nZespołowy projekt końcowy bootcampu: planer nauki. Własny zakres: formularze, walidacja i nawigacja klawiaturą; testy, uzgodnienie kontraktu API z drugą osobą i wzajemne code review.",
+      "en": "Summary: first job after a bootcamp, Junior Frontend Developer. No commercial experience.\nCertificates: frontend bootcamp completion.\nInterests: web applications.\n\nBootcamp project: event search in React and TypeScript. After the guided part, independently added filters, API error handling and tests; separated data fetching from views.\n\nBootcamp team capstone: study planner. Personal scope: forms, validation and keyboard navigation; tests, an API contract agreed with a teammate and exchanged code reviews."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "junior"
+      ],
+      "minimumScore": 80,
+      "forbiddenAdvice": [
+        "(?:brak|brakuje|missing|lack of|no)\\s+(?:doświadczenia komercyjnego|commercial experience)",
+        "(?:dodaj|pokaż|wykaż|add|show|demonstrate|missing|brak)\\s+(?:mentoring|mentoringu|wpływ organizacyjny|organisation.wide impact|organizational impact)",
+        "(?:dodaj|pokaż|add|show)\\s+(?:przychody|revenue|liczbę klientów|customer counts)"
+      ]
+    }
+  },
+  {
+    "id": "career-junior-strong",
+    "title": "Strong junior evidence",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "junior",
+    "careerContext": "standard",
+    "cv": {
+      "pl": "Podsumowanie: Junior Frontend Developer.\nZainteresowania: aplikacje webowe.\n\nStaż: implementacja formularza rejestracji w React i TypeScript, walidacja i stany błędów; testy i wydanie po code review z opiekunem.\n\nProjekt własny: planer nauki. Podział na komponenty, testy filtrów, nawigacja klawiaturą i obsługa błędów API; omówienie rozwiązania z drugą osobą.",
+      "en": "Summary: Junior Frontend Developer.\nInterests: web applications.\n\nInternship: implemented a registration form in React and TypeScript, validation and error states; tests and a release after a mentor's code review.\n\nPersonal project: study planner. Component structure, filter tests, keyboard navigation and API error handling; discussed the solution with a peer."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "junior"
+      ],
+      "minimumScore": 80,
+      "forbiddenAdvice": [
+        "(?:brak|brakuje|missing|lack of|no)\\s+(?:doświadczenia komercyjnego|commercial experience)",
+        "(?:dodaj|pokaż|wykaż|add|show|demonstrate|missing|brak)\\s+(?:mentoring|mentoringu|wpływ organizacyjny|organisation.wide impact|organizational impact)",
+        "(?:dodaj|pokaż|add|show)\\s+(?:przychody|revenue|liczbę klientów|customer counts)"
+      ]
+    }
+  },
+  {
+    "id": "career-mid-strong",
+    "title": "Strong mid evidence",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "mid",
+    "careerContext": "standard",
+    "cv": {
+      "pl": "Podsumowanie: Mid Frontend Developer.\nNarzędzia: React i TypeScript.\n\nFrontend Developer: samodzielne dostarczenie panelu rezerwacji w React i TypeScript, kontrakt API uzgodniony z backendem, oddzielenie stanu serwera od formularzy i testy krytycznych ścieżek.\n\nW tej samej roli: usunięcie podwójnego wysłania formularza przez blokadę ponownego żądania; test regresji i współpraca z QA przy wydaniu.",
+      "en": "Summary: Mid Frontend Developer.\nTools: React and TypeScript.\n\nFrontend Developer: independently delivered a booking dashboard in React and TypeScript, agreed the API contract with backend, separated server state from forms and tested critical paths.\n\nIn the same role: eliminated duplicate form submission by blocking repeat requests; added a regression test and collaborated with QA on the release."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "mid"
+      ],
+      "minimumScore": 80
+    }
+  },
+  {
+    "id": "career-senior-strong",
+    "title": "Strong senior evidence",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "senior",
+    "careerContext": "standard",
+    "cv": {
+      "pl": "Podsumowanie: Senior Frontend Engineer.\nNarzędzia: React i TypeScript.\n\nSenior Frontend Engineer: odpowiedzialność za migrację procesu rezerwacji; porównanie etapowego rolloutu z pełną podmianą, wybór etapów ze względu na ryzyko i testy krytycznych ścieżek z QA.\n\nW tej samej roli: wspólny standard walidacji formularzy uzgodniony z product i backendem; usunięcie niespójnych komunikatów błędów, code review i wspieranie wdrażania standardu w zespole.",
+      "en": "Summary: Senior Frontend Engineer.\nTools: React and TypeScript.\n\nSenior Frontend Engineer: owned a booking-flow migration; compared staged rollout with full replacement, chose stages because of risk and tested critical paths with QA.\n\nIn the same role: agreed a shared form-validation standard with product and backend; removed inconsistent error messages, reviewed code and supported adoption within the team."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "senior"
+      ],
+      "minimumScore": 80
+    }
+  },
+  {
+    "id": "career-lead-strong",
+    "title": "Strong lead evidence",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "lead",
+    "careerContext": "standard",
+    "cv": {
+      "pl": "Podsumowanie: Frontend Lead.\nNarzędzia: React i TypeScript.\n\nFrontend Lead: uzgodnienie kierunku migracji z product, backendem i QA; podział prac między trzy osoby, uzgodnienie etapów i kontrola ryzyka przy wydaniu procesu rezerwacji.\n\nW tej samej roli: wspólny standard walidacji formularzy, prowadzenie przeglądów projektu i mentoring przy wdrożeniu; zespół zastąpił niespójne komunikaty wspólnymi wzorcami.",
+      "en": "Summary: Frontend Lead.\nTools: React and TypeScript.\n\nFrontend Lead: agreed migration direction with product, backend and QA; split work among three engineers, agreed stages and controlled release risk for the booking flow.\n\nIn the same role: a shared form-validation standard, facilitated design reviews and mentored adoption; the team replaced inconsistent messages with shared patterns."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "lead"
+      ],
+      "minimumScore": 80
+    }
+  },
+  {
+    "id": "career-bootcamp-guided-only",
+    "title": "Certificate and guided work only",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Junior Frontend Developer, pierwsza praca po bootcampie. Certyfikat ukończenia kursu. Technologie: React, JavaScript, HTML, CSS. Projekt: sklep internetowy wykonany krok po kroku według instrukcji kursu. W CV nie opisano własnych rozszerzeń, decyzji, testów, współpracy ani wkładu w rozwiązanie.",
+      "en": "Junior Frontend Developer, first job after a bootcamp. Course completion certificate. Technologies: React, JavaScript, HTML, CSS. Project: an online store completed step by step from course instructions. The CV does not describe independent extensions, decisions, tests, collaboration or personal solution contribution."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "junior",
+        "unclear"
+      ],
+      "maximumScore": 65
+    }
+  },
+  {
+    "id": "career-bootcamp-auto",
+    "title": "Auto recognises project evidence",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "auto",
+    "careerContext": "standard",
+    "cv": {
+      "pl": "Projekt bootcampowy: wyszukiwarka wydarzeń w React i TypeScript. Po części prowadzonej według instrukcji samodzielne dodanie filtrów, obsługi błędów API i testów; rozdzielenie pobierania danych od widoków.\n\nZespołowy projekt końcowy bootcampu: planer nauki. Własny zakres: formularze, walidacja i nawigacja klawiaturą; testy, uzgodnienie kontraktu API z drugą osobą i wzajemne code review.\n\nPodsumowanie: pierwsza praca po bootcampie, Junior Frontend Developer. Projekty po sekcji certyfikatów i zainteresowań. Brak doświadczenia komercyjnego.",
+      "en": "Bootcamp project: event search in React and TypeScript. After the guided part, independently added filters, API error handling and tests; separated data fetching from views.\n\nBootcamp team capstone: study planner. Personal scope: forms, validation and keyboard navigation; tests, an API contract agreed with a teammate and exchanged code reviews.\n\nSummary: first job after a bootcamp, Junior Frontend Developer. Projects follow certificates and interests. No commercial experience."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "junior"
+      ],
+      "minimumScore": 80,
+      "forbiddenAdvice": [
+        "(?:brak|brakuje|missing|lack of|no)\\s+(?:doświadczenia komercyjnego|commercial experience)",
+        "(?:dodaj|pokaż|wykaż|add|show|demonstrate|missing|brak)\\s+(?:mentoring|mentoringu|wpływ organizacyjny|organisation.wide impact|organizational impact)",
+        "(?:dodaj|pokaż|add|show)\\s+(?:przychody|revenue|liczbę klientów|customer counts)"
+      ]
+    }
+  },
+  {
+    "id": "career-bootcamp-senior-target",
+    "title": "Context does not validate Senior target",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "senior",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Projekt bootcampowy: wyszukiwarka wydarzeń w React i TypeScript. Po części prowadzonej według instrukcji samodzielne dodanie filtrów, obsługi błędów API i testów; rozdzielenie pobierania danych od widoków.\n\nZespołowy projekt końcowy bootcampu: planer nauki. Własny zakres: formularze, walidacja i nawigacja klawiaturą; testy, uzgodnienie kontraktu API z drugą osobą i wzajemne code review.\n\nPodsumowanie: pierwsza praca po bootcampie, Junior Frontend Developer. Projekty po sekcji certyfikatów i zainteresowań. Brak doświadczenia komercyjnego.",
+      "en": "Bootcamp project: event search in React and TypeScript. After the guided part, independently added filters, API error handling and tests; separated data fetching from views.\n\nBootcamp team capstone: study planner. Personal scope: forms, validation and keyboard navigation; tests, an API contract agreed with a teammate and exchanged code reviews.\n\nSummary: first job after a bootcamp, Junior Frontend Developer. Projects follow certificates and interests. No commercial experience."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "junior"
+      ],
+      "maximumScore": 70
+    }
+  },
+  {
+    "id": "career-change-first-job",
+    "title": "Transferable work is not developer employment",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Projekt własny: wyszukiwarka wydarzeń. Samodzielna implementacja filtrów w React i TypeScript, rozdzielenie pobierania danych od widoków, obsługa błędów API i testy filtrów.\n\nProjekt zespołowy: planer nauki. Odpowiedzialność za formularze i walidację, nawigację klawiaturą oraz testy; uzgodnienie kontraktu API z drugą osobą i wzajemne code review.\n\nPodsumowanie: szukam pierwszej pracy jako Junior Frontend Developer. Projekty opisane po sekcji kursów i zainteresowań. Brak doświadczenia komercyjnego.\nPoprzednia praca: obsługa klienta i uzgadnianie rozwiązań reklamacji z zespołem. Bez pracy jako developer.",
+      "en": "Personal project: event search. Independently implemented filters in React and TypeScript, separated data fetching from views, handled API errors and tested the filters.\n\nTeam project: study planner. Responsible for forms and validation, keyboard navigation and tests; agreed the API contract with a teammate and exchanged code reviews.\n\nSummary: seeking a first job as a Junior Frontend Developer. Projects appear after courses and interests. No commercial experience.\nPrevious work: customer support and agreeing complaint resolutions with the team. No developer employment."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "junior"
+      ],
+      "minimumScore": 80,
+      "forbiddenAdvice": [
+        "(?:brak|brakuje|missing|lack of|no)\\s+(?:doświadczenia komercyjnego|commercial experience)",
+        "(?:dodaj|pokaż|wykaż|add|show|demonstrate|missing|brak)\\s+(?:mentoring|mentoringu|wpływ organizacyjny|organisation.wide impact|organizational impact)",
+        "(?:dodaj|pokaż|add|show)\\s+(?:przychody|revenue|liczbę klientów|customer counts)"
+      ]
+    }
+  },
+  {
+    "id": "career-first-job-job-match",
+    "title": "Junior offer accepts projects",
+    "targetRole": "frontend_developer",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Projekt własny: wyszukiwarka wydarzeń. Samodzielna implementacja filtrów w React i TypeScript, rozdzielenie pobierania danych od widoków, obsługa błędów API i testy filtrów.\n\nProjekt zespołowy: planer nauki. Odpowiedzialność za formularze i walidację, nawigację klawiaturą oraz testy; uzgodnienie kontraktu API z drugą osobą i wzajemne code review.\n\nPodsumowanie: szukam pierwszej pracy jako Junior Frontend Developer. Projekty opisane po sekcji kursów i zainteresowań. Brak doświadczenia komercyjnego.",
+      "en": "Personal project: event search. Independently implemented filters in React and TypeScript, separated data fetching from views, handled API errors and tested the filters.\n\nTeam project: study planner. Responsible for forms and validation, keyboard navigation and tests; agreed the API contract with a teammate and exchanged code reviews.\n\nSummary: seeking a first job as a Junior Frontend Developer. Projects appear after courses and interests. No commercial experience."
+    },
+    "careerQuality": {
+      "perceivedLevels": [
+        "junior"
+      ],
+      "minimumScore": 80,
+      "forbiddenAdvice": [
+        "(?:brak|brakuje|missing|lack of|no)\\s+(?:doświadczenia komercyjnego|commercial experience)",
+        "(?:dodaj|pokaż|wykaż|add|show|demonstrate|missing|brak)\\s+(?:mentoring|mentoringu|wpływ organizacyjny|organisation.wide impact|organizational impact)",
+        "(?:dodaj|pokaż|add|show)\\s+(?:przychody|revenue|liczbę klientów|customer counts)"
+      ]
+    },
+    "jobDescription": {
+      "pl": "Junior Frontend Developer. Wymagania: HTML, React, TypeScript, podstawy testów i współpraca. Akceptujemy projekty własne lub edukacyjne. Doświadczenie komercyjne nie jest wymagane.",
+      "en": "Junior Frontend Developer. Requirements: HTML, React, TypeScript, testing fundamentals and collaboration. Personal or educational projects accepted. Commercial experience is not required."
+    }
+  }
+]

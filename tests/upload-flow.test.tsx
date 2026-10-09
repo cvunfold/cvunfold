@@ -38,7 +38,7 @@ const props = {
 describe("mobile upload measurement", () => {
   it("shows the seniority field as a dropdown matching the role field, defaulting to auto", () => {
     const { container } = render(<UploadFlow {...props}/>);
-    const trigger = screen.getByRole("combobox", { name: /Poziom stanowiska/ });
+    const trigger = screen.getByRole("combobox", { name: /Etap kariery/ });
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
     expect(trigger.textContent).toContain("Nie wiem — oceń na podstawie CV");
     expect(container.querySelector(".role-label-optional")?.textContent).toBe("(opcjonalne)");
@@ -47,22 +47,22 @@ describe("mobile upload measurement", () => {
     fireEvent.click(trigger);
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByRole("listbox")).toBeTruthy();
-    expect(screen.getByText("Na jaki poziom aplikujesz?")).toBeTruthy();
+    expect(screen.getByText("Na jaki etap aplikujesz?")).toBeTruthy();
     expect(screen.getByRole("option", { name: "Senior" })).toBeTruthy();
   });
 
   it("uses the same target-level framing in English and closes on pick", () => {
     render(<UploadFlow {...props} locale="en"/>);
-    fireEvent.click(screen.getByRole("combobox", { name: /Seniority level/ }));
-    expect(screen.getByText("What level are you applying for?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("combobox", { name: /Career stage/ }));
+    expect(screen.getByText("What career stage are you applying for?")).toBeTruthy();
     fireEvent.click(screen.getByRole("option", { name: "Senior" }));
-    expect(screen.getByRole("combobox", { name: /Seniority level/ }).getAttribute("aria-expanded")).toBe("false");
-    expect(screen.getByRole("combobox", { name: /Seniority level/ }).textContent).toContain("Senior");
+    expect(screen.getByRole("combobox", { name: /Career stage/ }).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("combobox", { name: /Career stage/ }).textContent).toContain("Senior");
   });
 
   it("shows an explicit level from a handoff link directly, without opening the popover", () => {
     render(<UploadFlow {...props} initialSeniority="senior"/>);
-    const trigger = screen.getByRole("combobox", { name: /Poziom stanowiska/ });
+    const trigger = screen.getByRole("combobox", { name: /Etap kariery/ });
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
     expect(trigger.textContent).toContain("Senior");
   });
@@ -395,5 +395,39 @@ describe("analysis progress overlay", () => {
     expect(document.activeElement).toBe(alert);
     expect(document.body.style.overflow).toBe("");
     expect((screen.getByRole("button", { name: "Analizuj CV" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+});
+
+
+describe("career context selection", () => {
+  it("preserves bootcamp selection on a clean desktop handoff without changing seniority", async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "share", { configurable: true, value: share });
+    render(<UploadFlow {...props}/>);
+    fireEvent.click(screen.getByRole("combobox", { name: "Etap kariery (opcjonalne)" }));
+    fireEvent.click(screen.getByRole("option", { name: /Pierwsza praca w IT/ }));
+    expect(screen.getByRole("combobox", { name: /Etap kariery/ }).textContent).toContain("Pierwsza praca w IT");
+    expect(screen.getByRole("link", { name: /Zobacz przykładowy raport/ }).getAttribute("href")).toBe("/przykladowy-raport?profile=first_job");
+    fireEvent.click(screen.getAllByRole("button", { name: /Udostępnij link na komputer/ })[0]);
+    await waitFor(() => expect(share).toHaveBeenCalled());
+    const url = new URL(share.mock.calls[0][0].url);
+    expect(url.searchParams.has("careerContext")).toBe(false);
+    expect(url.searchParams.get("seniority")).toBe("first_job");
+    expect(url.searchParams.has("gclid")).toBe(false);
+  });
+
+  it("submits first-job context independently of the chosen target and without analytics content", async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ reportPath: "/en/report" }) });
+    vi.stubGlobal("fetch", fetch);
+    render(<UploadFlow {...props} mockMode locale="en" initialSeniority="junior"/>);
+    fireEvent.click(screen.getByRole("combobox", { name: "Career stage (optional)" }));
+    fireEvent.click(screen.getByRole("option", { name: /First job in tech/ }));
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Analyse my CV" }));
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    const form = fetch.mock.calls.find(call => call[0] === "/api/analyses")?.[1].body as FormData;
+    expect(form.has("careerContext")).toBe(false);
+    expect(form.get("seniority")).toBe("first_job");
+    expect(JSON.stringify(trackAnalyticsEvent.mock.calls)).not.toContain("careerContext");
   });
 });

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 describe("recording which document format was uploaded", () => {
-  const migration = readFileSync("supabase/migrations/20260825090000_record_document_kind.sql", "utf8");
+  const migration = readFileSync("supabase/migrations/20260826143421_record_document_kind.sql", "utf8");
   const store = readFileSync("src/lib/data/store.ts", "utf8");
   const route = readFileSync("src/app/api/analyses/route.ts", "utf8");
 

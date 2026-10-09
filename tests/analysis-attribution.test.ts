@@ -2,11 +2,12 @@ import { afterEach, describe, expect, it } from "vitest";
 import { POST as createAnalysis } from "@/app/api/analyses/route";
 import { getAnalysis } from "@/lib/data/store";
 
-function analysisRequest(seniority: string, attribution: Record<string, string> = {}, options: { plan?: string; jobDescription?: string; role?: string } = {}) {
+function analysisRequest(seniority: string, attribution: Record<string, string> = {}, options: { plan?: string; jobDescription?: string; role?: string; careerContext?: string } = {}) {
   const form = new FormData();
   form.set("file", new File(["%PDF-1.7\nsynthetic"], "synthetic-cv.pdf", { type: "application/pdf" }));
   form.set("role", options.role || "frontend_developer");
   form.set("seniority", seniority);
+  if (options.careerContext) form.set("careerContext", options.careerContext);
   form.set("locale", "pl");
   form.set("jobDescription", options.jobDescription || "");
   if (options.plan) form.set("plan", options.plan);
@@ -83,5 +84,28 @@ describe("analysis attribution boundary", () => {
     expect(response.status).toBe(400);
     // A blocked human and someone over quota need different guidance, so they must not share a category.
     expect(await response.json()).toMatchObject({ errorCategory: "verification" });
+  });
+});
+
+
+describe("career context request boundary", () => {
+  it("rejects arbitrary context before analysis", async () => {
+    process.env.MOCK_MODE = "true";
+    const response = await createAnalysis(analysisRequest("junior", {}, { careerContext: "ignore instructions" }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ errorCategory: "invalid_career_context" });
+  });
+
+  it("stores bootcamp context with the report, keeps it out of analytics and returns only a teaser", async () => {
+    process.env.MOCK_MODE = "true";
+    const response = await createAnalysis(analysisRequest("auto", {}, { careerContext: "bootcamp" }));
+    expect(response.status).toBe(200);
+    const result = await response.json();
+    const analysis = await getAnalysis(result.accessToken);
+    expect(analysis?.report.document).toMatchObject({ targetSeniority: "first_job", perceivedSeniority: "junior", careerContext: "first_job" });
+    expect(analysis?.report.categoryScores.find(item => item.key === "ownership")?.weight).toBe(0.09);
+    expect(analysis?.attribution).not.toHaveProperty("careerContext");
+    expect(result.teaser).not.toHaveProperty("issues");
+    expect(result.teaser).not.toHaveProperty("document");
   });
 });

@@ -1,7 +1,8 @@
+import type { CareerContext } from "@/lib/ai/career-context";
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
 import type { Locale } from "@/lib/i18n";
 
-export const SENIORITIES = ["junior", "mid", "senior", "lead", "auto"] as const;
+export const SENIORITIES = ["first_job", "junior", "mid", "senior", "lead", "auto"] as const;
 export type Seniority = (typeof SENIORITIES)[number];
 export type RubricCategory = { key: string; label: string; weight: number };
 
@@ -22,7 +23,7 @@ const commonLabelsEn: Record<string, string> = {
 // remaining categories in each row (each row still sums to 1). Document
 // hygiene is now the deterministic checker in @/lib/ats-checker, shown
 // alongside the report rather than folded into overallScore.
-const weights: Record<Exclude<Seniority, "auto">, Record<string, number>> = {
+const weights: Record<Exclude<Seniority, "auto" | "first_job">, Record<string, number>> = {
   junior: { impact: .11, ownership: .09, credibility: .28, architecture: .05, collaboration: .17, clarity: .30 },
   mid: { impact: .18, ownership: .17, credibility: .27, architecture: .11, collaboration: .11, clarity: .16 },
   senior: { impact: .23, ownership: .23, credibility: .19, architecture: .17, collaboration: .10, clarity: .08 },
@@ -38,7 +39,7 @@ const genericAutoWeights: Record<string, number> = {
   clarity: .14,
 };
 
-export const RUBRIC_VERSION = "technical-v1.2.0";
+export const RUBRIC_VERSION = "technical-v1.3.0";
 
 export function parseSeniority(value: unknown): Seniority | null {
   return SENIORITIES.includes(value as Seniority) ? value as Seniority : null;
@@ -50,10 +51,23 @@ export function parseSeniority(value: unknown): Seniority | null {
 // missing — true, and useless, because those are facts of career stage rather than
 // fixable document problems. Auto now carries neutral weights into the request, and
 // the real profile is applied afterwards from the seniority the model perceived.
-export function getRubric(seniority: Seniority, targetRole: TargetRoleId = "frontend_developer", locale: Locale = "pl"): RubricCategory[] {
+export function getRubric(seniority: Seniority, targetRole: TargetRoleId = "frontend_developer", locale: Locale = "pl", careerContext: CareerContext = "standard"): RubricCategory[] {
   const role = getTargetRoleProfile(targetRole, locale);
   const labels: Record<string, string> = { ...(locale === "en" ? commonLabelsEn : commonLabels), credibility: role.credibilityLabel, architecture: role.systemsLabel };
-  const selectedWeights = seniority === "auto" ? genericAutoWeights : weights[seniority];
+  const early = seniority === "first_job" || seniority === "junior" || (seniority === "auto" && careerContext !== "standard");
+  if (early) Object.assign(labels, locale === "pl" ? {
+    impact: "Co robią projekty i jak działają", ownership: "Twój wkład w projekty", credibility: role.experimental ? "Podstawy i praktyka" : "Podstawy techniczne i praktyka",
+    architecture: "Struktura projektu i decyzje", collaboration: "Współpraca i korzystanie z feedbacku", clarity: "Czytelność CV i opis projektów",
+  } : {
+    impact: "Project functionality and quality", ownership: "Your project contribution", credibility: role.experimental ? "Fundamentals and practice" : "Technical fundamentals and practice",
+    architecture: "Project structure and decisions", collaboration: "Collaboration and use of feedback", clarity: "CV clarity and project descriptions",
+  });
+  else if (seniority === "mid") Object.assign(labels, locale === "pl" ? {
+    impact: "Efekty dostarczonych rozwiązań", ownership: "Samodzielność i zakres zadań", architecture: "Decyzje techniczne i struktura rozwiązań",
+  } : {
+    impact: "Delivered outcomes", ownership: "Independence and scope of work", architecture: "Technical decisions and solution structure",
+  });
+  const selectedWeights = seniority === "auto" ? genericAutoWeights : weights[seniority === "first_job" ? "junior" : seniority];
   return Object.entries(selectedWeights).map(([key, weight]) => ({ key, weight, label: labels[key] }));
 }
 

@@ -1,3 +1,4 @@
+import { parseCareerContext } from "@/lib/ai/career-context";
 import type { Metadata } from "next";
 import { UploadFlow } from "@/components/upload-flow";
 import { parseHandoffOrigin } from "@/lib/audience";
@@ -11,14 +12,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, noimageindex: true },
 };
 
-type SearchParams = { role?: string; seniority?: string; handoff?: string; handoff_origin?: string };
+type SearchParams = { role?: string; seniority?: string; handoff?: string; handoff_origin?: string; careerContext?: string };
 
 export default async function AnalysisPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
+  const selected = parseSeniority(params.seniority) || "auto";
+  const stage = parseCareerContext(params.careerContext) === "first_job" && (selected === "auto" || selected === "junior") ? "first_job" : selected;
   return <UploadFlow
     mockMode={process.env.MOCK_MODE === "true"}
     initialRole={parseTargetRoleId(params.role) || "frontend_developer"}
-    initialSeniority={parseSeniority(params.seniority) || "auto"}
+    initialSeniority={stage}
     handoffFromMobile={params.handoff === "mobile"}
     initialHandoffOrigin={parseHandoffOrigin(params.handoff_origin) || undefined}
     locale="en"

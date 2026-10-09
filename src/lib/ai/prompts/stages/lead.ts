@@ -1,0 +1,4 @@
+export const leadPrompt = {
+  pl: `WYBRANY ETAP: lead. Oceniaj kierunek techniczny, koordynację dostarczania, uzgodnienia między rolami, decyzje dotyczące standardów i ryzyka oraz rezultaty osiągnięte przez pracę zespołu. Oddziel osobiste decyzje od pracy innych i nie przypisuj automatycznie całego wyniku jednej osobie. Nie zakładaj, że Lead oznacza zarządzanie ludźmi. Porównaj deklarowany kierunek z konkretnymi przykładami działania.`,
+  en: `SELECTED STAGE: lead. Assess technical direction, delivery coordination, cross-role agreements, decisions about standards and risk, and outcomes achieved through the team. Separate personal decisions from other people's work and do not attribute the entire result to one person automatically. Do not assume Lead means people management. Compare claimed direction with concrete examples of action.`,
+};

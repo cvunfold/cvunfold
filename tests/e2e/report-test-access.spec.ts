@@ -1,0 +1,25 @@
+import { expect, test } from "@playwright/test";
+
+for (const locale of ["pl", "en"] as const) test(`test code opens a report without checkout (${locale})`, async ({ page }) => {
+  test.skip(!process.env.REPORT_TEST_ACCESS_CODE, "Explicit test-access environment required");
+  await page.goto(locale === "pl" ? "/analiza?seniority=first_job" : "/en/analysis?seniority=first_job");
+  await page.locator(".consent input").check();
+  await page.getByRole("button", { name: locale === "pl" ? "Analizuj CV" : "Analyse my CV", exact: true }).click();
+  const input = page.getByLabel(locale === "pl" ? "Kod dostępu testowego" : "Test access code");
+  await expect(input).toBeVisible({ timeout: 15_000 });
+  const paymentCalls: string[] = [];
+  page.on("request", request => { if (request.url().includes("/checkout")) paymentCalls.push(request.url()); });
+  await input.fill(process.env.REPORT_TEST_ACCESS_CODE!);
+  const granted = page.waitForResponse(response => response.url().endsWith("/api/report/test-access"));
+  await page.getByRole("button", { name: locale === "pl" ? "Otwórz raport testowo" : "Open report for testing" }).click();
+  expect((await granted).status()).toBe(200);
+  await expect(page.getByRole("status")).toContainText(locale === "pl" ? "Płatność nie została wykonana" : "No payment was made");
+  await expect(page.getByRole("heading", { name: locale === "pl" ? "Jak CV pokazuje przygotowanie do pierwszej roli" : "How the CV shows preparation for a first role" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("status")).toContainText(locale === "pl" ? "Dostęp testowy" : "Test access");
+  const body = await (await page.request.get("/api/report")).json();
+  expect(body).toMatchObject({ paid: false, fullAccess: true, accessMode: "preview_test" });
+  expect(body.purchase).toBeUndefined();
+  expect(body.report).toHaveProperty("issues");
+  expect(paymentCalls).toEqual([]);
+});

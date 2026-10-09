@@ -49,7 +49,7 @@ test("mobile upload keeps only closed settings in the Web Share handoff", async 
   await expect(page.getByText("PDF/DOCX · Dysk Google, iCloud lub Pliki · maks. 8 MB")).toBeVisible();
   await expect(page.getByText("Bezpieczne ustawienia zostały przeniesione.", { exact: false })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Rola docelowa" })).toContainText("QA / Test Automation");
-  await expect(page.getByRole("combobox", { name: /Poziom stanowiska/ })).toContainText("Senior");
+  await expect(page.getByRole("combobox", { name: /Etap kariery/ })).toContainText("Senior");
   await page.getByRole("button", { name: "Nie masz CV na telefonie? Udostępnij link na komputer" }).click();
   await expect(page.getByText("Link został udostępniony.", { exact: false })).toBeVisible();
   const shared = await page.evaluate(() => (window as typeof window & { __sharePayload?: ShareData }).__sharePayload?.url);
@@ -69,7 +69,7 @@ test("desktop handoff link pre-fills safe settings and asks for a local file", a
   await page.goto("/analiza?role=mobile_developer&seniority=lead&handoff=mobile");
   await expect(page.getByText("Bezpieczne ustawienia zostały przeniesione.", { exact: false })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Rola docelowa" })).toContainText("Mobile Developer");
-  await expect(page.getByRole("combobox", { name: /Poziom stanowiska/ })).toContainText("Lead");
+  await expect(page.getByRole("combobox", { name: /Etap kariery/ })).toContainText("Lead");
   await expect(page.locator('input[type="file"]')).toBeAttached();
 });
 

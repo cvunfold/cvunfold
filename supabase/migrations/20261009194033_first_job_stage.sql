@@ -1,41 +1,10 @@
--- Preview uses the same Supabase project as production, so funnel rows need an
--- explicit runtime label. Existing rows remain legacy_unknown: inferring their
--- origin from payment mode, timestamps or URLs would make historical reporting
--- look more certain than it is.
-alter table public.analyses
-  add column if not exists runtime_environment text not null default 'legacy_unknown';
+-- First job is a selected target, independent of the route used to learn.
+-- Preserve the existing payment fulfillment checks and privileges unchanged.
+begin;
+alter table public.analyses drop constraint analyses_target_seniority_check;
+alter table public.analyses add constraint analyses_target_seniority_check
+  check (target_seniority in ('first_job', 'junior', 'mid', 'senior', 'lead', 'auto'));
 
-alter table public.analyses
-  drop constraint if exists analyses_runtime_environment_check;
-
-alter table public.analyses
-  add constraint analyses_runtime_environment_check check (runtime_environment in (
-    'production', 'preview', 'development', 'legacy_unknown'
-  ));
-
-alter table public.funnel_events
-  add column if not exists runtime_environment text not null default 'legacy_unknown';
-
-alter table public.funnel_events
-  drop constraint if exists funnel_events_runtime_environment_check;
-
-alter table public.funnel_events
-  add constraint funnel_events_runtime_environment_check check (runtime_environment in (
-    'production', 'preview', 'development', 'legacy_unknown'
-  ));
-
-create index if not exists funnel_events_runtime_environment_time_idx
-  on public.funnel_events(runtime_environment, occurred_at desc);
-
-comment on column public.analyses.runtime_environment is
-  'Deployment runtime that created the analysis. Existing rows are legacy_unknown.';
-
-comment on column public.funnel_events.runtime_environment is
-  'Deployment runtime that created the event. Existing rows are legacy_unknown.';
-
--- Purchase rows are inserted inside this function, not through the application
--- event writer. Copy the environment already recorded on the analysis so the
--- whole funnel remains in one consistent scope.
 create or replace function public.fulfill_stripe_payment(
   p_event_id text,
   p_analysis_id uuid,
@@ -75,7 +44,7 @@ begin
   ) then
     measurement_context := measurement_context || jsonb_build_object('broad_role_enum', analysis_attribution->>'broad_role_enum');
   end if;
-  if analysis_attribution->>'selected_seniority_enum' in ('auto', 'junior', 'mid', 'senior', 'lead') then
+  if analysis_attribution->>'selected_seniority_enum' in ('first_job', 'auto', 'junior', 'mid', 'senior', 'lead') then
     measurement_context := measurement_context || jsonb_build_object('selected_seniority_enum', analysis_attribution->>'selected_seniority_enum');
   end if;
   if analysis_attribution->>'handoff_origin' in ('google_cpc', 'other') then
@@ -97,3 +66,5 @@ $$;
 
 revoke all on function public.fulfill_stripe_payment(text, uuid, text, text, text, text, integer, text) from public, anon, authenticated;
 grant execute on function public.fulfill_stripe_payment(text, uuid, text, text, text, text, integer, text) to service_role;
+
+commit;
