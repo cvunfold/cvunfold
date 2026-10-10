@@ -23,7 +23,8 @@ const commonLabelsEn: Record<string, string> = {
 // remaining categories in each row (each row still sums to 1). Document
 // hygiene is now the deterministic checker in @/lib/ats-checker, shown
 // alongside the report rather than folded into overallScore.
-const weights: Record<Exclude<Seniority, "auto" | "first_job">, Record<string, number>> = {
+const weights: Record<Exclude<Seniority, "auto">, Record<string, number>> = {
+  first_job: { impact: .15, ownership: .15, credibility: .35, architecture: .05, collaboration: .05, clarity: .25 },
   junior: { impact: .11, ownership: .09, credibility: .28, architecture: .05, collaboration: .17, clarity: .30 },
   mid: { impact: .18, ownership: .17, credibility: .27, architecture: .11, collaboration: .11, clarity: .16 },
   senior: { impact: .23, ownership: .23, credibility: .19, architecture: .17, collaboration: .10, clarity: .08 },
@@ -39,7 +40,7 @@ const genericAutoWeights: Record<string, number> = {
   clarity: .14,
 };
 
-export const RUBRIC_VERSION = "technical-v1.4.0";
+export const RUBRIC_VERSION = "technical-v1.5.0";
 
 export function parseSeniority(value: unknown): Seniority | null {
   return SENIORITIES.includes(value as Seniority) ? value as Seniority : null;
@@ -67,7 +68,7 @@ export function getRubric(seniority: Seniority, targetRole: TargetRoleId = "fron
   } : {
     impact: "Delivered outcomes", ownership: "Independence and scope of work", architecture: "Technical decisions and solution structure",
   });
-  const selectedWeights = seniority === "auto" ? genericAutoWeights : weights[seniority === "first_job" ? "junior" : seniority];
+  const selectedWeights = seniority === "auto" ? genericAutoWeights : weights[seniority];
   return Object.entries(selectedWeights).map(([key, weight]) => ({ key, weight, label: labels[key] }));
 }
 

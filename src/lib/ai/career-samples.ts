@@ -152,7 +152,7 @@ export function createCareerSample(id: CareerSampleId, locale: Locale, targetRol
     collaboration: level === "junior" ? "The project description shows collaboration through agreements, review or discussing a solution." : "The CV shows collaboration and agreements with adjacent roles during delivery.",
     clarity: text.issue,
   };
-  const categoryScores = getRubric(level, targetRole, locale).map(category => ({
+  const categoryScores = getRubric(stage, targetRole, locale, context).map(category => ({
     ...category, score: scores[category.key as keyof typeof scores],
     rationale: rationales[category.key], evidenceRefs: categoryRefs[category.key],
   }));
@@ -163,14 +163,14 @@ export function createCareerSample(id: CareerSampleId, locale: Locale, targetRol
     recruiterPerspective: {
       profileSummary: text.profile, seniorityAlignment: "aligned", seniorityAlignmentExplanation: text.verdict,
       positiveSignals: refs.map((ref, i) => ({ title: pl ? `Konkretny dowód ${i + 1}` : `Concrete evidence ${i + 1}`, explanation: text.evidence[i], evidenceRefs: [ref] })),
-      reservations: [{ kind: "evidence", title: text.issue, explanation: text.issue, evidenceRefs: ["seg_example_3"] }],
+      reservations: [{ kind: "evidence", issueId: "i1", title: text.issue, explanation: text.issue, evidenceRefs: ["seg_example_3"] }],
       likelyInterviewQuestions: [{ question: text.question, whyThisQuestion: pl ? "Pytanie doprecyzowuje opisane działanie, bez zakładania nowego faktu." : "The question clarifies a documented action without presuming a new fact.", evidenceRefs: ["seg_example_1"] }],
     },
     categoryScores,
     recruiterSimulation: { after5Seconds: `${role.label}, ${level}. ${text.profile}`, after10Seconds: text.evidence[0], after20Seconds: `${text.verdict} ${text.issue}.`, simulatedDecision: "interview", confidence: "medium", reasons: [text.verdict], whatCouldImproveDecision: [text.action] },
     strengths: refs.map((ref, i) => ({ id: `s${i + 1}`, title: pl ? `Udokumentowany wkład ${i + 1}` : `Documented contribution ${i + 1}`, explanation: text.evidence[i], evidenceRefs: [ref] })),
     issues: [{ id: "i1", severity: "important", category: "clarity", title: text.issue, explanation: text.issue, whyItMatters: pl ? "Pierwszy skan dokumentu może pominąć dowody odpowiednie dla wybranego poziomu." : "An initial scan may miss evidence appropriate for the selected level.", evidenceRefs: ["seg_example_3"], confidence: "high", action: text.action, suggestion: { type: "expose", original: text.evidence[0], proposed: null, factualityNote: pl ? "Zmiana kolejności wykorzystuje istniejące informacje i zachowuje kontekst projektu lub roli." : "Reordering uses existing information and preserves project or role attribution." } }],
-    jobMatch: null, nextSteps: [{ priority: 1, title: text.issue, action: text.action, expectedImpact: "high" }],
+    jobMatch: null, nextSteps: [{ priority: 1, issueId: "i1", title: text.issue, action: text.action, expectedImpact: "high" }],
     limitations: pl ? ["Wszystkie dane w tym przykładzie są fikcyjne.", "Wynik opisuje jakość dowodów w CV względem wybranego poziomu, nie rzeczywiste kompetencje ani szanse zatrudnienia.", `Kontekst: ${careerContextLabels.pl[context]}.`] : ["All data in this example is fictional.", "The score describes CV evidence quality against the selected level, not real competence or hiring probability.", `Context: ${careerContextLabels.en[context]}.`],
   };
 }
