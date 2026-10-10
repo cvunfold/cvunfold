@@ -4,6 +4,8 @@
 
 Owner requested first-job weight changes, reduced repetition, evidence-reuse review and matched PL/EN tests. GitHub preflight confirmed account pawelmaczkaczarnecki, organization cvunfold, project cvunfold/cvunfold and feature branch feat/preview-test-code. Vercel project prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A belongs to private-business team team_EvE1UIid0T9jxS7TG10FPaAh and is linked to this repository. Preview uses the previously approved CVUnfold OpenAI project and key; no credentials are copied. Testing uses the existing Preview-only bootcamp grant and GPT-6 Luna configuration. The branch daily limit temporarily increases from 50 to 100 for the repeated synthetic tests and is restored after completion. Conservative additional model-cost ceiling: USD 0.50 including retries. Production quota/payment protections remain unchanged.
 
+The earlier same-day suite consumed the Preview hourly allowance. After a 429 before model execution, this branch's hourly allowance temporarily increases from 30 to 50 for the remaining paired fixtures and will also be restored. No quota rows are reset and no client identity is changed.
+
 Last verified: 2026-08-14 (Europe/Warsaw).
 
 This registry is the preflight source of truth for external writes. A shared
