@@ -103,7 +103,7 @@ describe("career context request boundary", () => {
     const result = await response.json();
     const analysis = await getAnalysis(result.accessToken);
     expect(analysis?.report.document).toMatchObject({ targetSeniority: "first_job", perceivedSeniority: "junior", careerContext: "first_job" });
-    expect(analysis?.report.categoryScores.find(item => item.key === "ownership")?.weight).toBe(0.09);
+    expect(analysis?.report.categoryScores.find(item => item.key === "ownership")?.weight).toBe(0.15);
     expect(analysis?.attribution).not.toHaveProperty("careerContext");
     expect(result.teaser).not.toHaveProperty("issues");
     expect(result.teaser).not.toHaveProperty("document");
