@@ -128,7 +128,7 @@ describe("authenticated runtime configuration", () => {
       expect(denied.status).toBe(401);
       const response = await GET(new Request("https://cvunfold.test/api/admin/diagnostics?configuration=1", { headers: { authorization: "Bearer synthetic-admin-only" } }));
       const value = await response.json();
-      expect(value).toMatchObject({ reviewModel: "gpt-6-luna", noEvidenceScore: 20, pipelineVersion: "report-pipeline-v6.2" });
+      expect(value).toMatchObject({ reviewModel: "gpt-6-luna", noEvidenceScore: 20, pipelineVersion: "report-pipeline-v6.3" });
       expect(JSON.stringify(value)).not.toContain("synthetic-private-key");
       expect(JSON.stringify(value)).not.toContain("synthetic-admin-only");
     } finally { vi.unstubAllEnvs(); }

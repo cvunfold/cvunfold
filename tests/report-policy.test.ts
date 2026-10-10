@@ -102,6 +102,7 @@ describe("verification is not an umbrella for every gap", () => {
     const normalized = normalizeDiagnosticKind(issue, new Set(["seg_manual"]), "en");
     expect(normalized).toMatchObject({ diagnosticKind: "limited_verification", evidenceRefs: ["seg_manual"] });
     expect(normalized.explanation).toContain("CV describes checks");
+    expect(normalized.whyItMatters).toContain("already performed");
     expect(prioritizeFirstJobIssues([normalized], [category(20)])[0].severity).toBe("minor");
   });
   it("does not let invented checking references soften an actual verification gap", () => {

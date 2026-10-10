@@ -1,7 +1,7 @@
 import type { ModelReport } from "./schemas/report";
 
 export const NO_EVIDENCE_SCORE = 20;
-export const REPORT_POLICY_VERSION = "evidence-priority-v1.2";
+export const REPORT_POLICY_VERSION = "evidence-priority-v1.3";
 
 export function normalizeCategoryEvidence(category: ModelReport["categoryScores"][number], validRefs: Set<string>, locale: ModelReport["locale"]) {
   const refs = category.evidenceRefs.filter(ref => validRefs.has(ref));
@@ -24,6 +24,7 @@ export function normalizeDiagnosticKind(issue: ModelReport["issues"][number], va
       ...issue, diagnosticKind: "limited_verification" as const, verificationEvidenceRefs, evidenceRefs: verificationEvidenceRefs,
       title: locale === "pl" ? "Zakres weryfikacji projektu można doprecyzować" : "The project's verification scope could be clarified",
       explanation: locale === "pl" ? "CV zawiera informacje o sprawdzaniu projektu. Ta uwaga dotyczy tylko ewentualnych brakujących szczegółów zakresu sprawdzeń, nie braku całej weryfikacji." : "The CV describes checks of the project. This finding concerns potentially missing details of their scope, not an absence of verification.",
+      whyItMatters: locale === "pl" ? "Opis zakresu już wykonanych sprawdzeń ułatwia ocenę praktyki widocznej w CV." : "Describing the scope of checks already performed makes the documented practice easier to assess.",
       action: locale === "pl" ? "Jeżeli wykonano inne rzeczywiste sprawdzenia tego projektu, dopisz ich zakres. Zachowaj opis już wykonanych kontroli." : "If other checks were actually performed on this project, describe their scope. Keep the information about the checks already performed.",
       suggestion: { type: "question" as const, original: null, proposed: null,
         factualityNote: locale === "pl" ? "Nie dopisuj nowych praktyk. Uzupełnij tylko prawdziwe brakujące szczegóły istniejącej weryfikacji." : "Do not invent practices. Add only accurate missing details about existing verification." },
