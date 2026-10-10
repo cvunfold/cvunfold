@@ -46,7 +46,7 @@ describe("v1.6-rc3 prompt", () => {
     try {
       const resolved = getReviewPrompt("pl");
       expect(resolved.variant).toBe("v1.6-rc3");
-      expect(resolved.version).toBe("v1.6-rc3+career-v2.0.0:auto");
+      expect(resolved.version).toBe("v1.6-rc3+career-v2.1.0:auto");
       expect(resolved.systemPrompt).toContain("KALIBRACJA SCORE — PROCEDURA OBOWIĄZKOWA");
       expect(resolved.systemPrompt).not.toContain("ats.findings");
     } finally {
@@ -63,7 +63,7 @@ describe("v1.6-rc2 prompt", () => {
     try {
       const resolved = getReviewPrompt("pl");
       expect(resolved.variant).toBe("v1.6-rc2");
-      expect(resolved.version).toBe("v1.6-rc2+career-v2.0.0:auto");
+      expect(resolved.version).toBe("v1.6-rc2+career-v2.1.0:auto");
       // rc2 is rc1 plus the mandatory calibration procedure.
       expect(resolved.systemPrompt).toContain("KALIBRACJA SCORE — PROCEDURA OBOWIĄZKOWA");
       expect(resolved.systemPrompt).toContain("domyślnym maksimum jest 79");
@@ -100,7 +100,7 @@ describe("English review prompt", () => {
       withVariant(variant, () => {
         const resolved = getReviewPrompt("en");
         expect(resolved.variant).toBe("stable");
-        expect(resolved.version).toBe("review-en-v1.4.0+career-v2.0.0:auto");
+        expect(resolved.version).toBe("review-en-v1.4.0+career-v2.1.0:auto");
       });
     }
   });
@@ -109,15 +109,15 @@ describe("English review prompt", () => {
     withVariant("v1.6-rc3", () => {
       const resolved = getReviewPrompt("en");
       expect(resolved.variant).toBe("v1.6-rc3");
-      expect(resolved.version).toBe("review-en-v2.0.0+career-v2.0.0:auto");
+      expect(resolved.version).toBe("review-en-v2.0.0+career-v2.1.0:auto");
       expect(resolved.systemPrompt).toContain("MANDATORY SCORE CALIBRATION PROCEDURE");
     });
   });
 
   it("keeps PL on rc3 and EN on v2 simultaneously, not one overwriting the other", () => {
     withVariant("v1.6-rc3", () => {
-      expect(getReviewPrompt("pl").version).toBe("v1.6-rc3+career-v2.0.0:auto");
-      expect(getReviewPrompt("en").version).toBe("review-en-v2.0.0+career-v2.0.0:auto");
+      expect(getReviewPrompt("pl").version).toBe("v1.6-rc3+career-v2.1.0:auto");
+      expect(getReviewPrompt("en").version).toBe("review-en-v2.0.0+career-v2.1.0:auto");
     });
   });
 
@@ -135,12 +135,12 @@ describe("v1.6-rc4 prompt", () => {
     process.env.CV_REVIEW_PROMPT_VARIANT = "v1.6-rc4";
     try {
       const pl = getReviewPrompt("pl");
-      expect(pl.version).toBe("v1.6-rc4.1+career-v2.0.0:auto");
+      expect(pl.version).toBe("v1.6-rc4.1+career-v2.1.0:auto");
       expect(pl.systemPrompt).toContain("KALIBRACJA SCORE — PROCEDURA OBOWIĄZKOWA");
       expect(pl.systemPrompt).toContain("zachowaj jego przypisanie do pracodawcy i okresu zatrudnienia");
 
       const en = getReviewPrompt("en");
-      expect(en.version).toBe("review-en-v3.1.0+career-v2.0.0:auto");
+      expect(en.version).toBe("review-en-v3.1.0+career-v2.1.0:auto");
       expect(en.systemPrompt).toContain("MANDATORY SCORE CALIBRATION PROCEDURE");
       expect(en.systemPrompt).toContain("preserve its employer and time-period attribution");
     } finally {

@@ -39,7 +39,7 @@ const genericAutoWeights: Record<string, number> = {
   clarity: .14,
 };
 
-export const RUBRIC_VERSION = "technical-v1.3.0";
+export const RUBRIC_VERSION = "technical-v1.4.0";
 
 export function parseSeniority(value: unknown): Seniority | null {
   return SENIORITIES.includes(value as Seniority) ? value as Seniority : null;

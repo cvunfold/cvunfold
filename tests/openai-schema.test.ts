@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { zodTextFormat } from "openai/helpers/zod";
-import { reportSchema } from "@/lib/ai/schemas/report";
+import { reportSchema, modelResponseSchema } from "@/lib/ai/schemas/report";
 import { PROMPT_VERSION, SYSTEM_PROMPT } from "@/lib/ai/prompts/review-pl-v3";
 import { createMockReport } from "@/lib/ai/mock-report";
 import { EN_SYSTEM_PROMPT } from "@/lib/ai/prompts/review-en-v1";
 
 describe("OpenAI report schema", () => {
   it("can be converted to a strict Structured Outputs format", () => {
-    expect(() => zodTextFormat(reportSchema, "cv_report")).not.toThrow();
+    expect(() => zodTextFormat(modelResponseSchema, "cv_report")).not.toThrow();
   });
 
   it("requires the recruiter-perspective output in v3 reports", () => {

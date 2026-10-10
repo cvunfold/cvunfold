@@ -1,6 +1,7 @@
 import type { CVReport, EvidenceMap, ModelReport, TeaserReport } from "./schemas/report";
 import { reportSchema } from "./schemas/report";
 import type { RubricCategory } from "@/lib/rubrics/technical-v1";
+import { normalizeCategoryEvidence, prioritizeFirstJobIssues, alignNextSteps } from "./report-policy";
 import { normalizeIssueAction } from "./issue-action";
 
 export function calculateOverall(categories: ModelReport["categoryScores"]): number {
@@ -115,9 +116,9 @@ export function auditCalibration(report: Pick<CVReport, "categoryScores" | "issu
 export function validateEvidence(report: ModelReport, validRefs: Set<string>, evidence: EvidenceMap = {}): CVReport {
   const parsed = reportSchema.parse(report);
   const keep = (refs: string[]) => refs.filter((ref) => validRefs.has(ref));
-  const categoryScores = parsed.categoryScores.map((category) => ({ ...category, evidenceRefs: keep(category.evidenceRefs) }));
+  const categoryScores = parsed.categoryScores.map(category => normalizeCategoryEvidence(category, validRefs, parsed.locale));
   const strengths = parsed.strengths.filter((item) => keep(item.evidenceRefs).length > 0).map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) }));
-  const issues = parsed.issues.filter((item) => item.suggestion?.type === "gap" || item.suggestion?.type === "question" || keep(item.evidenceRefs).length > 0)
+  let issues = parsed.issues.filter((item) => item.suggestion?.type === "gap" || item.suggestion?.type === "question" || keep(item.evidenceRefs).length > 0)
     .map((item) => {
       // A GAP describes missing visible evidence. A model may cite the line that
       // admits the omission, but retaining that ref makes the gap look like a
@@ -158,6 +159,8 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
         suggestion,
       };
     });
+  if (parsed.document.targetSeniority === "first_job") issues = prioritizeFirstJobIssues(issues, categoryScores);
+  const nextSteps = alignNextSteps(parsed.nextSteps, issues);
   const recruiterPerspective = {
     ...parsed.recruiterPerspective,
     positiveSignals: parsed.recruiterPerspective.positiveSignals
@@ -169,6 +172,12 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
     likelyInterviewQuestions: parsed.recruiterPerspective.likelyInterviewQuestions
       .map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) })),
   };
+  if (recruiterPerspective.reservations.some(item => item.issueId !== undefined)) {
+    const order = new Map(issues.map((issue, index) => [issue.id, index]));
+    recruiterPerspective.reservations = recruiterPerspective.reservations
+      .filter(item => item.issueId && order.has(item.issueId))
+      .sort((a, b) => order.get(a.issueId!)! - order.get(b.issueId!)!);
+  }
   const usedRefs = new Set([
     ...categoryScores.flatMap((item) => item.evidenceRefs),
     ...strengths.flatMap((item) => item.evidenceRefs),
@@ -180,7 +189,7 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
   const evidenceMap = Object.fromEntries([...usedRefs]
     .filter((ref) => validRefs.has(ref) && typeof evidence[ref] === "string")
     .map((ref) => [ref, evidence[ref].trim().slice(0, 600)]));
-  return { ...parsed, evidenceMap, recruiterPerspective, categoryScores, strengths, issues, summary: { ...parsed.summary, overallScore: calculateOverall(categoryScores) } };
+  return { ...parsed, evidenceMap, recruiterPerspective, categoryScores, strengths, issues, nextSteps, summary: { ...parsed.summary, overallScore: calculateOverall(categoryScores) } };
 }
 
 export function withRecruiterPerspective(report: CVReport): CVReport {
@@ -262,8 +271,10 @@ export function featuredFreeIssue(report: CVReport): TeaserReport["featuredIssue
     const evidence = issue.evidenceRefs
       .map((ref) => redactTeaserEvidence(report.evidenceMap?.[ref] || ""))
       .find((value) => value.length >= 16);
-    if (!evidence) return [];
-    return [{ issue, index, evidence, evidenceQuality: Math.min(evidence.length, 160) }];
+    const gap = report.document.targetSeniority === "first_job" && Boolean(issue.diagnosticKind)
+      && (issue.suggestion?.type === "gap" || issue.diagnosticKind === "missing_verification");
+    if (!evidence && !gap) return [];
+    return [{ issue, index, evidence: gap ? (report.locale === "pl" ? "Raport wskazuje brak informacji w dokumencie, nie brak umiejętności osoby." : "The report identifies missing information in the document, not missing personal skill.") : evidence!, evidenceKind: gap ? "gap" as const : "quote" as const, evidenceQuality: evidence ? Math.min(evidence.length, 160) : 0 }];
   });
   candidates.sort((left, right) =>
     severityRank[right.issue.severity] - severityRank[left.issue.severity]
@@ -281,6 +292,7 @@ export function featuredFreeIssue(report: CVReport): TeaserReport["featuredIssue
   return {
     title: selected.issue.title,
     evidence: selected.evidence,
+    evidenceKind: selected.evidenceKind,
     interpretation: selected.issue.explanation,
     actionDirection: freeActionDirection(selected.issue.category, report.locale),
   };
