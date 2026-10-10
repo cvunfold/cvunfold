@@ -8,6 +8,7 @@ export type ResolvedPricing = ModelRate & { source: PricingSource };
 const MODEL_PRICING: Record<string, ModelRate> = {
   "gpt-5.6-sol": { inputUsdPerMillion: 5, outputUsdPerMillion: 30 },
   "gpt-5.6-terra": { inputUsdPerMillion: 2, outputUsdPerMillion: 12 },
+  "gpt-6-luna": { inputUsdPerMillion: 0.1, outputUsdPerMillion: 0.5 },
   "gpt-5.6-luna": { inputUsdPerMillion: 0.2, outputUsdPerMillion: 1.2 },
   "gpt-5.4-mini": { inputUsdPerMillion: 0.75, outputUsdPerMillion: 4.5 },
 };

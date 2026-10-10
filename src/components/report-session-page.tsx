@@ -113,11 +113,12 @@ export function ReportSessionPage({ locale, mockMode, testAccessEnabled = false 
 
   if (error) return <main className="report-state"><Logo locale={locale}/><h1>{t.missing}</h1><button className="button" onClick={() => window.location.reload()}>{t.retry}</button></main>;
   if (!data || pending) return <main className="report-state"><Logo locale={locale}/><div className="analysis-spinner"/><h1>{pending ? t.pending : t.loading}</h1></main>;
-  return <>{testAccessEnabled ? <section className="payment-notice" aria-label={locale === "pl" ? "Dostęp testowy" : "Test access"}>
-    {data.accessMode === "preview_test" ? <p role="status">{locale === "pl" ? "Dostęp testowy do raportu. Płatność nie została wykonana." : "Test access to this report. No payment was made."}</p> : !data.paid ? <form onSubmit={unlockTest}>
+  const testAccessForm = testAccessEnabled && !data.paid && data.accessMode !== "preview_test" ? <section className="report-test-access" aria-label={locale === "pl" ? "Dostęp testowy" : "Test access"}>
+    <form onSubmit={unlockTest}>
       <label>{locale === "pl" ? "Kod dostępu testowego" : "Test access code"}<input type="password" autoComplete="off" maxLength={256} value={testCode} onChange={event => setTestCode(event.target.value)} disabled={testBusy}/></label>
       <button className="button" disabled={testBusy || !testCode}>{locale === "pl" ? "Otwórz raport testowo" : "Open report for testing"}</button>
       {testError ? <p role="alert">{locale === "pl" ? "Nie udało się przyznać dostępu testowego." : "Test access could not be granted."}</p> : null}
-    </form> : null}
-  </section> : null}{notice ? <div className="payment-notice" role="status">{notice}</div> : null}<ReportView paid={data.fullAccess ?? data.paid} testAccess={data.accessMode === "preview_test"} plan={data.plan} purchase={data.purchase} data={data.report} locale={data.locale} expiresAt={data.expiresAt} mockMode={mockMode} measurementContext={data.measurementContext}/></>;
+    </form>
+  </section> : null;
+  return <>{notice ? <div className="payment-notice" role="status">{notice}</div> : null}<ReportView testAccessForm={testAccessForm} paid={data.fullAccess ?? data.paid} testAccess={data.accessMode === "preview_test"} plan={data.plan} purchase={data.purchase} data={data.report} locale={data.locale} expiresAt={data.expiresAt} mockMode={mockMode} measurementContext={data.measurementContext}/></>;
 }

@@ -10,7 +10,7 @@ import { readSafeAttribution, trackAnalyticsEvent } from "@/lib/analytics/client
 import { DEFAULT_LANDING_VARIANT, handoffOriginFromAttribution, type HandoffOrigin } from "@/lib/audience";
 import { parseTargetRoleId, type TargetRoleId } from "@/lib/roles";
 import type { RoleSource } from "@/lib/analytics/events";
-import type { Seniority } from "@/lib/rubrics/technical-v1";
+import { parseSeniority, type Seniority } from "@/lib/rubrics/technical-v1";
 import { formatPlanPrice, REWRITE_SERVICE_REFERENCE, type Plan } from "@/lib/plans";
 import { analysisPath, homePath, legalPath, sampleReportPath, type Locale } from "@/lib/i18n";
 import { TurnstileWidget } from "@/components/turnstile-widget";
@@ -31,10 +31,10 @@ const copy = {
     handoffFailed: "Nie udało się udostępnić linku. Spróbuj ponownie.", handoffOpened: "Bezpieczne ustawienia zostały przeniesione. Wybierz plik CV ponownie na tym urządzeniu.",
     invalidFile: "Wybierz plik PDF lub DOCX o rozmiarze do 8 MB.",
     uploadNotes: "CV może być po polsku lub angielsku. Skanowany PDF lub zdjęcie może nie zostać odczytane. Po wybraniu pliku odczytujemy z niego rolę, żeby dobrać kryteria. Dokumentu nie zapisujemy.",
-    advancedToggle: "Etap kariery", advancedHint: "opcjonalne",
+    advancedToggle: "Etap kariery", advancedHint: "wymagane",
     roleDetecting: "Sprawdzamy, jaką rolę pokazuje dokument…",
     roleDetected: "Ustawiliśmy tę rolę na podstawie Twojego CV. Zmień ją, jeśli się pomyliliśmy.",
-    level: "Na jaki etap aplikujesz?", levelHelper: "Raport oceni Twoje CV pod kątem wybranego etapu kariery.", levels: [["first_job", "Pierwsza praca w IT"], ["auto", "Nie wiem — oceń na podstawie CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
+    level: "Na jaki etap aplikujesz?", levelHelper: "Wybierz etap, na który aplikujesz. To ważne: od niego zależą kryteria raportu.", levelPlaceholder: "Wybierz etap kariery", levelDetected: "Wykryliśmy etap na podstawie CV. Sprawdź, czy to poziom, na który chcesz aplikować.", levelRequired: "Wybierz etap kariery przed analizą.", levels: [["first_job", "Pierwsza praca w IT"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     consentRequired: "Wymagane, aby uruchomić analizę",
     consent: "Zlecam rozpoczęcie analizy od razu i akceptuję przetwarzanie CV zgodnie z polityką prywatności. Rozumiem, że plik źródłowy zostanie usunięty po analizie.",
     privacy: "Polityka prywatności", terms: "Regulamin", submit: "Analizuj CV", loading: "Analizujemy…", private: "Ten krok jest bezpłatny i nie prosimy tu o żadną płatność. Bez konta. CV nie trafia do pracodawców ani analytics.",
@@ -61,10 +61,10 @@ const copy = {
     handoffFailed: "We could not share the link. Please try again.", handoffOpened: "Your safe settings were transferred. Select the CV file again on this device.",
     invalidFile: "Choose a PDF or DOCX file up to 8 MB.",
     uploadNotes: "Your CV can be in English or Polish. A scanned PDF or photo may not be readable. Once you choose a file we read the role from it to pick the criteria. The document is not stored.",
-    advancedToggle: "Career stage", advancedHint: "optional",
+    advancedToggle: "Career stage", advancedHint: "required",
     roleDetecting: "Checking which role the document shows…",
     roleDetected: "We set this role from your CV. Change it if we got it wrong.",
-    level: "What career stage are you applying for?", levelHelper: "The report will assess your CV against your selected career stage.", levels: [["first_job", "First job in tech"], ["auto", "Not sure — assess from my CV"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
+    level: "What career stage are you applying for?", levelHelper: "Choose the stage you are applying for. This matters: it determines the report criteria.", levelPlaceholder: "Choose a career stage", levelDetected: "We detected a stage from your CV. Check that it matches the level you want to apply for.", levelRequired: "Choose a career stage before starting the analysis.", levels: [["first_job", "First job in tech"], ["junior", "Junior"], ["mid", "Mid"], ["senior", "Senior"], ["lead", "Lead"]],
     consentRequired: "Required to start the analysis",
     consent: "I request that the analysis starts immediately and accept CV processing under the privacy policy. I understand that the source file is deleted after analysis.",
     privacy: "Privacy policy", terms: "Terms", submit: "Analyse my CV", loading: "Analysing…", private: "This step is free and asks for no payment. No account. Your CV is never sent to employers or analytics.",
@@ -87,7 +87,7 @@ type AnalysisPhase = "idle" | "analyzing" | "redirecting";
 type Props = {
   mockMode: boolean;
   initialRole: TargetRoleId;
-  initialSeniority: Seniority;
+  initialSeniority: Seniority | null;
   handoffFromMobile: boolean;
   initialHandoffOrigin?: HandoffOrigin;
   locale: Locale;
@@ -116,7 +116,9 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   // What the detector answered, kept even when the visitor overrides it: the
   // disagreement is the only measurement we get of how often it is wrong.
   const detectionOutcome = useRef<{ source: RoleSource; role: TargetRoleId | null }>({ source: "not_run", role: null });
-  const [seniority, setSeniority] = useState<Seniority>(initialSeniority);
+  const [seniority, setSeniority] = useState<Seniority | null>(initialSeniority === "auto" ? null : initialSeniority);
+  const seniorityChosenByUser = useRef(Boolean(initialSeniority && initialSeniority !== "auto"));
+  const [seniorityDetection, setSeniorityDetection] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileEpoch, setTurnstileEpoch] = useState(0);
   const [handoffStatus, setHandoffStatus] = useState("");
@@ -177,7 +179,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
       plan: "full_review",
       landing_variant: DEFAULT_LANDING_VARIANT,
       broad_role_enum: initialRole,
-      selected_seniority_enum: initialSeniority,
+      ...(initialSeniority && initialSeniority !== "auto" ? { selected_seniority_enum: initialSeniority } : {}),
       handoff_origin: effectiveHandoffOrigin || "other",
     });
   }, [effectiveHandoffOrigin, handoffFromMobile, initialRole, initialSeniority, locale]);
@@ -191,7 +193,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
       plan,
       landing_variant: DEFAULT_LANDING_VARIANT,
       broad_role_enum: role,
-      selected_seniority_enum: seniority,
+      ...(seniority ? { selected_seniority_enum: seniority } : {}),
       ...(effectiveHandoffOrigin ? { handoff_origin: effectiveHandoffOrigin } : {}),
     });
     picker.addEventListener("cancel", onNativeCancel);
@@ -205,13 +207,15 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
       plan: selectedPlan,
       landing_variant: DEFAULT_LANDING_VARIANT,
       broad_role_enum: role,
-      selected_seniority_enum: seniority,
+      ...(seniority ? { selected_seniority_enum: seniority } : {}),
       ...(effectiveHandoffOrigin ? { handoff_origin: effectiveHandoffOrigin } : {}),
     };
   }
 
   function chooseFile(nextFile: File | null, uploadEntrypoint: "picker" | "drop") {
     setError("");
+    detectionRequest.current += 1;
+    if (!seniorityChosenByUser.current) { setSeniority(null); setSeniorityDetection(false); }
     if (!nextFile) { setFile(null); return; }
     if (!SUPPORTED_EXTENSION.test(nextFile.name) || nextFile.size > MAX_UPLOAD_BYTES) {
       setFile(null);
@@ -225,16 +229,22 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
 
   /** Best-effort prefill. Any failure leaves the form exactly as the visitor left it. */
   async function detectRole(nextFile: File) {
-    if (roleChosenByUser.current) return;
+    if (roleChosenByUser.current && seniorityChosenByUser.current) return;
     const request = ++detectionRequest.current;
-    setRoleDetection("pending");
+    if (!roleChosenByUser.current) setRoleDetection("pending");
     try {
       const body = new FormData();
       body.set("file", nextFile);
       const response = await fetch("/api/detect-role", { method: "POST", body });
       const data = await response.json().catch(() => ({}));
       // A second file picked while this was in flight owns the field now.
-      if (request !== detectionRequest.current || roleChosenByUser.current) return;
+      if (request !== detectionRequest.current) return;
+      if (!seniorityChosenByUser.current) {
+        const detectedStage = parseSeniority(data.seniority);
+        setSeniority(detectedStage && detectedStage !== "auto" ? detectedStage : null);
+        setSeniorityDetection(Boolean(detectedStage && detectedStage !== "auto"));
+      }
+      if (roleChosenByUser.current) return;
       const detected = parseTargetRoleId(data.role);
       if (!data.detected || !detected) {
         detectionOutcome.current = { source: "not_detected", role: null };
@@ -268,7 +278,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
     return new URL(analysisPath(locale, {
       plan,
       role,
-      seniority,
+      seniority: seniority || undefined,
       handoff: "mobile",
     }), window.location.origin).toString();
   }
@@ -322,6 +332,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!file) return;
+    if (!seniority) { setError(t.levelRequired); return; }
     // The submit button is disabled while consent is missing, so this only
     // guards a stray programmatic submit; the real feedback path for a click
     // on the disabled button is the wrapper's onClick below.
@@ -349,7 +360,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
       ...readSafeAttribution(),
       landing_variant: DEFAULT_LANDING_VARIANT,
       broad_role_enum: role,
-      selected_seniority_enum: seniority,
+      ...(seniority ? { selected_seniority_enum: seniority } : {}),
       ...(effectiveHandoffOrigin ? { handoff_origin: effectiveHandoffOrigin } : {}),
     }));
     form.set("turnstileToken", turnstileToken);
@@ -406,12 +417,13 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
         {roleDetection !== "idle" ? <p className={`role-detection ${roleDetection}`} role="status" aria-live="polite">
           {roleDetection === "pending" ? t.roleDetecting : t.roleDetected}
         </p> : null}
-        <SenioritySelect value={seniority} onChange={setSeniority} levels={t.levels} disabled={busy} label={t.advancedToggle} optionalHint={t.advancedHint} popoverTitle={t.level} popoverSubtitle={t.levelHelper}/>
+        <SenioritySelect value={seniority} placeholder={t.levelPlaceholder} onChange={value => { seniorityChosenByUser.current = true; setSeniority(value); setSeniorityDetection(false); setError(""); }} levels={t.levels} disabled={busy} label={t.advancedToggle} optionalHint={t.advancedHint} popoverTitle={t.level} popoverSubtitle={t.levelHelper}/>
+        <p className={seniorityDetection ? "role-detection applied" : "upload-notes"} role={seniorityDetection ? "status" : undefined} aria-live="polite">{seniorityDetection ? t.levelDetected : t.levelHelper}</p>
         <label ref={consentRef} key={`consent-${consentShakeEpoch}`} tabIndex={-1} className={`consent${consent ? " is-given" : ""}${consentShakeEpoch && !consent ? " attention" : ""}`}><input type="checkbox" checked={consent} disabled={busy} onChange={(event) => setConsent(event.target.checked)}/><span><b className="consent-required">{t.consentRequired}</b>{t.consent}<br/><a href={legalPath(locale, "privacy")}>{t.privacy}</a> · <a href={legalPath(locale, "terms")}>{t.terms}</a></span></label>
         <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
         {error ? <p ref={errorMessage} className="form-error" role="alert" tabIndex={-1}>{error}</p> : null}
-        <span className="submit-wrap" onClick={() => { if (file && !consent) nudgeConsent(); }}><button className="button submit" disabled={!file || !consent || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button></span>
+        <span className="submit-wrap" onClick={() => { if (file && !consent) nudgeConsent(); }}><button className="button submit" disabled={!file || !consent || !seniority || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button></span>
         <p className="form-trust"><LockIcon/>{t.private}</p>
       </form>
 
@@ -421,7 +433,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
         <div className="evidence-preview"><span className="evidence-mark" aria-hidden="true">“</span><div><b>{t.evidenceTitle}</b><p>{t.evidenceCopy}</p></div></div>
         {/* New tab on purpose: navigating away in this tab would discard the picked
             file, the auto-detected role and the consent checkbox. */}
-        <a className="analysis-sample-link" href={`${sampleReportPath(locale)}${seniority !== "auto" ? `?profile=${seniority}` : ""}`} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a>
+        <a className="analysis-sample-link" href={`${sampleReportPath(locale)}${seniority && seniority !== "auto" ? `?profile=${seniority}` : ""}`} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a>
       </aside>
     </div>
     {busy ? <div ref={overlay} className="analysis-progress-overlay" role="dialog" aria-modal="true" aria-labelledby="analysis-progress-title" tabIndex={-1}>

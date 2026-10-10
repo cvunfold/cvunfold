@@ -1,13 +1,14 @@
 import type { CareerContext } from "./career-context";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
-import { reportSchema, type CVReport } from "./schemas/report";
+import { modelResponseSchema, type CVReport } from "./schemas/report";
 import { applyServerRubric, auditCalibration, validateEvidence } from "./validate-report";
 import type { Segment } from "@/lib/document-parsing";
 import { getRubric, RUBRIC_VERSION, scoringSeniority, type Seniority } from "@/lib/rubrics/technical-v1";
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
 import { getReviewPrompt } from "./prompts";
 import { REVIEW_PIPELINE_VERSION, type ReviewProvenance } from "./review-provenance";
+import { REPORT_POLICY_VERSION } from "./report-policy";
 import { estimateCostUsd } from "./model-pricing";
 
 type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSeniority: Seniority; careerContext?: CareerContext; jobDescription?: string; locale: "pl" | "en"; maxOutputTokens?: number };
@@ -103,7 +104,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
       { role: "system", content: systemPrompt },
       { role: "user", content: `${input.locale === "en" ? "Analyse the following data and prepare a report that follows the system goal and schema" : "Przeanalizuj poniższe dane i przygotuj raport zgodny z systemowym celem oraz schematem"}:\n${JSON.stringify(payload)}` },
     ],
-    text: { format: zodTextFormat(reportSchema, "cv_report") },
+    text: { format: zodTextFormat(modelResponseSchema, "cv_report") },
     ...(input.maxOutputTokens ? { max_output_tokens: input.maxOutputTokens } : {}),
   });
   let selectedModel = model;
@@ -116,6 +117,11 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     response = await request(fallbackModel);
   }
   if (!response.output_parsed) throw new Error("OPENAI_INVALID_RESPONSE");
+  if (new Set(response.output_parsed.categoryScores.map(category => category.key)).size !== 6) throw new Error("OPENAI_INVALID_RESPONSE");
+  const issueIds = new Set(response.output_parsed.issues.map(issue => issue.id));
+  if (issueIds.size !== response.output_parsed.issues.length
+    || response.output_parsed.nextSteps.some(step => step.issueId !== undefined && !issueIds.has(step.issueId))
+    || response.output_parsed.recruiterPerspective.reservations.some(item => item.issueId !== undefined && !issueIds.has(item.issueId))) throw new Error("OPENAI_INVALID_RESPONSE");
   // The rubric sent with the request carried neutral weights when the visitor left
   // seniority on auto. Now that the model has read the CV, score with the profile
   // for the level it actually perceived.
@@ -150,6 +156,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     promptVariant,
     rubricVersion: RUBRIC_VERSION,
     pipelineVersion: REVIEW_PIPELINE_VERSION,
+    reportPolicyVersion: REPORT_POLICY_VERSION,
     model: selectedModel,
     requestedModel: model,
     fallbackUsed: selectedModel !== model,

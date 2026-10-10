@@ -11,10 +11,12 @@ export type PopoverSelectOption<T extends string> = { id: T; mark: string; label
 
 type PopoverSelectProps<T extends string> = {
   label: ReactNode;
-  value: T;
+  value: T | null;
+  placeholder?: string;
   options: PopoverSelectOption<T>[];
   onChange: (value: T) => void;
   disabled?: boolean;
+  required?: boolean;
   popoverTitle: string;
   popoverSubtitle: string;
   /** 2 for options with a description worth two columns of width, 1 for bare labels. */
@@ -35,7 +37,7 @@ function SelectedIcon() {
 }
 
 export function PopoverSelect<T extends string>({
-  label, value, options, onChange, disabled = false, popoverTitle, popoverSubtitle, columns = 2, helper,
+  label, value, placeholder, options, onChange, disabled = false, required = false, popoverTitle, popoverSubtitle, columns = 2, helper,
 }: PopoverSelectProps<T>) {
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -44,7 +46,7 @@ export function PopoverSelect<T extends string>({
   const [open, setOpen] = useState(false);
   const selectedIndex = options.findIndex((option) => option.id === value);
   const [activeIndex, setActiveIndex] = useState(selectedIndex);
-  const selected = options[selectedIndex] ?? options[0];
+  const selected = options[selectedIndex];
 
   useEffect(() => {
     if (!open) return;
@@ -73,7 +75,7 @@ export function PopoverSelect<T extends string>({
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       const direction = event.key === "ArrowDown" ? 1 : -1;
-      if (!open) return openAt(selectedIndex);
+      if (!open) return openAt(Math.max(0, selectedIndex));
       setActiveIndex((current) => (current + direction + options.length) % options.length);
       return;
     }
@@ -93,7 +95,7 @@ export function PopoverSelect<T extends string>({
     }
   }
 
-  if (!selected) return null;
+  if (!options.length) return null;
 
   return <div className="role-field" ref={rootRef}>
     <span className="role-label" id={labelId}>{label}</span>
@@ -105,15 +107,16 @@ export function PopoverSelect<T extends string>({
         role="combobox"
         aria-labelledby={labelId}
         aria-expanded={open}
+        aria-required={required || undefined}
         aria-haspopup="listbox"
         aria-controls={listboxId}
         aria-activedescendant={open ? `${listboxId}-${activeIndex}` : undefined}
         disabled={disabled}
-        onClick={() => open ? setOpen(false) : openAt(selectedIndex)}
+        onClick={() => open ? setOpen(false) : openAt(Math.max(0, selectedIndex))}
         onKeyDown={handleKeyDown}
       >
-        <span className="role-select-mark" aria-hidden="true">{selected.mark}</span>
-        <span className="role-select-copy"><b>{selected.label}</b>{selected.description ? <small>{selected.description}</small> : null}</span>
+        <span className="role-select-mark" aria-hidden="true">{selected?.mark ?? "?"}</span>
+        <span className="role-select-copy"><b>{selected?.label ?? placeholder}</b>{selected?.description ? <small>{selected.description}</small> : null}</span>
         <ChevronIcon open={open} />
       </button>
       {open ? <div className="role-select-popover">

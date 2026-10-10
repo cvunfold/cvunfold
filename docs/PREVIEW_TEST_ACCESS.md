@@ -7,7 +7,8 @@ This is a report-scoped test grant, not a coupon or a fake purchase. It permits 
 On a verified CVUnfold Vercel project, set these server-only variables exclusively for Preview:
 
 - `REPORT_TEST_ACCESS_ENABLED=true`
-- `REPORT_TEST_ACCESS_CODE`: a cryptographically random secret of 32-256 characters, preferably 32 random bytes encoded as base64url.
+- `REPORT_TEST_ACCESS_CODE`: a human-readable code of 4-256 characters.
+- `REPORT_TEST_ACCESS_SECRET`: a separate cryptographically random signing secret of 32-256 characters. Legacy long codes can act as the signing secret until this variable is configured.
 
 Do not use a `NEXT_PUBLIC_` variable, a URL parameter or a checked-in code. Do not commit the secret or pass it in shell command arguments or logs. Local development can use the same mechanism with explicit configuration.
 
@@ -17,7 +18,7 @@ Before changing deployment configuration, freshly verify and record service, acc
 
 ## Manual flow
 
-Create an analysis, open its private report, enter the secret in the preview-only test-access form, and open the report for testing. The UI labels the full report as test access and states that no payment was made.
+Create an analysis, open its private report, enter the code in the preview-only form below the payment controls, and open the report for testing. The form disappears after unlocking; there is no test-access toast. The API still identifies test access and keeps paid=false.
 
 ## Automation flow
 
@@ -31,7 +32,7 @@ Automation must load the code from an approved secret store or environment witho
 
 ## Boundaries
 
-The signed cookie is valid for at most 30 minutes and never beyond report expiry. It is bound to the existing report session. It grants no access to other reports and cannot bypass deletion, expiry, analysis quotas or model costs. Changing the secret or disabling the feature revokes existing grants.
+The signed cookie is valid for at most 30 minutes and never beyond report expiry. It is bound to the existing report session. It grants no access to other reports and cannot bypass deletion, expiry, analysis quotas or model costs. Changing the code or signing secret, or disabling the feature revokes existing grants.
 
 The grant never updates `paid_at`, creates a Stripe session, creates a payment row or emits a purchase conversion. Server and client full-report-view events are suppressed for test grants. Analysis creation and the initial teaser retain their existing measurement behavior, so preview data must remain environment-scoped.
 

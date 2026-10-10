@@ -34,12 +34,12 @@ describe("POST /api/detect-role", () => {
   it("returns the detected role when the detector is confident", async () => {
     const response = await POST(detectRequest());
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ detected: true, role: "backend_developer" });
+    expect(await response.json()).toEqual({ detected: true, role: "backend_developer", seniority: null });
   });
 
   it("withholds a role the detector is not confident about", async () => {
     detectTargetRole.mockReturnValue({ role: "other", confident: false, scores: [] });
-    expect(await (await POST(detectRequest())).json()).toEqual({ detected: false });
+    expect(await (await POST(detectRequest())).json()).toEqual({ detected: false, seniority: null });
   });
 
   it("never leaks a parser failure as an error the visitor has to handle", async () => {

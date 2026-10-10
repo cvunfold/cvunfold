@@ -43,3 +43,21 @@ Only the new first-job stage migration is intended as new DDL. Existing migratio
 The owner explicitly approved the described shared-database stage migration after the automatic review explained its constraint/payment-function risk on 2026-10-09. Only the existing stage allowlist is extended; prices, amounts, payment checks and execution privileges are preserved.
 
 The approved first-job stage migration was applied as 20261009194033 on 2026-10-09. Live verification confirmed the new constraint, measurement allowlist and unchanged service-role-only execution privileges.
+
+## Simpler Preview test access, 2026-10-09
+
+Fresh GitHub CLI checks confirmed account pawelmaczkaczarnecki, organization cvunfold, repository cvunfold/cvunfold, ADMIN access. Writes use feat/preview-test-code. Vercel deployment and environment metadata confirmed account/principal 6I778X3suBF4Vk1QIWkFhnDt, team team_EvE1UIid0T9jxS7TG10FPaAh (pawelmaczkaczarnecki's projects), project cvunfold/prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A. Only branch-scoped Preview variables and a new Preview deployment are changed. The owner requested a simpler code and removal/repositioning of the test UI. No production configuration, database or Stripe writes are involved.
+
+The owner additionally requested transparent stage prefill and using experience years as a supporting signal. The same CVUnfold GitHub branch/PR and branch-scoped Vercel Preview are used for this follow-up, with no database, production environment or Stripe changes.
+
+## GPT-6 Luna comparison, 2026-10-09
+
+The owner authorized changing the review model if cheaper and better, with tests first. Fresh GitHub checks confirmed account pawelmaczkaczarnecki, org/repo cvunfold/cvunfold and ADMIN access; writes remain on feat/preview-test-code / PR 44. Vercel live project/env metadata confirms project cvunfold/prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A, team team_EvE1UIid0T9jxS7TG10FPaAh, account/principal 6I778X3suBF4Vk1QIWkFhnDt. First writes are branch-scoped Preview model/experiment configuration only. Supabase remains the owner's CVUnfold org knjrcparhtiwcskiisjh, project cvunfold-prod/yttktyctjbciyqjpvunv; generated synthetic rows are marked preview. Existing CVUnfold server API key is reused, no key or provider provisioning. Production model changes remain conditional on the paired evaluation.
+
+The controlled comparison also uses a redeployment at the same SHA with branch-scoped model 5.6 Luna as a control. Preview-only quotas are bounded at 30/hour and 50/day for the synthetic evaluation; no production quota changes. Additional paired inputs remove the fixture-only annotation from both documents, preserving the actual CV facts.
+
+## Fixed evidence score and GPT-6 release, 2026-10-10
+
+The owner explicitly requested deploying the missing-evidence policy, first-job priorities and GPT-6 Luna, with PL/EN tests. Live GitHub metadata confirmed account pawelmaczkaczarnecki, organization/repository cvunfold/cvunfold and ADMIN access; use feat/preview-test-code / PR 44, then Git main. Vercel project/env metadata confirmed cvunfold/prj_BJGjEQH6KHy1AhbSSkJVCdjgxd4A, team team_EvE1UIid0T9jxS7TG10FPaAh, principal 6I778X3suBF4Vk1QIWkFhnDt. Preview model changes are branch-scoped; Production OPENAI_REVIEW_MODEL is changed to gpt-6-luna only after live Preview validation and before the approved Git-main release. Existing fallback, credentials and quotas remain as configured. Supabase remains CVUnfold org knjrcparhtiwcskiisjh and cvunfold-prod/yttktyctjbciyqjpvunv, freshly verified; only ordinary synthetic Preview analysis rows are written. No DDL, Stripe or provider-key changes. Test-access flags remain Preview-only.
+
+The matched release suite contains 20 planned analyses on 16 paired PL/EN inputs. To accommodate earlier synthetic runs in the rolling daily quota, the feat/preview-test-code Preview daily cap is temporarily 100, restored to its existing 50 after the suite. Hourly Preview cap remains 30; Production quotas are unchanged. The live-eval estimate ceiling, including a retry reserve, is USD 0.50.

@@ -25,12 +25,12 @@ it("sends bootcamp context to the model, reweights auto from evidence and persis
     const request = parse.mock.calls.at(-1)![0];
     const payload = JSON.parse(request.input[1].content.split("\n").slice(1).join("\n"));
     expect(payload).toMatchObject({ careerContext: "first_job", targetSeniority: "first_job" });
-    expect(request.input[0].content).toContain("career-v2.0.0");
+    expect(request.input[0].content).toContain("career-v2.1.2");
     expect(request.input[0].content).toContain(locale === "pl" ? "WYBRANY ETAP: first_job" : "SELECTED STAGE: first_job");
     expect(request.input[0].content.match(/(?:WYBRANY ETAP|SELECTED STAGE):/g)).toHaveLength(1);
     expect(parse).toHaveBeenCalledTimes(locale === "pl" ? 1 : 2);
     expect(report.document).toMatchObject({ targetSeniority: "first_job", perceivedSeniority: "junior", careerContext: "first_job" });
     expect(report.categoryScores.find(category => category.key === "ownership")).toMatchObject({ weight: 0.09, label: locale === "pl" ? "Twój wkład w projekty" : "Your project contribution" });
-    expect(telemetry.provenance.promptVersion).toContain("career-v2.0.0");
+    expect(telemetry.provenance.promptVersion).toContain("career-v2.1.2");
   }
 });

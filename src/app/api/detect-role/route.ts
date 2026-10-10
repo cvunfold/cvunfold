@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { parseDocument } from "@/lib/document-parsing";
+import { detectSeniority } from "@/lib/seniority-detection";
 import { detectTargetRole } from "@/lib/role-detection";
 import { hmacIdentifier } from "@/lib/security/tokens";
 import { rateLimit } from "@/lib/security/rate-limit";
@@ -11,7 +12,7 @@ export const runtime = "nodejs";
 // commits to the analysis. Everything here is transient: the document is parsed
 // in memory, the detector is pure string matching, and nothing is written — no
 // analysis row, no funnel event, no log line carrying document text. The answer
-// is a single enum plus a confidence flag.
+// is a role enum plus a confidence flag and an optional career-stage enum.
 //
 // Deliberately separate from /api/analyses. That route creates a paid-path
 // artefact and consumes the analysis quota; this one must stay cheap enough to
@@ -40,8 +41,8 @@ export async function POST(request: Request) {
     await validateSignature(file);
     const parsed = await parseDocument(file);
     const detection = detectTargetRole(parsed.text);
-    if (!detection.confident) return NextResponse.json({ detected: false });
-    return NextResponse.json({ detected: true, role: detection.role });
+    const stage = detectSeniority(parsed.text);
+    return NextResponse.json({ detected: detection.confident, ...(detection.confident ? { role: detection.role } : {}), seniority: stage.seniority });
   } catch {
     // Every failure is the same non-answer. This is a convenience prefill: an
     // unreadable file, a wrong signature or a parser error must leave the form

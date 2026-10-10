@@ -43,7 +43,7 @@ export const reportSchema = z.object({
     seniorityAlignment: z.enum(["aligned", "undersold", "unsupported", "unclear"]),
     seniorityAlignmentExplanation: z.string(),
     positiveSignals: z.array(perspectiveSignal).max(4),
-    reservations: z.array(perspectiveSignal.extend({ kind: z.enum(["evidence", "gap"]) })).max(4),
+    reservations: z.array(perspectiveSignal.extend({ kind: z.enum(["evidence", "gap"]), issueId: z.string().optional() })).max(4),
     likelyInterviewQuestions: z.array(z.object({
       question: z.string(),
       whyThisQuestion: z.string(),
@@ -52,6 +52,7 @@ export const reportSchema = z.object({
   }),
   categoryScores: z.array(z.object({
     key: z.string(), label: z.string(), score: z.number().min(0).max(100),
+    evidenceStatus: z.enum(["none", "indirect", "concrete"]).optional(),
     weight: z.number().min(0).max(1), rationale: z.string(), evidenceRefs: z.array(evidenceRef),
   })).min(1),
   recruiterSimulation: z.object({
@@ -63,6 +64,8 @@ export const reportSchema = z.object({
   strengths: z.array(z.object({ id: z.string(), title: z.string(), explanation: z.string(), evidenceRefs: z.array(evidenceRef) })),
   issues: z.array(z.object({
     id: z.string(), severity: z.enum(["minor", "important", "critical"]), category: rubricCategoryKey, title: z.string(),
+    verificationEvidenceRefs: z.array(evidenceRef).optional(),
+    diagnosticKind: z.enum(["unattributed_contribution", "limited_contribution", "weak_exposure", "missing_verification", "limited_verification", "other"]).optional(),
     explanation: z.string(), whyItMatters: z.string(), evidenceRefs: z.array(evidenceRef), confidence,
     action: z.string().describe("A complete, document-specific instruction. Never a suggestion type label such as Rewrite, Expose, Gap or Question."),
     suggestion: z.object({
@@ -72,8 +75,25 @@ export const reportSchema = z.object({
   })),
   jobMatch: z.object({ score: z.number().min(0).max(100), strongestMatches: z.array(z.string()),
     missingEvidence: z.array(z.string()), misplacedEvidence: z.array(z.string()), recommendations: z.array(z.string()) }).nullable(),
-  nextSteps: z.array(z.object({ priority: z.number().int().positive(), title: z.string(), action: z.string().describe("A concrete next step written as a complete instruction, not a category label."), expectedImpact: z.enum(["low", "medium", "high"]) })),
+  nextSteps: z.array(z.object({ issueId: z.string().optional(), priority: z.number().int().positive(), title: z.string(), action: z.string().describe("A concrete next step written as a complete instruction, not a category label."), expectedImpact: z.enum(["low", "medium", "high"]) })),
   limitations: z.array(z.string()),
+});
+
+// New provider output is strict; persisted reports keep the optional fields
+// above so existing private reports remain readable without being re-scored.
+export const modelResponseSchema = reportSchema.extend({
+  recruiterPerspective: reportSchema.shape.recruiterPerspective.extend({
+    reservations: z.array(reportSchema.shape.recruiterPerspective.shape.reservations.element.extend({ issueId: z.string() })).max(4),
+  }),
+  categoryScores: z.array(reportSchema.shape.categoryScores.element.extend({
+    key: rubricCategoryKey,
+    evidenceStatus: z.enum(["none", "indirect", "concrete"]),
+  })).length(RUBRIC_CATEGORY_KEYS.length),
+  issues: z.array(reportSchema.shape.issues.element.extend({
+    verificationEvidenceRefs: z.array(evidenceRef).describe("Existing CV statements about checking/testing the same project discussed by this issue. Do not cite functionality alone. Use [] when no relevant checks are described or this issue is unrelated to verification."),
+    diagnosticKind: z.enum(["unattributed_contribution", "limited_contribution", "weak_exposure", "missing_verification", "limited_verification", "other"]),
+  })),
+  nextSteps: z.array(reportSchema.shape.nextSteps.element.extend({ issueId: z.string() })),
 });
 
 export type ModelReport = z.infer<typeof reportSchema>;
@@ -100,6 +120,7 @@ export type TeaserReport = Pick<CVReport, "version" | "locale"> & {
   featuredIssue: {
     title: string;
     evidence: string;
+    evidenceKind?: "quote" | "gap";
     interpretation: string;
     actionDirection: string;
   } | null;
