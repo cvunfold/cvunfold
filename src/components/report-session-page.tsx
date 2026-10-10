@@ -65,7 +65,10 @@ export function ReportSessionPage({ locale, mockMode, testAccessEnabled = false 
   useEffect(() => {
     let cancelled = false;
     async function bootstrap() {
-      const token = window.location.hash.slice(1);
+      const fragment = window.location.hash.slice(1);
+      // Section anchors contain a colon, which private base64url tokens cannot.
+      // A reload must keep the existing session rather than exchange the anchor.
+      const token = fragment.startsWith("section:") ? "" : fragment;
       if (token) {
         const response = await fetch("/api/report-session", {
           method: "POST",

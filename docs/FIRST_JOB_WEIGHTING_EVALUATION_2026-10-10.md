@@ -33,9 +33,11 @@ Application-estimated additional cost: USD 0.051901, or USD 0.155703 with a thre
 
 ## Verification
 
-- 482 tests across 56 files passed; lint, typecheck and local production build passed.
+- 485 tests across 57 files passed; lint, typecheck and local production build passed.
 - Vercel built the immutable application source successfully.
 - In-app browser checked PL/EN sample reports at desktop width and 390px mobile width, collapsed/expanded summaries, copy success, issue links, and the real 53-point report through unpaid preview and then the approved test grant. No horizontal overflow or framework overlay was observed. The sample view had no relevant console errors; the private Preview initially recorded a Stripe.js network warning on its unpaid payment surface. Actual payments were not exercised in this follow-up.
 - The earlier source commit and final source use identical model input, rubric and score normalization; later changes only link sample actions and shorten presentation.
+
+Section hashes are namespaced with section: so reloading a finding preserves the existing private cookie session instead of trying to exchange a section ID as a report token. Regression tests also confirm genuine token exchange is preserved.
 
 Versions: technical-v1.5.0, career-v2.2.0. Model remains GPT-6 Luna, with one normal analysis call and no call for the revision summary.
