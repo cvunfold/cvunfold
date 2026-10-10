@@ -152,7 +152,7 @@ export function createCareerSample(id: CareerSampleId, locale: Locale, targetRol
     collaboration: level === "junior" ? "The project description shows collaboration through agreements, review or discussing a solution." : "The CV shows collaboration and agreements with adjacent roles during delivery.",
     clarity: text.issue,
   };
-  const categoryScores = getRubric(level, targetRole, locale).map(category => ({
+  const categoryScores = getRubric(stage, targetRole, locale, context).map(category => ({
     ...category, score: scores[category.key as keyof typeof scores],
     rationale: rationales[category.key], evidenceRefs: categoryRefs[category.key],
   }));

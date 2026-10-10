@@ -300,3 +300,28 @@ it("uses the Mid presentation when auto detects a Mid profile", () => {
   expect(container.querySelector(".seniority-track")).toBeNull();
   expect(container.textContent).toContain("Skills and independence shown in the CV");
 });
+
+
+describe("revision summary access and repetition", () => {
+  it.each(["pl", "en"] as const)("shows copying only with full access (%s)", locale => {
+    const report = createMockReport("first_job", false, "frontend_developer", locale);
+    const title = locale === "pl" ? "Skopiuj podsumowanie" : "Copy summary";
+    const unpaid = render(<ReportView paid={false} data={toTeaser(report)} mockMode={false} locale={locale}/>);
+    expect(screen.queryByRole("button", { name: title })).toBeNull();
+    unpaid.unmount();
+    const view = render(<ReportView paid data={report} mockMode={false} locale={locale}/>);
+    expect(screen.getByRole("button", { name: title })).toBeTruthy();
+    expect(view.container.querySelector(".improve")).toBeNull();
+    expect(view.container.querySelector(".revision-brief details")?.hasAttribute("open")).toBe(false);
+  });
+  it("copies the briefing locally without sending its content to analytics", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    render(<ReportView paid data={createMockReport("first_job")} mockMode={false} locale="pl"/>);
+    analytics.mockClear();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Skopiuj podsumowanie" })); });
+    expect(writeText).toHaveBeenCalledTimes(1);
+    expect(writeText.mock.calls[0][0]).toContain("Nie dopisuj doświadczenia");
+    expect(analytics).not.toHaveBeenCalled();
+  });
+});
