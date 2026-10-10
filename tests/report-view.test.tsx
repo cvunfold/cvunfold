@@ -314,6 +314,13 @@ describe("revision summary access and repetition", () => {
     expect(view.container.querySelector(".improve")).toBeNull();
     expect(view.container.querySelector(".revision-brief details")?.hasAttribute("open")).toBe(false);
   });
+  it("keeps a readable manual fallback when clipboard access fails", async () => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) } });
+    render(<ReportView paid data={createMockReport("first_job")} mockMode={false} locale="pl"/>);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Skopiuj podsumowanie" })); });
+    expect(screen.getByText("Kopiowanie się nie udało. Rozwiń podsumowanie i skopiuj tekst ręcznie.")).toBeTruthy();
+    expect(screen.getByText("Pokaż tekst do skopiowania")).toBeTruthy();
+  });
   it("copies the briefing locally without sending its content to analytics", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
