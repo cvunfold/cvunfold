@@ -29,15 +29,30 @@ function RevisionBrief({ report, locale }: { report: CVReport; locale: Locale })
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
   const text = buildRevisionBrief(report, locale);
   const pl = locale === "pl";
-  return <section className="report-section revision-brief">
-    <h2>{pl ? "Podsumowanie do poprawy CV" : "CV revision summary"}</h2>
-    <p>{pl ? "Zalecenia możesz wykorzystać samodzielnie albo wkleić do własnego AI razem z CV. Kopiowanie niczego nie wysyła. Przed udostępnieniem CV usuń dane, których nie chcesz przekazywać." : "Use the recommendations yourself or paste them into your own AI together with your CV. Copying sends nothing. Remove any CV details you do not want to share before uploading it elsewhere."}</p>
-    <details><summary>{pl ? "Pokaż podsumowanie" : "Show summary"}</summary><pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontFamily: "inherit" }}>{text}</pre></details>
+  return <section className="report-section revision-brief" aria-labelledby="revision-brief-title">
+    <div className="revision-brief-heading">
+      <span className="revision-brief-eyebrow">{pl ? "OD RAPORTU DO POPRAWEK" : "FROM REPORT TO REVISION"}</span>
+      <h2 id="revision-brief-title">{pl ? "Podsumowanie do poprawy CV" : "CV revision summary"}</h2>
+      <p>{pl ? "Zacznij od faktów. Wklej podsumowanie do swojego AI razem z CV: AI najpierw sprawdzi, czego brakuje, i zaczeka na Twoje odpowiedzi. Potem zaproponuje zmiany." : "Start with the facts. Paste this summary into your own AI together with your CV: AI first checks what is missing and waits for your answers before proposing edits."}</p>
+    </div>
+    <ol className="revision-brief-steps">
+      {(pl ? [
+        ["Pytania", "AI pyta o brakujące fakty potrzebne do poprawek."],
+        ["Twoje odpowiedzi", "Możesz też odpowiedzieć: nie robiłem tego lub nie pamiętam."],
+        ["Poprawki", "Weryfikujesz propozycje oparte na CV i Twoich odpowiedziach."],
+      ] : [
+        ["Questions", "AI asks for missing facts needed for the edits."],
+        ["Your answers", "You can also say: I did not do that or I do not remember."],
+        ["Edits", "Review suggestions based on your CV and your answers."],
+      ]).map(([title, description], index) => <li key={title}><span aria-hidden="true">0{index + 1}</span><div><strong>{title}</strong><p>{description}</p></div></li>)}
+    </ol>
+    <details className="revision-brief-preview"><summary>{pl ? "Pokaż tekst do skopiowania" : "Show text to copy"}</summary><pre>{text}</pre></details>
     <button type="button" className="button" onClick={async () => {
       try { await navigator.clipboard.writeText(text); setStatus("copied"); }
       catch { setStatus("failed"); }
     }}>{pl ? "Skopiuj podsumowanie" : "Copy summary"}</button>
-    <p role="status">{status === "copied" ? (pl ? "Podsumowanie skopiowane" : "Summary copied") : status === "failed" ? (pl ? "Kopiowanie się nie udało. Rozwiń podsumowanie i skopiuj tekst ręcznie." : "Copy failed. Expand the summary and copy the text manually.") : ""}</p>
+    <p className="revision-brief-status" role="status">{status === "copied" ? (pl ? "Podsumowanie skopiowane" : "Summary copied") : status === "failed" ? (pl ? "Kopiowanie się nie udało. Rozwiń podsumowanie i skopiuj tekst ręcznie." : "Copy failed. Expand the summary and copy the text manually.") : ""}</p>
+    <p className="revision-brief-privacy">{pl ? "Kopiowanie niczego nie wysyła. Przed przekazaniem CV do innego AI usuń dane, których nie chcesz udostępniać." : "Copying sends nothing. Before sharing your CV with another AI, remove any details you do not want to disclose."}</p>
   </section>;
 }
 

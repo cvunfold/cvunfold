@@ -1709,3 +1709,26 @@ a:focus-visible, button:focus-visible, .button:focus-visible, .dropzone:focus-vi
 .report-test-access label { display: grid; gap: 8px; font-size: 13px; }
 .report-test-access input { width: 100%; min-width: 0; padding: 12px; border: 1px solid #dce2e8; border-radius: 6px; background: white; color: var(--ink); }
 .report-test-access .button { width: 100%; margin: 0; }
+
+/* A compact hand-off from the report to a fact-first revision conversation. */
+.revision-brief { border: 1px solid var(--line); border-radius: 16px; padding: 28px; background: #fafbf6; }
+.revision-brief-eyebrow { display: block; color: var(--accent-deep); font-size: 11px; font-weight: 800; letter-spacing: .12em; margin-bottom: 12px; }
+.revision-brief-heading > p { max-width: 62ch; line-height: 1.65; }
+.revision-brief-steps { list-style: none; padding: 0; margin: 24px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.revision-brief-steps li { display: flex; gap: 10px; align-items: flex-start; }
+.revision-brief-steps li > span { display: grid; place-items: center; width: 30px; height: 30px; flex: none; border-radius: 50%; background: var(--accent); color: var(--ink); font-size: 11px; font-weight: 800; }
+.revision-brief-steps strong { font-size: 14px; }
+.revision-brief-steps p { font-size: 13px; line-height: 1.6; margin: 6px 0 0; }
+.revision-brief-preview { margin: 24px 0 20px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.revision-brief-preview summary { padding: 16px 0; cursor: pointer; font-size: 14px; font-weight: 600; }
+.revision-brief-preview summary:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 4px; }
+.revision-brief-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: 13px; line-height: 1.8; max-height: 420px; overflow-y: auto; background: #fff; padding: 18px; border: 1px solid var(--line); border-radius: 8px; }
+.revision-brief-status:empty { display: none; }
+.revision-brief .revision-brief-status { font-size: 13px; color: var(--accent-deep); }
+.revision-brief .revision-brief-privacy { font-size: 12px; line-height: 1.6; margin-top: 14px; max-width: 72ch; }
+@media (max-width: 680px) {
+  .revision-brief { padding: 20px; }
+  .revision-brief-steps { grid-template-columns: 1fr; gap: 18px; }
+  .revision-brief .button { width: 100%; }
+  .revision-brief-preview pre { padding: 12px; }
+}

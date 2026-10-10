@@ -21,13 +21,34 @@ describe("revision summary", () => {
     const text = buildRevisionBrief(report, locale);
     expect(text).toContain(report.nextSteps[0].action);
     expect(text).not.toContain("first_job");
-    expect(text).toContain(locale === "pl" ? "najpierw zadaj pytanie" : "ask first and wait");
+    expect(text).toContain(locale === "pl" ? "Zatrzymaj się i zaczekaj" : "Stop and wait");
     expect(text).not.toContain(Object.values(report.evidenceMap!)[0]);
     expect(text).not.toContain("overallScore");
   });
   it("does not invent work for a report with no recommendations", () => {
     const report = createMockReport("first_job"); report.nextSteps = [];
     expect(buildRevisionBrief(report, "pl")).toContain("Brak priorytetowych zmian");
+  });
+  it.each(["pl", "en"] as const)("asks before editing and never supplies answers (%s)", locale => {
+    const report = createMockReport("first_job", false, "frontend_developer", locale);
+    const text = buildRevisionBrief(report, locale);
+    const questions = text.indexOf(locale === "pl" ? "1. PYTANIA" : "1. QUESTIONS");
+    const answers = text.indexOf(locale === "pl" ? "2. ODPOWIEDZI" : "2. ANSWERS");
+    const edits = text.indexOf(locale === "pl" ? "3. POPRAWKI" : "3. EDITS");
+    expect(questions).toBeGreaterThan(-1);
+    expect(answers).toBeGreaterThan(questions);
+    expect(edits).toBeGreaterThan(answers);
+    expect(text).toContain(locale === "pl" ? "bez poprawionej wersji CV" : "without a rewritten CV");
+    expect(text).toContain(locale === "pl" ? "Nie twórz przykładowych odpowiedzi za mnie" : "Do not produce sample answers on my behalf");
+    expect(text).toContain(locale === "pl" ? "nie robiłem tego" : "I did not do that");
+    expect(text).toContain(locale === "pl" ? "nie pamiętam" : "I do not remember");
+    expect(text).toContain(locale === "pl" ? "wskaż, która odpowiedź" : "identify the answer");
+  });
+  it("does not impose gap questions when there are no recommendations", () => {
+    const report = createMockReport("first_job"); report.nextSteps = [];
+    const text = buildRevisionBrief(report, "en");
+    expect(text).not.toContain("1. QUESTIONS");
+    expect(text).toContain("do not invent problems or questions");
   });
   it("flags reuse for review without arbitrarily penalizing a multifaceted segment", () => {
     const report = createMockReport("first_job");
