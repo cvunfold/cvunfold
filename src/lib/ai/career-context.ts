@@ -11,7 +11,7 @@ import type { Locale } from "@/lib/i18n";
 
 export const CAREER_CONTEXTS = ["standard", "first_job"] as const;
 export type CareerContext = (typeof CAREER_CONTEXTS)[number];
-export const CAREER_POLICY_VERSION = "career-v2.1.1";
+export const CAREER_POLICY_VERSION = "career-v2.1.2";
 
 export function parseCareerContext(value: unknown): CareerContext | null {
   if (value === "bootcamp") return "first_job";
