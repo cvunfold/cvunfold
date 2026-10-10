@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { zodTextFormat } from "openai/helpers/zod";
 import { createMockReport } from "@/lib/ai/mock-report";
 import { modelResponseSchema, reportSchema } from "@/lib/ai/schemas/report";
-import { normalizeCategoryEvidence, prioritizeFirstJobIssues, alignNextSteps, NO_EVIDENCE_SCORE } from "@/lib/ai/report-policy";
+import { normalizeCategoryEvidence, normalizeDiagnosticKind, prioritizeFirstJobIssues, alignNextSteps, NO_EVIDENCE_SCORE } from "@/lib/ai/report-policy";
 import { validateEvidence, calculateOverall, featuredFreeIssue } from "@/lib/ai/validate-report";
 
 const category = (score: number) => ({ key: "collaboration", label: "Collaboration", score, weight: .17, rationale: "Missing feedback", evidenceRefs: [] as string[], evidenceStatus: "none" as const });
@@ -44,6 +44,10 @@ describe("first-job action priorities", () => {
     expect(result.map(i => i.id)).toEqual(["check", "scope"]);
     expect(result[1].severity).toBe("minor");
   });
+  it("does not soften uncertain attribution merely because the model called it limited scope", () => {
+    const result = prioritizeFirstJobIssues([make("scope", "limited_contribution"), make("check", "missing_verification")], [{ ...category(43), key: "ownership", evidenceStatus: "indirect", evidenceRefs: ["seg_course"] }]);
+    expect(result[0]).toMatchObject({ id: "scope", diagnosticKind: "unattributed_contribution", severity: "important" });
+  });
   it("keeps genuinely unattributed work important and ahead of verification", () => {
     const result = prioritizeFirstJobIssues([make("check", "missing_verification"), make("who", "unattributed_contribution")], [{ ...category(20), key: "ownership" }]);
     expect(result[0]).toMatchObject({ id: "who", severity: "important" });
@@ -69,6 +73,7 @@ describe("provider contract and historical report compatibility", () => {
     const schema = zodTextFormat(modelResponseSchema, "cv_report").schema as { properties: Record<string, { items: { required: string[] } }> };
     expect(schema.properties.categoryScores.items.required).toContain("evidenceStatus");
     expect(schema.properties.issues.items.required).toContain("diagnosticKind");
+    expect(schema.properties.issues.items.required).toContain("verificationEvidenceRefs");
     expect(schema.properties.nextSteps.items.required).toContain("issueId");
   });
 });
@@ -83,5 +88,24 @@ describe("honest first-job gap preview", () => {
     expect(featured?.evidence).toContain("brak informacji");
     expect(featured).not.toHaveProperty("action");
     expect(featured).not.toHaveProperty("evidenceRefs");
+  });
+});
+
+
+describe("verification is not an umbrella for every gap", () => {
+  it("does not prioritize absent collaboration as missing project checks", () => {
+    const issue = { ...createMockReport("first_job").issues[0], category: "collaboration" as const, diagnosticKind: "missing_verification" as const };
+    expect(normalizeDiagnosticKind(issue, new Set(), "pl").diagnosticKind).toBe("other");
+  });
+  it("acknowledges existing checks and treats their limited scope as secondary", () => {
+    const issue = { ...createMockReport("first_job").issues[0], category: "credibility" as const, diagnosticKind: "missing_verification" as const, severity: "important" as const, verificationEvidenceRefs: ["seg_manual"] };
+    const normalized = normalizeDiagnosticKind(issue, new Set(["seg_manual"]), "en");
+    expect(normalized).toMatchObject({ diagnosticKind: "limited_verification", evidenceRefs: ["seg_manual"] });
+    expect(normalized.explanation).toContain("CV describes checks");
+    expect(prioritizeFirstJobIssues([normalized], [category(20)])[0].severity).toBe("minor");
+  });
+  it("does not let invented checking references soften an actual verification gap", () => {
+    const issue = { ...createMockReport("first_job").issues[0], category: "credibility" as const, diagnosticKind: "limited_verification" as const, severity: "minor" as const, verificationEvidenceRefs: ["seg_fake"] };
+    expect(normalizeDiagnosticKind(issue, new Set(["seg_real"]), "en")).toMatchObject({ diagnosticKind: "missing_verification", verificationEvidenceRefs: [], severity: "important" });
   });
 });

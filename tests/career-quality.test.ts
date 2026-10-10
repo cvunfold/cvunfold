@@ -54,7 +54,7 @@ describe("career-stage quality contract", () => {
     for (const variant of REVIEW_PROMPT_VARIANTS) for (const locale of ["pl", "en"] as const) {
       process.env.CV_REVIEW_PROMPT_VARIANT = variant;
       expect(getReviewPrompt(locale).systemPrompt.endsWith(careerPolicy(locale))).toBe(true);
-      expect(getReviewPrompt(locale).version).toContain("career-v2.1.0");
+      expect(getReviewPrompt(locale).version).toContain("career-v2.1.1");
     }
   });
 

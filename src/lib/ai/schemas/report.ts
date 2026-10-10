@@ -64,7 +64,8 @@ export const reportSchema = z.object({
   strengths: z.array(z.object({ id: z.string(), title: z.string(), explanation: z.string(), evidenceRefs: z.array(evidenceRef) })),
   issues: z.array(z.object({
     id: z.string(), severity: z.enum(["minor", "important", "critical"]), category: rubricCategoryKey, title: z.string(),
-    diagnosticKind: z.enum(["unattributed_contribution", "limited_contribution", "weak_exposure", "missing_verification", "other"]).optional(),
+    verificationEvidenceRefs: z.array(evidenceRef).optional(),
+    diagnosticKind: z.enum(["unattributed_contribution", "limited_contribution", "weak_exposure", "missing_verification", "limited_verification", "other"]).optional(),
     explanation: z.string(), whyItMatters: z.string(), evidenceRefs: z.array(evidenceRef), confidence,
     action: z.string().describe("A complete, document-specific instruction. Never a suggestion type label such as Rewrite, Expose, Gap or Question."),
     suggestion: z.object({
@@ -89,7 +90,8 @@ export const modelResponseSchema = reportSchema.extend({
     evidenceStatus: z.enum(["none", "indirect", "concrete"]),
   })).length(RUBRIC_CATEGORY_KEYS.length),
   issues: z.array(reportSchema.shape.issues.element.extend({
-    diagnosticKind: z.enum(["unattributed_contribution", "limited_contribution", "weak_exposure", "missing_verification", "other"]),
+    verificationEvidenceRefs: z.array(evidenceRef).describe("Existing CV statements about checking/testing the same project discussed by this issue. Do not cite functionality alone. Use [] when no relevant checks are described or this issue is unrelated to verification."),
+    diagnosticKind: z.enum(["unattributed_contribution", "limited_contribution", "weak_exposure", "missing_verification", "limited_verification", "other"]),
   })),
   nextSteps: z.array(reportSchema.shape.nextSteps.element.extend({ issueId: z.string() })),
 });

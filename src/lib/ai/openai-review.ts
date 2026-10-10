@@ -8,6 +8,7 @@ import { getRubric, RUBRIC_VERSION, scoringSeniority, type Seniority } from "@/l
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
 import { getReviewPrompt } from "./prompts";
 import { REVIEW_PIPELINE_VERSION, type ReviewProvenance } from "./review-provenance";
+import { REPORT_POLICY_VERSION } from "./report-policy";
 import { estimateCostUsd } from "./model-pricing";
 
 type ReviewInput = { segments: Segment[]; targetRole: TargetRoleId; targetSeniority: Seniority; careerContext?: CareerContext; jobDescription?: string; locale: "pl" | "en"; maxOutputTokens?: number };
@@ -155,6 +156,7 @@ export async function reviewWithOpenAI(input: ReviewInput): Promise<{ report: CV
     promptVariant,
     rubricVersion: RUBRIC_VERSION,
     pipelineVersion: REVIEW_PIPELINE_VERSION,
+    reportPolicyVersion: REPORT_POLICY_VERSION,
     model: selectedModel,
     requestedModel: model,
     fallbackUsed: selectedModel !== model,

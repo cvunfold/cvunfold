@@ -1,7 +1,7 @@
 import type { CVReport, EvidenceMap, ModelReport, TeaserReport } from "./schemas/report";
 import { reportSchema } from "./schemas/report";
 import type { RubricCategory } from "@/lib/rubrics/technical-v1";
-import { normalizeCategoryEvidence, prioritizeFirstJobIssues, alignNextSteps } from "./report-policy";
+import { normalizeCategoryEvidence, normalizeDiagnosticKind, prioritizeFirstJobIssues, alignNextSteps } from "./report-policy";
 import { normalizeIssueAction } from "./issue-action";
 
 export function calculateOverall(categories: ModelReport["categoryScores"]): number {
@@ -159,15 +159,24 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
         suggestion,
       };
     });
+  const originalActions = new Map(issues.map(issue => [issue.id, issue.action]));
+  issues = issues.map(issue => normalizeDiagnosticKind(issue, validRefs, parsed.locale));
+  const policyAdjustedActions = new Map(issues.filter(issue => originalActions.get(issue.id) !== issue.action).map(issue => [issue.id, issue]));
   if (parsed.document.targetSeniority === "first_job") issues = prioritizeFirstJobIssues(issues, categoryScores);
-  const nextSteps = alignNextSteps(parsed.nextSteps, issues);
+  const nextSteps = alignNextSteps(parsed.nextSteps.map(step => {
+    const adjusted = step.issueId ? policyAdjustedActions.get(step.issueId) : undefined;
+    return adjusted ? { ...step, action: adjusted.action, title: parsed.locale === "pl" ? "Doprecyzuj zakres istniejącej weryfikacji" : "Clarify the scope of existing verification" } : step;
+  }), issues);
   const recruiterPerspective = {
     ...parsed.recruiterPerspective,
     positiveSignals: parsed.recruiterPerspective.positiveSignals
       .map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) }))
       .filter((item) => item.evidenceRefs.length > 0),
     reservations: parsed.recruiterPerspective.reservations
-      .map((item) => ({ ...item, evidenceRefs: item.kind === "gap" ? [] : keep(item.evidenceRefs) }))
+      .map((item) => {
+        const adjusted = item.issueId ? policyAdjustedActions.get(item.issueId) : undefined;
+        return { ...item, ...(adjusted ? { title: adjusted.title, explanation: adjusted.explanation } : {}), evidenceRefs: item.kind === "gap" ? [] : keep(item.evidenceRefs) };
+      })
       .filter((item) => item.kind === "gap" || item.evidenceRefs.length > 0),
     likelyInterviewQuestions: parsed.recruiterPerspective.likelyInterviewQuestions
       .map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) })),
@@ -181,7 +190,7 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
   const usedRefs = new Set([
     ...categoryScores.flatMap((item) => item.evidenceRefs),
     ...strengths.flatMap((item) => item.evidenceRefs),
-    ...issues.flatMap((item) => item.evidenceRefs),
+    ...issues.flatMap((item) => [...item.evidenceRefs, ...(item.verificationEvidenceRefs || [])]),
     ...recruiterPerspective.positiveSignals.flatMap((item) => item.evidenceRefs),
     ...recruiterPerspective.reservations.flatMap((item) => item.evidenceRefs),
     ...recruiterPerspective.likelyInterviewQuestions.flatMap((item) => item.evidenceRefs),
