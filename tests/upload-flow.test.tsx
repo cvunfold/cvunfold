@@ -88,7 +88,7 @@ describe("mobile upload measurement", () => {
     expect(screen.queryByRole("textbox", { name: /Treść ogłoszenia/ })).toBeNull();
     expect(screen.queryByText(/Dopasuj analizę do konkretnej oferty/)).toBeNull();
     expect(screen.getByText("Pełny raport")).toBeTruthy();
-    expect(screen.getByText("29 zł")).toBeTruthy();
+    expect(screen.getByText("99 zł")).toBeTruthy();
     expect(screen.queryByText("39 zł")).toBeNull();
   });
 

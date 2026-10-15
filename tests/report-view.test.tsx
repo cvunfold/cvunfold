@@ -93,7 +93,7 @@ describe("free report purchase hierarchy", () => {
   });
 
   it("lets an undecided reader see a full report before paying, without losing their own", () => {
-    // The paywall asks for 29 zł from someone who has never seen a full report.
+    // The paywall asks for 99 zł from someone who has never seen a full report.
     // New tab: the teaser is a private session the reader should not navigate off.
     const teaser = toTeaser(createMockReport());
     const { container } = render(<ReportView paid={false} data={teaser} mockMode={false} locale="pl"/>);

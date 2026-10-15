@@ -15,11 +15,11 @@ type PlanDefinition = {
 
 export const PLAN_CATALOG: Record<Market, Record<Plan, PlanDefinition>> = {
   pl: {
-    full_review: { plan: "full_review", market: "pl", locale: "pl", amountMinor: 2900, currency: "PLN", stripePriceEnv: "STRIPE_PRICE_FULL_REVIEW" },
+    full_review: { plan: "full_review", market: "pl", locale: "pl", amountMinor: 9900, currency: "PLN", stripePriceEnv: "STRIPE_PRICE_FULL_REVIEW" },
     job_match: { plan: "job_match", market: "pl", locale: "pl", amountMinor: 3900, currency: "PLN", stripePriceEnv: "STRIPE_PRICE_JOB_MATCH" },
   },
   en: {
-    full_review: { plan: "full_review", market: "en", locale: "en", amountMinor: 900, currency: "EUR", stripePriceEnv: "STRIPE_PRICE_FULL_REVIEW_EUR" },
+    full_review: { plan: "full_review", market: "en", locale: "en", amountMinor: 2900, currency: "EUR", stripePriceEnv: "STRIPE_PRICE_FULL_REVIEW_EUR" },
     job_match: { plan: "job_match", market: "en", locale: "en", amountMinor: 1200, currency: "EUR", stripePriceEnv: "STRIPE_PRICE_JOB_MATCH_EUR" },
   },
 };
