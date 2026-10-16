@@ -1,8 +1,12 @@
+import { extractSchoolContact, type SchoolContact } from "@/lib/schools/contact";
+import { studentNameFromHeader } from "@/lib/schools/upload-names";
 import mammoth from "mammoth";
 
 export type Segment = { id: string; text: string };
 export type ParsedDocument = {
   text: string;
+  sourceContact?: SchoolContact;
+  sourceStudentName?: string;
   segments: Segment[];
   quality: "good" | "degraded";
   /** Same shape the module already builds for `UnreadableDocumentError`, also attached on success so downstream checks (e.g. the ATS checker) can read it without re-parsing. */
@@ -154,7 +158,7 @@ function looksLikeEncryptedPdf(buffer: Buffer): boolean {
   return buffer.includes(Buffer.from("/Encrypt", "ascii"));
 }
 
-export async function parseDocument(file: File): Promise<ParsedDocument> {
+export async function parseDocument(file: File, { includeContact = false }: { includeContact?: boolean } = {}): Promise<ParsedDocument> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const name = file.name.toLowerCase();
   let text = "";
@@ -231,6 +235,8 @@ export async function parseDocument(file: File): Promise<ParsedDocument> {
       }
     }
   } else throw new Error("UNSUPPORTED_FILE_TYPE");
+  const sourceContact = includeContact ? extractSchoolContact(text) : undefined;
+  const sourceStudentName = includeContact ? studentNameFromHeader(text) : undefined;
   text = maskContactPii(text).replace(/\0/g, "").trim();
   if (text.length < minimumTextChars) throw new UnreadableDocumentError({
     ...diagnostics,
@@ -239,7 +245,7 @@ export async function parseDocument(file: File): Promise<ParsedDocument> {
     reason: unreadableReason(diagnostics.document_kind, text.length, pdfCounters),
   });
   return {
-    text, segments: createSegments(text), quality: text.length < 500 ? "degraded" : "good",
+    text, ...(sourceContact ? { sourceContact } : {}), ...(sourceStudentName ? { sourceStudentName } : {}), segments: createSegments(text), quality: text.length < 500 ? "degraded" : "good",
     diagnostics: { ...diagnostics, extracted_chars: text.length, threshold_chars: minimumTextChars },
   };
 }

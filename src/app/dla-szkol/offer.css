@@ -1,0 +1,56 @@
+.school-offer-process { margin-top: 42px; padding: 56px 0; border-top: 1px solid var(--line); }
+.school-shell .school-offer-process > h2 { font: 500 clamp(29px,3.5vw,43px)/1.15 var(--serif); letter-spacing: -.03em; max-width: 900px; margin-bottom: 38px; }
+.school-offer-steps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 42px; }
+.school-offer-steps > article { position: relative; display: flex; flex-direction: column; align-items: flex-start; }
+.school-offer-steps > article > span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); font: 500 18px/1 var(--serif); margin-bottom: 23px; }
+.school-offer-steps > article:not(:last-child)::after { content: ""; position: absolute; left: 60px; top: 18px; right: 0; height: 1px; background: #cedc9b; }
+.school-offer-steps > article > svg { width: 35px; height: 35px; stroke-width: 1.5; margin-bottom: 18px; }
+.school-shell .school-offer-steps h3 { margin: 0 0 9px; font: 500 23px/1.2 var(--serif); letter-spacing: -.025em; }
+.school-offer-steps p { color: var(--muted); font-size: 13px; max-width: 290px; }
+.school-offer-contact { display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 54px; align-items: center; padding: 36px 0 72px; scroll-margin-top: var(--site-topbar-scroll-offset); }
+.school-shell .school-offer-contact h2 { font: 500 clamp(32px,3.5vw,43px)/1.15 var(--serif); letter-spacing: -.035em; margin: 0 0 23px; }
+.school-offer-contact > div > p { color: var(--muted); font-size: 16px; line-height: 1.8; }
+.school-offer-email { display: inline-flex; align-items: center; gap: 12px; margin-top: 24px; font-size: 14px; overflow-wrap: anywhere; }
+.school-offer-email > svg { width: 22px; height: 22px; flex: none; }
+.school-offer-form { display: grid; gap: 20px; padding: 30px; border: 1px solid #d2dac8; border-radius: 12px; background: #fff; box-shadow: 0 12px 32px rgba(7,22,47,.035); min-width: 0; }
+.school-offer-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+.school-offer-form label { min-width: 0; font-size: 13px; font-weight: 500; }
+.school-offer-form input, .school-offer-form textarea { width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid #cbd4df; border-radius: 7px; background: #fff; color: var(--ink); font: 400 14px/1.6 var(--sans); }
+.school-offer-form textarea { resize: vertical; min-height: 130px; }
+.school-offer-form input::placeholder, .school-offer-form textarea::placeholder { color: #8490a2; }
+.school-offer-form :is(input,textarea):focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 3px; }
+.school-home .school-offer-form .button { display: flex; gap: 12px; justify-content: center; align-items: center; width: 100%; font-size: 14px; font-weight: 600; }
+.school-home .school-offer-form .button > svg { width: 18px; height: 18px; flex: none; }
+.school-home-intro .button > svg { color: var(--ink); }
+.school-offer-privacy { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); }
+.school-offer-privacy p, .school-offer-form .school-contact-mail-note { margin: 0; font-size: 11px; line-height: 1.6; color: var(--muted); }
+.school-offer-privacy a { font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
+.school-contact-draft { padding: 16px; border-radius: 8px; background: #f4f8e5; }
+.school-contact-draft p { font-size: 13px; }
+.school-contact-draft a { display: inline-flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 13px; text-decoration: underline; }
+.school-contact-draft a > svg { width: 16px; height: 16px; }
+.school-contact-trap { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+.school-offer-form .school-contact-success { margin: 0; padding: 16px; border-radius: 8px; background: #f4f8e5; color: #405425; font-size: 13px; line-height: 1.7; }
+@media (max-width: 900px) { .school-offer-contact { grid-template-columns: 1fr; gap: 30px; } .school-offer-steps { gap: 24px; } }
+@media (max-width: 640px) { .school-offer-process { padding-block: 36px; margin-top: 24px; } .school-offer-steps { grid-template-columns: 1fr; gap: 30px; } .school-offer-steps > article:not(:last-child)::after { display: none; } .school-offer-steps > article > span { margin-bottom: 15px; } .school-offer-contact { padding-bottom: 44px; } .school-offer-form { padding: 22px 18px; } .school-offer-fields { grid-template-columns: 1fr; gap: 20px; } .school-offer-form input, .school-offer-form textarea { font-size: 16px; } }
+
+.school-offer-process { scroll-margin-top: var(--site-topbar-scroll-offset); }
+.school-offer-nav { text-decoration: none; font-weight: 500; }
+.school-offer-nav:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+.school-pilot { margin-top: 42px; padding: 36px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.school-shell :is(.school-pilot, .school-data) h2 { margin: 14px 0 16px; font: 500 clamp(29px,3.5vw,43px)/1.15 var(--serif); letter-spacing: -.03em; }
+.school-pilot-lead { max-width: 740px; color: var(--muted); line-height: 1.8; }
+.school-pilot-cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 28px; margin: 30px 0; }
+.school-shell :is(.school-pilot, .school-data) h3 { margin: 0 0 12px; font: 500 22px/1.3 var(--serif); }
+.school-pilot-cards p, .school-data p { color: var(--muted); font-size: 14px; line-height: 1.8; }
+.school-pilot .button { gap: 12px; max-width: 100%; white-space: normal; }
+.school-pilot .button svg { width: 18px; height: 18px; flex: none; }
+.school-data { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 54px; padding: 54px 0 12px; }
+.school-data article + article { margin-top: 24px; }
+.school-data a { display: inline-block; margin-top: 16px; text-decoration: underline; text-underline-offset: 4px; font-size: 14px; }
+@media (max-width: 900px) { .school-pilot-cards { grid-template-columns: 1fr; gap: 24px; } .school-data { grid-template-columns: 1fr; gap: 24px; } }
+@media (max-width: 640px) { .school-pilot { padding: 24px 18px; } .school-pilot .button { width: 100%; } .school-data { padding-top: 36px; } }
+.school-contact-illustration{display:block;width:100%;max-width:480px;height:auto;margin:32px auto 0}
+@media(max-width:900px){.school-contact-illustration{max-width:360px;margin:24px auto 0}}
+@media(max-width:640px){.school-contact-illustration{max-width:300px}}

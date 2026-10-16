@@ -1,4 +1,5 @@
 "use client";
+import { reportRequestHeaders } from "@/lib/client/report-access";
 
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CheckoutElementsProvider, ExpressCheckoutElement, useCheckoutElements } from "@stripe/react-stripe-js/checkout";
@@ -123,7 +124,7 @@ function ExpressWalletElement({ locale, plan, measurementContext, purchaseSurfac
     });
     const started = await fetch("/api/report/checkout/google-pay/started", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: reportRequestHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ sessionId: checkout.id }),
     }).catch(() => null);
     if (!started?.ok) {
@@ -156,7 +157,7 @@ function ExpressWalletElement({ locale, plan, measurementContext, purchaseSurfac
 export function ExpressWalletCheckout({ enabled, locale, plan, measurementContext, purchaseSurface, onAvailabilityChange }: Props) {
   const clientSecret = useMemo(() => {
     if (!enabled || !stripePromise) return null;
-    return fetch("/api/report/checkout/google-pay", { method: "POST" })
+    return fetch("/api/report/checkout/google-pay", { method: "POST", headers: reportRequestHeaders() })
       .then(async (response) => {
         const body = await response.json().catch(() => ({})) as { clientSecret?: unknown };
         if (!response.ok || typeof body.clientSecret !== "string") throw new Error("EXPRESS_WALLET_CHECKOUT_UNAVAILABLE");

@@ -1,7 +1,7 @@
 import type { CVReport } from "./schemas/report";
 import { calculateOverall } from "./validate-report";
 import { getRubric, RUBRIC_VERSION } from "@/lib/rubrics/technical-v1";
-import { EN_PROMPT_VERSION } from "./prompts/review-en-v1";
+import { EN_PROMPT_VERSION } from "./prompts/archive/review-en-v1";
 import { brand } from "@/lib/brand";
 
 // Direct translation of the Polish sample: VertexPay is the current role,

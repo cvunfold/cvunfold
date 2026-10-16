@@ -1,0 +1,10 @@
+import { beforeEach, afterEach, it, expect, vi } from "vitest";
+const mocks=vi.hoisted(()=>({enabled:false,process:vi.fn(),clean:vi.fn()}));
+vi.mock("@/lib/schools/upload-queue",()=>({schoolQueueEnabled:()=>mocks.enabled,cleanQueueSources:mocks.clean}));
+vi.mock("@/lib/schools/upload-worker",()=>({processSchoolQueue:mocks.process}));
+import { GET } from "@/app/api/cron/school-uploads/route";
+beforeEach(()=>{vi.clearAllMocks();vi.stubEnv("CRON_SECRET","test-cron-secret");mocks.enabled=false;mocks.clean.mockResolvedValue(0);});afterEach(()=>vi.unstubAllEnvs());
+const request=(token="test-cron-secret")=>new Request("http://localhost/api/cron/school-uploads",{headers:{authorization:`Bearer ${token}`}});
+it("rejects unauthorized callers before touching the queue or storage",async()=>{expect((await GET(request("wrong"))).status).toBe(401);expect(mocks.process).not.toHaveBeenCalled();expect(mocks.clean).not.toHaveBeenCalled();});
+it("keeps source cleanup running after the upload feature is disabled",async()=>{expect((await GET(request())).status).toBe(200);expect(mocks.clean).toHaveBeenCalledOnce();expect(mocks.process).not.toHaveBeenCalled();});
+it("tolerates an absent migration only while the feature is disabled",async()=>{mocks.clean.mockRejectedValue(new Error("QUEUE_NOT_CONFIGURED"));expect((await GET(request())).status).toBe(200);mocks.enabled=true;mocks.process.mockRejectedValue(new Error("QUEUE_CLAIM_FAILED"));expect((await GET(request())).status).toBe(503);});

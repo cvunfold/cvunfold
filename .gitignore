@@ -1,5 +1,6 @@
 node_modules
 .next
+.next-article-preview/
 playwright-report
 test-results
 output
@@ -11,3 +12,22 @@ coverage
 *.tsbuildinfo
 .pnpm-store
 .DS_Store
+
+.next-iterations/
+
+.next-iterations-build/
+
+.next-live-evaluation/
+
+# Keep local configuration and generated preview builds out of source control.
+.env.*
+!.env.example
+.next-*/
+
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/cvunfold-ui/
+.claude/
+.codex/
+supabase/.temp/

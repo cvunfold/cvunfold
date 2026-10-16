@@ -1,0 +1,136 @@
+[
+  {
+    "id": "ai-llm-strong",
+    "title": "ai-llm-strong",
+    "targetRole": "ai_llm_engineer",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Cel: pierwsza praca jako AI / LLM Engineer. Projekt kursowy: asystent dokumentacji w Pythonie. Według instrukcji kursu połączyłem API gotowego modelu z wyszukiwaniem fragmentów w bazie wektorowej. Samodzielnie dodałem cytowanie źródeł, odmowę odpowiedzi przy braku źródła i izolację dokumentów użytkowników. Przygotowałem 20 pytań testowych, w tym pytania bez odpowiedzi w dokumentacji; sprawdziłem cytowania i poprawiłem dobór fragmentów po błędnych odpowiedziach. Z mentorką omówiłem błędne odpowiedzi i poprawiłem filtr użytkownika. Projekt lokalny, bez doświadczenia komercyjnego. Nie trenowałem ani nie dostrajałem modelu. Podsumowanie: lubię technologie AI. Kursy: Python i LLM.",
+      "en": "Goal: first job as an AI / LLM Engineer. Course project: a documentation assistant in Python. Following course instructions, connected a pretrained model API to retrieval from a vector database. Independently added source citations, refusal when no source is available and user document isolation. Prepared 20 test questions, including questions unanswered by the documentation; checked citations and improved retrieval after incorrect answers. Discussed incorrect answers with my mentor and corrected the user filter. Local project, no commercial experience. Did not train or fine-tune the model. Summary: interested in AI technologies. Courses: Python and LLMs."
+    },
+    "careerQuality": {
+      "minimumScore": 65,
+      "perceivedLevels": [
+        "junior",
+        "unclear"
+      ],
+      "forbiddenAdvice": [
+        "(?:dodaj|pokaż|add|show)\\s+(?:doświadczenie komercyjne|commercial experience|przychody|revenue)",
+        "(?:musisz|you must|required to)\\s+(?:trenować|train|fine.tune)"
+      ]
+    }
+  },
+  {
+    "id": "ai-llm-tools-only",
+    "title": "ai-llm-tools-only",
+    "targetRole": "ai_llm_engineer",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Cel: pierwsza praca jako AI / LLM Engineer. Ukończony kurs wprowadzający do AI. Codziennie używam ChatGPT do streszczeń i Copilota do podpowiedzi. Narzędzia: Python, LLM, LangChain, RAG, agenci. Chcę pracować przy AI. Nie mam jeszcze opisanego projektu integrującego model ani przykładów testowania odpowiedzi.",
+      "en": "Goal: first job as an AI / LLM Engineer. Completed an introductory AI course. Use ChatGPT daily for summaries and Copilot for suggestions. Tools: Python, LLMs, LangChain, RAG, agents. Want to work in AI. No described model integration project or examples of response evaluation yet."
+    },
+    "careerQuality": {
+      "maximumScore": 60,
+      "perceivedLevels": [
+        "junior",
+        "unclear"
+      ],
+      "forbiddenAdvice": [
+        "(?:dodaj|pokaż|add|show)\\s+(?:doświadczenie komercyjne|commercial experience|przychody|revenue)",
+        "(?:musisz|you must|required to)\\s+(?:trenować|train|fine.tune)"
+      ]
+    }
+  },
+  {
+    "id": "ai-llm-guided",
+    "title": "ai-llm-guided",
+    "targetRole": "ai_llm_engineer",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Cel: pierwsza praca jako AI / LLM Engineer. Na kursie odtworzyłem chatbota według tutoriala, kopiując dostarczony kod Python i prompt. Mentor skonfigurował integrację API. Uruchomiłem projekt i zadałem dwa przykładowe pytania z lekcji. Nie dodawałem własnych rozszerzeń ani własnego zestawu testów. Certyfikat kursu AI.",
+      "en": "Goal: first job as an AI / LLM Engineer. Recreated a chatbot from a tutorial, copying the supplied Python code and prompt. The mentor configured the API integration. Ran the project and asked two sample questions from the lesson. Added no independent extensions or personal test set. AI course certificate."
+    },
+    "careerQuality": {
+      "maximumScore": 60,
+      "perceivedLevels": [
+        "junior",
+        "unclear"
+      ],
+      "forbiddenAdvice": [
+        "(?:dodaj|pokaż|add|show)\\s+(?:doświadczenie komercyjne|commercial experience|przychody|revenue)",
+        "(?:musisz|you must|required to)\\s+(?:trenować|train|fine.tune)"
+      ]
+    }
+  },
+  {
+    "id": "ai-automation-strong",
+    "title": "ai-automation-strong",
+    "targetRole": "ai_automation_specialist",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Cel: pierwsza praca jako AI Automation Specialist. Projekt własny bez kodu w n8n: formularz zgłoszenia trafia do arkusza, gotowy model przez API proponuje kategorię i szkic odpowiedzi. Samodzielnie ustawiłam walidację wymaganych pól, wykrywanie duplikatów po identyfikatorze zgłoszenia, ponowienie po błędzie API i kolejkę do ręcznego sprawdzenia. Odpowiedź wysyłana dopiero po akceptacji człowieka. Sprawdziłam 12 scenariuszy, w tym puste dane, powtórne zgłoszenie, błąd API i błędną kategorię; po uwagach koleżanki poprawiłam warunek duplikatu. Efekt: zgłoszenia są zebrane w jednym miejscu, z widocznym statusem. Projekt lokalny, bez wdrożenia firmowego i bez kodowania w Pythonie. Podsumowanie: interesuję się usprawnianiem pracy. Narzędzia: n8n i arkusze.",
+      "en": "Goal: first job as an AI Automation Specialist. Personal no-code project in n8n: a submission form feeds a spreadsheet, and a pretrained model API suggests a category and reply draft. Independently configured required-field validation, duplicate detection by submission ID, retry after API errors and a queue for manual review. Replies are sent only after human approval. Checked 12 scenarios, including empty data, duplicate submissions, API errors and incorrect categories; corrected the duplicate condition after feedback from a peer. Outcome: submissions are collected in one place with visible status. Local project, no corporate deployment and no Python coding. Summary: interested in improving work processes. Tools: n8n and spreadsheets."
+    },
+    "careerQuality": {
+      "minimumScore": 65,
+      "perceivedLevels": [
+        "junior",
+        "unclear"
+      ],
+      "forbiddenAdvice": [
+        "(?:dodaj|pokaż|add|show)\\s+(?:doświadczenie komercyjne|commercial experience|przychody|revenue)",
+        "(?:musisz|you must|required to)\\s+(?:trenować|train|fine.tune)",
+        "(?:dodaj|naucz się|add|learn)\\s+(?:Python|Pythona|custom code|własny kod)"
+      ]
+    }
+  },
+  {
+    "id": "ai-automation-template",
+    "title": "ai-automation-template",
+    "targetRole": "ai_automation_specialist",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Cel: pierwsza praca jako AI Automation Specialist. Kurs n8n i Make, certyfikat AI. Skopiowałam gotowy szablon łączący formularz z ChatGPT i arkuszem. Wstawiłam własny klucz i uruchomiłam przykład z lekcji. Nie opisałam własnej logiki, testów ani obsługi błędów. Narzędzia: n8n, Make, ChatGPT.",
+      "en": "Goal: first job as an AI Automation Specialist. n8n and Make course, AI certificate. Copied a ready-made template connecting a form to ChatGPT and a spreadsheet. Entered my own key and ran the lesson example. No description of personal logic, tests or error handling. Tools: n8n, Make, ChatGPT."
+    },
+    "careerQuality": {
+      "maximumScore": 60,
+      "perceivedLevels": [
+        "junior",
+        "unclear"
+      ],
+      "forbiddenAdvice": [
+        "(?:dodaj|pokaż|add|show)\\s+(?:doświadczenie komercyjne|commercial experience|przychody|revenue)",
+        "(?:musisz|you must|required to)\\s+(?:trenować|train|fine.tune)",
+        "(?:dodaj|naucz się|add|learn)\\s+(?:Python|Pythona|custom code|własny kod)"
+      ]
+    }
+  },
+  {
+    "id": "ai-llm-api-only",
+    "title": "ai-llm-api-only",
+    "targetRole": "ai_llm_engineer",
+    "targetSeniority": "first_job",
+    "careerContext": "first_job",
+    "cv": {
+      "pl": "Cel: pierwsza praca jako AI / LLM Engineer. Projekt własny: klasyfikator zgłoszeń w Pythonie z API gotowego modelu, bez RAG i treningu modeli. Samodzielnie napisałem endpoint, walidację JSON i obsługę timeoutu. Sprawdziłem 18 zgłoszeń z ręcznie oznaczonymi kategoriami, dodałem kategorię do ręcznej kontroli po błędnych odpowiedziach. Kolega zrobił code review walidacji, po którym poprawiłem brakujące pole kategorii. Projekt lokalny. Brak doświadczenia komercyjnego.",
+      "en": "Goal: first job as an AI / LLM Engineer. Personal project: a support-ticket classifier in Python using a pretrained model API, without RAG or model training. Independently implemented an endpoint, JSON validation and timeout handling. Checked 18 tickets with manually labelled categories, adding a manual-review category after incorrect responses. A peer reviewed the validation code; corrected the missing category field afterwards. Local project. No commercial experience."
+    },
+    "careerQuality": {
+      "minimumScore": 65,
+      "perceivedLevels": [
+        "junior",
+        "unclear"
+      ],
+      "forbiddenAdvice": [
+        "(?:dodaj|pokaż|add|show)\\s+(?:doświadczenie komercyjne|commercial experience|przychody|revenue)",
+        "(?:musisz|you must|required to)\\s+(?:trenować|train|fine.tune)"
+      ]
+    }
+  }
+]

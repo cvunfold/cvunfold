@@ -2,6 +2,22 @@ import { describe, expect, it } from "vitest";
 import { buildContentSecurityPolicy } from "@/lib/security/csp";
 
 describe("Content Security Policy", () => {
+  it("permits signed school uploads only to the configured project's queue bucket", () => {
+    const policy = buildContentSecurityPolicy({ googleEnabled: false, stripeEnabled: false, turnstileEnabled: false, development: false, schoolStorageUrl: "https://exampleproject.supabase.co" });
+    expect(policy).toContain("connect-src 'self' https://exampleproject.supabase.co/storage/v1/object/upload/sign/school-upload-queue/");
+    expect(policy).not.toContain("https://*.supabase.co");
+    expect(policy).not.toContain("/rest/v1");
+    const disabled = buildContentSecurityPolicy({ googleEnabled: false, stripeEnabled: false, turnstileEnabled: false, development: false });
+    expect(disabled).not.toContain("supabase.co");
+  });
+
+  it("rejects malformed or unrelated school storage URLs", () => {
+    for (const schoolStorageUrl of ["http://exampleproject.supabase.co", "https://exampleproject.supabase.co.evil.test", "https://user:password@exampleproject.supabase.co", "https://exampleproject.supabase.co/path", "https://exampleproject.supabase.co?token=x", "invalid"]) {
+      const policy = buildContentSecurityPolicy({ googleEnabled: false, stripeEnabled: false, turnstileEnabled: false, development: false, schoolStorageUrl });
+      expect(policy.split("; ").find(part => part.startsWith("connect-src"))).toBe("connect-src 'self'");
+    }
+  });
+
   it("allows the documented GA4 and Google Ads endpoints when measurement is enabled", () => {
     const policy = buildContentSecurityPolicy({ googleEnabled: true, stripeEnabled: false, turnstileEnabled: true, development: false });
 

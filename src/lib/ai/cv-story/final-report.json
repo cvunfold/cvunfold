@@ -1,0 +1,345 @@
+{
+  "version": "1.0",
+  "rubricVersion": "technical-v1.5.0",
+  "promptVersion": "v1.6-rc4.1+career-v2.2.0:first_job",
+  "locale": "pl",
+  "document": {
+    "detectedLanguage": "pl",
+    "parseQuality": "good",
+    "targetRole": "Frontend Developer",
+    "targetSeniority": "first_job",
+    "perceivedRole": "Frontend Developer",
+    "perceivedSeniority": "junior",
+    "perceivedSeniorityConfidence": "medium",
+    "careerContext": "first_job"
+  },
+  "summary": {
+    "overallScore": 81,
+    "oneSentenceVerdict": "CV pokazuje dwa konkretne projekty frontendowe, własny wkład, sprawdzanie działania i wykorzystanie feedbacku, więc daje wiarygodny powód do rozmowy na pierwszą pracę.",
+    "strongestSignal": "Połączenie własnego projektu z testami jednostkowymi i sprawdzeniem dostępności z konkretnym rozszerzeniem projektu zespołowego.",
+    "biggestRisk": "Profil na początku CV jest ogólny i nie eksponuje konkretnych dowodów, które pojawiają się w opisach projektów."
+  },
+  "recruiterPerspective": {
+    "profileSummary": "Osoba aplikująca na pierwszą pracę frontendową; CV dokumentuje projekt własny w React i TypeScript oraz wkład w projekt zespołowy React. Opisy obejmują funkcje, sprawdzenia, testy i przykłady wykorzystania feedbacku.",
+    "seniorityAlignment": "aligned",
+    "seniorityAlignmentExplanation": "Projekty edukacyjne i własne pokazują konkretne podstawy praktyczne adekwatne do pierwszej pracy. CV nie opiera oceny na samym stacku: podaje własny wkład, scenariusze sprawdzeń i testy.",
+    "positiveSignals": [
+      {
+        "title": "Konkretny wkład w projekt zespołowy",
+        "explanation": "Opis rozróżnia bazę wykonaną według tutorialu od własnych rozszerzeń: połączonego filtrowania z wyszukiwaniem i zapisu koszyka.",
+        "evidenceRefs": [
+          "seg_3",
+          "seg_4"
+        ]
+      },
+      {
+        "title": "Weryfikacja działania w dwóch projektach",
+        "explanation": "W jednym projekcie opisano ręczne scenariusze sprawdzeń i rozmiary widoków, a w drugim sześć testów jednostkowych.",
+        "evidenceRefs": [
+          "seg_5",
+          "seg_9"
+        ]
+      },
+      {
+        "title": "Praktyka związana z użytecznością i dostępnością",
+        "explanation": "CV wymienia sprawdzenie obsługi klawiaturą i etykiet pól oraz zmiany wprowadzone po feedbacku dwóch osób z kursu.",
+        "evidenceRefs": [
+          "seg_a",
+          "seg_b"
+        ]
+      }
+    ],
+    "reservations": [
+      {
+        "title": "Ogólny profil nie eksponuje dowodów z projektów",
+        "explanation": "Początkowy opis przedstawia cel i motywację, ale nie zapowiada konkretnych projektów, testów ani sprawdzeń opisanych dalej.",
+        "evidenceRefs": [
+          "seg_0",
+          "seg_1"
+        ],
+        "kind": "evidence",
+        "issueId": "issue-profile-exposure"
+      }
+    ],
+    "likelyInterviewQuestions": [
+      {
+        "question": "Jak działa połączenie filtrowania kategorii z wyszukiwaniem i co zostało oddzielone od renderowania?",
+        "whyThisQuestion": "Pozwoli doprecyzować decyzję dotyczącą organizacji kodu i zachowanie funkcji opisanej w projekcie.",
+        "evidenceRefs": [
+          "seg_4"
+        ]
+      },
+      {
+        "question": "Jak rozwiązano odczyt koszyka przy uruchomieniu oraz jego zapis po zmianie stanu?",
+        "whyThisQuestion": "CV opisuje błąd związany z odświeżeniem i poprawkę, ale nie wyjaśnia szczegółowo mechanizmu ani kolejności aktualizacji.",
+        "evidenceRefs": [
+          "seg_6"
+        ]
+      },
+      {
+        "question": "Jakie zachowanie sprawdzają testy sumy i filtra miesiąca oraz jak obsługiwane są niepoprawne kwoty?",
+        "whyThisQuestion": "To naturalne rozwinięcie wymienionych testów i walidacji formularza.",
+        "evidenceRefs": [
+          "seg_8",
+          "seg_9"
+        ]
+      }
+    ]
+  },
+  "categoryScores": [
+    {
+      "key": "impact",
+      "label": "Co robią projekty i jak działają",
+      "score": 78,
+      "evidenceStatus": "concrete",
+      "weight": 0.15,
+      "rationale": "Oba opisy wskazują konkretne działające zachowania aplikacji; projekt zespołowy ma też wymienione scenariusze ręcznych sprawdzeń. Dowody dotyczą funkcjonalności projektów, nie wpływu biznesowego, którego nie trzeba oczekiwać na tym etapie.",
+      "evidenceRefs": [
+        "seg_4",
+        "seg_5",
+        "seg_7"
+      ]
+    },
+    {
+      "key": "ownership",
+      "label": "Twój wkład w projekty",
+      "score": 88,
+      "evidenceStatus": "concrete",
+      "weight": 0.15,
+      "rationale": "Wkład jest przypisany konkretnie: projekt PocketPlan opisano jako własny, a w LocalShelf wymieniono samodzielnie dodane funkcje oraz udział w poprawce po wskazówce mentorki.",
+      "evidenceRefs": [
+        "seg_4",
+        "seg_6",
+        "seg_7"
+      ]
+    },
+    {
+      "key": "credibility",
+      "label": "Podstawy techniczne i praktyka",
+      "score": 84,
+      "evidenceStatus": "concrete",
+      "weight": 0.35,
+      "rationale": "CV opisuje walidację kwot, model zapisanych danych, testy jednostkowe oraz sprawdzenia ręczne, w tym obsługę po odświeżeniu i podstawowe kwestie dostępności. Są to konkretne przykłady zastosowania i sprawdzania rozwiązań.",
+      "evidenceRefs": [
+        "seg_5",
+        "seg_6",
+        "seg_7",
+        "seg_8",
+        "seg_9",
+        "seg_a"
+      ]
+    },
+    {
+      "key": "architecture",
+      "label": "Struktura projektu i decyzje",
+      "score": 72,
+      "evidenceStatus": "concrete",
+      "weight": 0.05,
+      "rationale": "Jest konkretny przykład rozdzielenia filtrowania od renderowania oraz opis struktury danych w localStorage. Dowody są użyteczne, choć dotyczą podstawowego zakresu dwóch aplikacji.",
+      "evidenceRefs": [
+        "seg_4",
+        "seg_7"
+      ]
+    },
+    {
+      "key": "collaboration",
+      "label": "Współpraca i korzystanie z feedbacku",
+      "score": 78,
+      "evidenceStatus": "concrete",
+      "weight": 0.05,
+      "rationale": "Opisano konkretną wskazówkę mentorki dotyczącą problemu z koszykiem oraz zmiany wprowadzone po sprawdzeniu aplikacji przez dwie osoby z kursu.",
+      "evidenceRefs": [
+        "seg_6",
+        "seg_b"
+      ]
+    },
+    {
+      "key": "clarity",
+      "label": "Czytelność CV i opis projektów",
+      "score": 76,
+      "evidenceStatus": "concrete",
+      "weight": 0.25,
+      "rationale": "Projekty są nazwane i opisane z rozróżnieniem wkładu, funkcji oraz sprawdzeń. Początkowy profil pozostaje ogólny i nie kieruje uwagi na te konkretne przykłady.",
+      "evidenceRefs": [
+        "seg_0",
+        "seg_1",
+        "seg_2",
+        "seg_4",
+        "seg_5",
+        "seg_7",
+        "seg_9"
+      ]
+    }
+  ],
+  "recruiterSimulation": {
+    "after5Seconds": "Pierwsza praca jako Frontend Developer; CV jest ukierunkowane na frontend, a projekty edukacyjne i własne stanowią główną podstawę profilu.",
+    "after10Seconds": "Wyróżniają się własna aplikacja z sześcioma testami jednostkowymi oraz konkretne rozszerzenia i ręczne sprawdzenia projektu zespołowego.",
+    "after20Seconds": "Dokument pokazuje praktyczne podstawy odpowiednie do pierwszej pracy, w tym testowanie i wykorzystanie feedbacku. Najważniejsza rezerwa to ogólny profil na początku CV; same projekty dają jednak wystarczający powód do rozmowy.",
+    "simulatedDecision": "interview",
+    "confidence": "medium",
+    "reasons": [
+      "Własny wkład jest opisany konkretnie, a projekt zespołowy odróżnia bazę tutorialową od dodanych funkcji.",
+      "W CV są testy jednostkowe, scenariusze ręcznych sprawdzeń i podstawowe informacje o dostępności.",
+      "Opis zmian po feedbacku pokazuje konkretne przykłady pracy z informacją zwrotną."
+    ],
+    "whatCouldImproveDecision": [
+      "Wyeksponowanie konkretnych projektów i praktycznych dowodów już w krótkim profilu."
+    ]
+  },
+  "strengths": [
+    {
+      "id": "strength-contribution",
+      "title": "Jasno wskazany własny wkład",
+      "explanation": "W projekcie zespołowym wymieniono konkretne rozszerzenia, a osobny projekt opisano jako własny.",
+      "evidenceRefs": [
+        "seg_3",
+        "seg_4",
+        "seg_7"
+      ]
+    },
+    {
+      "id": "strength-verification",
+      "title": "Różne sposoby sprawdzania projektów",
+      "explanation": "Opis obejmuje ręczne scenariusze, testy jednostkowe oraz sprawdzenie wybranych elementów dostępności.",
+      "evidenceRefs": [
+        "seg_5",
+        "seg_9",
+        "seg_a"
+      ]
+    },
+    {
+      "id": "strength-feedback",
+      "title": "Zmiany wynikające z feedbacku",
+      "explanation": "CV podaje konkretne poprawki związane z problemem zapisu oraz uwagami osób sprawdzających aplikację.",
+      "evidenceRefs": [
+        "seg_6",
+        "seg_b"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue-profile-exposure",
+      "severity": "minor",
+      "category": "clarity",
+      "title": "Profil na początku CV nie zapowiada najmocniejszych dowodów",
+      "verificationEvidenceRefs": [],
+      "diagnosticKind": "weak_exposure",
+      "explanation": "Profil wskazuje chęć rozpoczęcia pracy i ogólną motywację, ale nie sygnalizuje projektów ani praktycznych elementów, które CV opisuje niżej.",
+      "whyItMatters": "Przy szybkim przeglądzie osoba rekrutująca może nie zauważyć od razu konkretnych dowodów pracy nad interfejsami i ich sprawdzania.",
+      "evidenceRefs": [
+        "seg_0",
+        "seg_1",
+        "seg_4",
+        "seg_7",
+        "seg_9"
+      ],
+      "confidence": "high",
+      "action": "Wyeksponuj w profilu lub odpowiedniej sekcji najmocniejsze fakty już opisane w CV. Zachowaj ich przypisanie do projektu lub roli oraz informacje o pracy kursowej i wsparciu. Nie dodawaj nowych faktów.",
+      "suggestion": {
+        "type": "expose",
+        "original": "Chcę rozpocząć pracę jako Frontend Developer.",
+        "proposed": null,
+        "factualityNote": "Potrzebna jest zmiana ekspozycji istniejącej treści, bez pytania o fakty już podane w CV."
+      }
+    }
+  ],
+  "jobMatch": null,
+  "nextSteps": [
+    {
+      "issueId": "issue-profile-exposure",
+      "priority": 1,
+      "title": "Profil na początku CV nie zapowiada najmocniejszych dowodów",
+      "action": "Wyeksponuj w profilu lub odpowiedniej sekcji najmocniejsze fakty już opisane w CV. Zachowaj ich przypisanie do projektu lub roli oraz informacje o pracy kursowej i wsparciu. Nie dodawaj nowych faktów.",
+      "expectedImpact": "medium"
+    }
+  ],
+  "limitations": [
+    "Nie przekazano opisu konkretnej oferty pracy, dlatego raport ocenia CV względem celu Frontend Developer na etapie pierwszej pracy."
+  ],
+  "evidenceMap": {
+    "seg_4": "Samodzielnie dodałam filtr kategorii łączony z wyszukiwaniem i zapis koszyka w localStorage; filtrowanie oddzieliłam od renderowania.",
+    "seg_5": "Ręcznie sprawdziłam filtr z wyszukiwaniem, brak wyników, dodawanie/usuwanie książki, odświeżenie oraz widoki 375 i 768 px.",
+    "seg_7": "Samodzielna aplikacja z formularzem, listą i miesięczną sumą; bez backendu i logowania. localStorage: id, kwota jako liczba, kategoria, data YYYY-MM-DD.",
+    "seg_6": "Naprawiłam znikanie koszyka po odświeżeniu: po wskazówce mentorki użyłam lazy initializera useState do odczytu danych i poprawiłam kolejność zapisu. example.com/natalia/local-shelf PocketPlan Projekt własny · 2026 · React, TypeScript",
+    "seg_8": "Formularz odrzuca pustą, zerową i ujemną kwotę.",
+    "seg_9": "6 testów jednostkowych Vitest: suma, pusty miesiąc, filtr miesiąca, zero, ujemna kwota i kwota dziesiętna.",
+    "seg_a": "Sprawdziłam obsługę klawiaturą i etykiety pól.",
+    "seg_b": "Po sprawdzeniu przez 2 koleżanki z kursu dodałam komunikat pustego miesiąca i zwiększyłam obszar kliknięcia usuwania wydatku. example.com/natalia/pocket-plan UMIEJĘTNOŚCI HTML · CSS · JavaScript · React · podstawy TypeScript · Git EDUKACJA Akademia Web / Kurs Frontend, 03-08.2026 Uniwersytet Wrocławski / Filologia angielska, licencjat, 2020-2023 WCZEŚNIEJSZE DOŚWIADCZENIE Papiernia / Obsługa klienta, 2023-2025 Kontakt z klientami i obsługa zamówień.",
+    "seg_0": "Natalia Wójcik Frontend Developer / pierwsza praca w IT Wrocław · [EMAIL UKRYTY] · angielski B2 PROFIL Chcę rozpocząć pracę jako Frontend Developer.",
+    "seg_1": "Lubię tworzyć estetyczne interfejsy, uczę się szybko i szukam zespołu, w którym będę mogła się rozwijać.",
+    "seg_2": "PROJEKTY LocalShelf Projekt zespołowy na kursie · 2026 · React, CSS",
+    "seg_3": "Kursowy projekt zespołowy: baza według tutorialu."
+  },
+  "ats": {
+    "score": 100,
+    "checks": [
+      {
+        "id": "text_layer",
+        "status": "pass",
+        "metrics": {
+          "page_count": 1,
+          "pages_with_text": 1
+        }
+      },
+      {
+        "id": "reading_order",
+        "status": "pass",
+        "metrics": {
+          "rows": 35,
+          "inversions": 0,
+          "inversion_budget": 0
+        }
+      },
+      {
+        "id": "layout_columns",
+        "status": "pass",
+        "metrics": {
+          "rows": 35,
+          "column_bands": 1
+        }
+      },
+      {
+        "id": "sections",
+        "status": "pass",
+        "metrics": {
+          "sections_recognized": 4,
+          "core_sections_recognized": 3
+        }
+      },
+      {
+        "id": "dates_titles",
+        "status": "pass",
+        "metrics": {
+          "date_ranges": 2,
+          "job_titles_found": 1
+        }
+      },
+      {
+        "id": "contact_info",
+        "status": "pass",
+        "metrics": {
+          "email_found": 1,
+          "phone_found": 0
+        }
+      },
+      {
+        "id": "glyph_artifacts",
+        "status": "pass",
+        "metrics": {
+          "replacement_chars": 0,
+          "private_use_chars": 0,
+          "control_chars": 0
+        }
+      },
+      {
+        "id": "date_format",
+        "status": "pass",
+        "metrics": {
+          "ambiguous_numeric_dates": 0,
+          "distinct_date_formats": 0
+        }
+      }
+    ]
+  }
+}

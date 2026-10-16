@@ -1,3 +1,5 @@
+import { reportRequestMatches } from "@/lib/security/report-session";
+import { hasReportCodeAccess } from "@/lib/security/report-access-code";
 import { NextResponse } from "next/server";
 import { getAnalysis, markAnalysisPaid, recordFunnelEvent } from "@/lib/data/store";
 import { createCheckout } from "@/lib/payments/stripe";
@@ -11,8 +13,9 @@ export async function POST(request: Request) {
   const token = reportTokenFromRequest(request);
   if (!token) return NextResponse.json({ error: "REPORT_SESSION_REQUIRED" }, { status: 401 });
   const item = await getAnalysis(token);
-  if (!item) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
+  if (!item || !reportRequestMatches(request, item.id)) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
   if (item.paid) return NextResponse.json({ paid: true });
+  if (hasReportCodeAccess(item)) return NextResponse.json({ unlocked: true, accessMode: "access_code" });
   if (process.env.MOCK_MODE === "true" && process.env.NODE_ENV !== "production") {
     await markAnalysisPaid(token);
     return NextResponse.json({ unlocked: true });
@@ -30,7 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ url });
   } catch (error) {
     const code = error instanceof Error ? error.message : "STRIPE_CHECKOUT_FAILED";
-    const configurationError = ["STRIPE_NOT_CONFIGURED", "STRIPE_PRICE_NOT_CONFIGURED", "STRIPE_PRICE_MISMATCH", "APP_URL_NOT_CONFIGURED", "APP_URL_NOT_SECURE"].includes(code);
+    const configurationError = ["ITERATIONS_NOT_CONFIGURED", "STRIPE_NOT_CONFIGURED", "STRIPE_KEY_INVALID", "STRIPE_ENVIRONMENT_MISMATCH", "STRIPE_PRICE_NOT_CONFIGURED", "STRIPE_PRICE_MISMATCH", "STRIPE_CHECKOUT_MISMATCH", "PLAN_NOT_AVAILABLE", "APP_URL_NOT_CONFIGURED", "APP_URL_NOT_SECURE"].includes(code);
     return NextResponse.json({ error: configurationError ? "PAYMENTS_NOT_CONFIGURED" : "CHECKOUT_FAILED" }, { status: configurationError ? 503 : 502 });
   }
 }

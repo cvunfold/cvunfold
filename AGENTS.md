@@ -1,5 +1,13 @@
 # CVUnfold agent rules
 
+## UI components
+
+For frontend UI changes, use [cvunfold-ui](.agents/skills/cvunfold-ui/SKILL.md).
+Dropdowns, file-upload controls, prompts and confirmations must match the CVUnfold
+application. Do not use browser-default select menus, visible unstyled file inputs,
+or `window.prompt`, `window.confirm` and `window.alert`. Hidden file inputs opening
+the system file picker and styled semantic HTML controls are allowed.
+
 ## External-resource preflight
 
 Neopadel and every resource owned by another employer or client are **FORBIDDEN**.

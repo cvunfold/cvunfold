@@ -4,6 +4,7 @@ export type CareerQualityExpectation = {
   perceivedLevels?: CVReport["document"]["perceivedSeniority"][];
   minimumScore?: number;
   maximumScore?: number;
+  simulatedDecisions?: CVReport["recruiterSimulation"]["simulatedDecision"][];
   forbiddenAdvice?: string[];
 };
 
@@ -20,6 +21,7 @@ export function evaluateCareerQuality(report: CVReport, expected: CareerQualityE
     ...(expected.perceivedLevels ? [{ name: "career: perceived level matches evidence", pass: expected.perceivedLevels.includes(report.document.perceivedSeniority) }] : []),
     ...(expected.minimumScore !== undefined ? [{ name: "career: strong evidence has no career-stage score ceiling", pass: report.summary.overallScore >= expected.minimumScore }] : []),
     ...(expected.maximumScore !== undefined ? [{ name: "career: declarations do not earn a strong score", pass: report.summary.overallScore <= expected.maximumScore }] : []),
+    ...(expected.simulatedDecisions ? [{ name: "career: document reception respects supported target scope", pass: expected.simulatedDecisions.includes(report.recruiterSimulation.simulatedDecision) }] : []),
     ...(expected.forbiddenAdvice || []).map(pattern => ({ name: `career: no inappropriate advice (${pattern})`, pass: !new RegExp(pattern, "iu").test(advice) })),
   ];
 }

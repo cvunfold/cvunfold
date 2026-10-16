@@ -26,26 +26,26 @@ describe("review request configuration", () => {
     expect(resolveReviewTimeoutMs()).toBe(90_000);
   });
 
-  it("keeps the fallback model enabled unless explicitly disabled", () => {
+  it("keeps cross-model fallback disabled despite legacy environment overrides", () => {
     delete process.env.OPENAI_REVIEW_DISABLE_FALLBACK;
-    expect(fallbackModelDisabled()).toBe(false);
+    expect(fallbackModelDisabled()).toBe(true);
     process.env.OPENAI_REVIEW_DISABLE_FALLBACK = "false";
-    expect(fallbackModelDisabled()).toBe(false);
+    expect(fallbackModelDisabled()).toBe(true);
     process.env.OPENAI_REVIEW_DISABLE_FALLBACK = "true";
     expect(fallbackModelDisabled()).toBe(true);
   });
 });
 
-describe("OpenAI fallback boundary", () => {
-  it.each([408, 409, 429, 500, 502, 503, 504, 520])("allows fallback for transient status %s", (status) => {
+describe("OpenAI transient error classification", () => {
+  it.each([408, 409, 429, 500, 502, 503, 504, 520])("recognizes transient status %s", (status) => {
     expect(isRetryableOpenAIError({ status })).toBe(true);
   });
 
-  it.each([400, 401, 403, 404, 422])("does not hide permanent status %s behind fallback", (status) => {
+  it.each([400, 401, 403, 404, 422])("recognizes permanent status %s", (status) => {
     expect(isRetryableOpenAIError({ status })).toBe(false);
   });
 
-  it("allows fallback for connection and timeout errors", () => {
+  it("recognizes connection and timeout errors", () => {
     expect(isRetryableOpenAIError({ name: "APIConnectionError" })).toBe(true);
     expect(isRetryableOpenAIError({ name: "APITimeoutError" })).toBe(true);
   });

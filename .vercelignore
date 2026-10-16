@@ -1,2 +1,14 @@
 .agents/
 output/
+
+.next*/
+.env*
+.vercel/
+.claude/
+.codex/
+test-results/
+playwright-report/
+*.log
+*.tsbuildinfo
+AGENTS.md
+docs/

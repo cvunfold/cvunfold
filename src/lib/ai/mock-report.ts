@@ -4,7 +4,7 @@ import type { CVReport } from "./schemas/report";
 import type { AtsCheckResult } from "@/lib/ats-checker/types";
 import { getRubric, RUBRIC_VERSION, type Seniority } from "@/lib/rubrics/technical-v1";
 import { getTargetRoleProfile, type TargetRoleId } from "@/lib/roles";
-import { PROMPT_VERSION } from "./prompts/review-pl-v3";
+import { PROMPT_VERSION } from "./prompts/archive/review-pl-v3";
 import type { Locale } from "@/lib/i18n";
 import { sampleReportEn } from "./sample-report-en";
 import { calculateOverall } from "./validate-report";
@@ -39,7 +39,7 @@ export function createMockReport(targetSeniority: Seniority = "auto", withJob = 
       ...category,
       score: scores[category.key],
       rationale: `The CV contains a signal relevant to ${role.label}, but it does not always explain its scale or outcome.`,
-      evidenceRefs: ["seg_exp_1"],
+      evidenceRefs: englishReport.categoryScores.find(item => item.key === category.key)?.evidenceRefs || [],
     }));
     englishReport.summary.overallScore = calculateOverall(englishReport.categoryScores);
     if (withJob) englishReport.jobMatch = {

@@ -1,5 +1,6 @@
 export const analyticsEvents = [
   "page_view", "landing_view", "hero_cta_clicked", "sample_report_viewed", "pricing_viewed",
+  "school_offer_viewed", "school_demo_clicked", "school_contact_clicked", "school_contact_sent", "school_email_clicked",
   "file_picker_opened", "file_picker_cancelled", "upload_started", "upload_completed",
   "role_autodetected", "role_autodetect_corrected",
   "desktop_handoff_started", "desktop_handoff_completed", "handoff_link_opened",
@@ -34,6 +35,11 @@ const measurementKeys = ["landing_variant", "broad_role_enum", "selected_seniori
 export const TEASER_VARIANT = "evidence_v1" as const;
 const teaserKeys = ["teaser_variant"] as const;
 const allowed: Record<AnalyticsEvent, readonly string[]> = {
+  school_offer_viewed: ["locale", ...attributionKeys],
+  school_demo_clicked: ["locale", "school_placement", ...attributionKeys],
+  school_contact_clicked: ["locale", "school_placement", ...attributionKeys],
+  school_contact_sent: ["locale", ...attributionKeys],
+  school_email_clicked: ["locale", "school_placement", ...attributionKeys],
   page_view: ["locale", "market", "landing_variant"],
   landing_view: ["locale", "market", ...measurementKeys, ...attributionKeys],
   hero_cta_clicked: ["locale", "market", "placement", ...measurementKeys, ...attributionKeys],
@@ -69,9 +75,10 @@ const allowed: Record<AnalyticsEvent, readonly string[]> = {
 };
 
 const enumValues: Record<string, readonly string[]> = {
+  school_placement: ["hero", "preview", "pilot", "contact", "email_draft"],
   locale: ["pl", "en"], market: ["pl", "en"], plan: ["full_review", "job_match"],
-  broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
-  detected_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
+  broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "ai_llm_engineer", "ai_automation_specialist", "other"],
+  detected_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "ai_llm_engineer", "ai_automation_specialist", "other"],
   selected_seniority_enum: ["first_job", "auto", "junior", "mid", "senior", "lead"],
   role_source: roleSources,
   landing_variant: ["developer"], handoff_origin: ["google_cpc", "other"],

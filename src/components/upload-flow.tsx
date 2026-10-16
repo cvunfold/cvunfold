@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowIcon, CheckIcon, LockIcon } from "./icons";
 import { Logo } from "./logo";
+import { SiteTopbar } from "./site-topbar";
 import { RoleSelect } from "./role-select";
 import { SenioritySelect } from "./seniority-select";
 import { readSafeAttribution, trackAnalyticsEvent } from "@/lib/analytics/client";
@@ -14,6 +15,9 @@ import { parseSeniority, type Seniority } from "@/lib/rubrics/technical-v1";
 import { formatPlanPrice, REWRITE_SERVICE_REFERENCE, type Plan } from "@/lib/plans";
 import { analysisPath, homePath, legalPath, sampleReportPath, type Locale } from "@/lib/i18n";
 import { TurnstileWidget } from "@/components/turnstile-widget";
+import { CvProductPreview } from "@/components/cv-product-preview";
+import { UploadedCvPreview } from "@/components/uploaded-cv-preview";
+import { ScanText, ShieldCheck } from "lucide-react";
 
 const fixtureBytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34]);
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
@@ -86,7 +90,7 @@ type AnalysisPhase = "idle" | "analyzing" | "redirecting";
 
 type Props = {
   mockMode: boolean;
-  initialRole: TargetRoleId;
+  initialRole: TargetRoleId | null;
   initialSeniority: Seniority | null;
   handoffFromMobile: boolean;
   initialHandoffOrigin?: HandoffOrigin;
@@ -106,11 +110,11 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   const [longWait, setLongWait] = useState(false);
   const [error, setError] = useState("");
   const [consent, setConsent] = useState(false);
-  const [role, setRole] = useState<TargetRoleId>(initialRole);
+  const [role, setRole] = useState<TargetRoleId | null>(initialRole);
   // The prefill is only ever allowed to move a role the visitor has not set
   // themselves. A handoff link carries a deliberate choice from the other
   // device, so that counts as set too.
-  const roleChosenByUser = useRef(initialRole !== "frontend_developer");
+  const roleChosenByUser = useRef(Boolean(initialRole));
   const [roleDetection, setRoleDetection] = useState<"idle" | "pending" | "applied">("idle");
   const detectionRequest = useRef(0);
   // What the detector answered, kept even when the visitor overrides it: the
@@ -178,7 +182,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
       market: locale,
       plan: "full_review",
       landing_variant: DEFAULT_LANDING_VARIANT,
-      broad_role_enum: initialRole,
+      ...(initialRole ? { broad_role_enum: initialRole } : {}),
       ...(initialSeniority && initialSeniority !== "auto" ? { selected_seniority_enum: initialSeniority } : {}),
       handoff_origin: effectiveHandoffOrigin || "other",
     });
@@ -192,7 +196,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
       market: locale,
       plan,
       landing_variant: DEFAULT_LANDING_VARIANT,
-      broad_role_enum: role,
+      ...(role ? { broad_role_enum: role } : {}),
       ...(seniority ? { selected_seniority_enum: seniority } : {}),
       ...(effectiveHandoffOrigin ? { handoff_origin: effectiveHandoffOrigin } : {}),
     });
@@ -206,7 +210,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
       market: locale,
       plan: selectedPlan,
       landing_variant: DEFAULT_LANDING_VARIANT,
-      broad_role_enum: role,
+      ...(role ? { broad_role_enum: role } : {}),
       ...(seniority ? { selected_seniority_enum: seniority } : {}),
       ...(effectiveHandoffOrigin ? { handoff_origin: effectiveHandoffOrigin } : {}),
     };
@@ -266,18 +270,19 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   function chooseRole(nextRole: TargetRoleId) {
     // A correction after we set the field is the one honest signal we get about
     // how often the detector is wrong on real documents.
-    if (roleDetection === "applied" && nextRole !== role) {
+    if (role && roleDetection === "applied" && nextRole !== role) {
       trackAnalyticsEvent("role_autodetect_corrected", { ...analyticsBase(), broad_role_enum: nextRole, detected_role_enum: role });
     }
     roleChosenByUser.current = true;
     setRoleDetection("idle");
     setRole(nextRole);
+    setError("");
   }
 
   function handoffUrl(): string {
     return new URL(analysisPath(locale, {
       plan,
-      role,
+      role: role || undefined,
       seniority: seniority || undefined,
       handoff: "mobile",
     }), window.location.origin).toString();
@@ -332,6 +337,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!file) return;
+    if (!role) { setError(locale === "pl" ? "Wybierz rolę docelową." : "Choose a target role."); return; }
     if (!seniority) { setError(t.levelRequired); return; }
     // The submit button is disabled while consent is missing, so this only
     // guards a stray programmatic submit; the real feedback path for a click
@@ -359,7 +365,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
     form.set("attribution", JSON.stringify({
       ...readSafeAttribution(),
       landing_variant: DEFAULT_LANDING_VARIANT,
-      broad_role_enum: role,
+      ...(role ? { broad_role_enum: role } : {}),
       ...(seniority ? { selected_seniority_enum: seniority } : {}),
       ...(effectiveHandoffOrigin ? { handoff_origin: effectiveHandoffOrigin } : {}),
     }));
@@ -388,8 +394,8 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
     }
   }
 
-  return <main className="analysis-page">
-    <header className="site-header container" inert={busy} aria-hidden={busy}><Logo locale={locale}/><a href={`${homePath(locale)}#jak`}>{t.back}</a></header>
+  return <main className="analysis-page analysis-v3">
+    <SiteTopbar className="site-header" inert={busy} aria-hidden={busy}><Logo locale={locale}/><a href={`${homePath(locale)}#jak`}>{t.back}</a></SiteTopbar>
     <div className="analysis-shell container" inert={busy} aria-hidden={busy}>
       <form onSubmit={submit} aria-busy={busy}>
         <h1>{t.title}</h1>
@@ -413,7 +419,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
           <p role="status" aria-live="polite">{handoffStatus}</p>
         </div>
 
-        <RoleSelect value={role} onChange={chooseRole} disabled={busy} locale={locale}/>
+        <RoleSelect required value={role} onChange={chooseRole} disabled={busy} locale={locale}/>
         {roleDetection !== "idle" ? <p className={`role-detection ${roleDetection}`} role="status" aria-live="polite">
           {roleDetection === "pending" ? t.roleDetecting : t.roleDetected}
         </p> : null}
@@ -423,14 +429,15 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
         <p className="ai-upload-disclosure">{t.aiDisclosure}</p>
         <TurnstileWidget key={turnstileEpoch} siteKey={turnstileSiteKey} locale={locale} onToken={handleTurnstileToken}/>
         {error ? <p ref={errorMessage} className="form-error" role="alert" tabIndex={-1}>{error}</p> : null}
-        <span className="submit-wrap" onClick={() => { if (file && !consent) nudgeConsent(); }}><button className="button submit" disabled={!file || !consent || !seniority || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button></span>
+        <span className="submit-wrap" onClick={() => { if (file && !consent) nudgeConsent(); }}><button className="button button-primary submit" disabled={!file || !consent || !role || !seniority || busy || Boolean(turnstileSiteKey && !turnstileToken)}>{busy ? t.loading : t.submit}<ArrowIcon/></button></span>
         <p className="form-trust"><LockIcon/>{t.private}</p>
       </form>
 
       <aside className="analysis-aside">
-        <div className="analysis-status"><span className="status-orbit" aria-hidden="true"/><div><h2>{t.statusIdle}</h2><p>{t.statusIdleCopy}</p></div></div>
-        <div className="analysis-value"><b>{t.valueTitle}</b><p>{t.valueCopy}</p></div>
-        <div className="evidence-preview"><span className="evidence-mark" aria-hidden="true">“</span><div><b>{t.evidenceTitle}</b><p>{t.evidenceCopy}</p></div></div>
+        <div className="analysis-status"><ScanText aria-hidden="true"/><div><h2>{t.statusIdle}</h2><p>{t.statusIdleCopy}</p></div></div>
+        <CvProductPreview locale={locale} compact/>
+        <div className="analysis-value"><b>{t.valueTitle}</b><p>{locale === "pl" ? "Dowody, wszystkie uwagi, kolejność poprawek i 2 ponowne sprawdzenia CV w ciągu 30 dni. Najpierw zobaczysz bezpłatny wynik wstępny." : "Evidence, every finding, an ordered action plan and 2 CV rechecks within 30 days. You see the free initial result first."}</p></div>
+        <div className="evidence-preview"><ShieldCheck aria-hidden="true"/><div><b>{t.evidenceTitle}</b><p>{locale === "pl" ? "Jeśli informacji nie ma w CV, zobaczysz lukę lub pytanie. Nie dopisujemy faktów." : "Missing information becomes a gap or a question. We never add facts."}</p></div></div>
         {/* New tab on purpose: navigating away in this tab would discard the picked
             file, the auto-detected role and the consent checkbox. */}
         <a className="analysis-sample-link" href={`${sampleReportPath(locale)}${seniority && seniority !== "auto" ? `?profile=${seniority}` : ""}`} target="_blank" rel="noopener noreferrer" aria-label={t.sampleLinkAria}>{t.sampleLink}<ArrowIcon/></a>
@@ -439,7 +446,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
     {busy ? <div ref={overlay} className="analysis-progress-overlay" role="dialog" aria-modal="true" aria-labelledby="analysis-progress-title" tabIndex={-1}>
       <div className="analysis-progress-card">
         <div className="analysis-status" role="status" aria-live="polite" aria-atomic="true">
-          {phase === "redirecting" ? <span className="status-complete" aria-hidden="true"><CheckIcon/></span> : <span className="status-orbit active" aria-hidden="true"/>}
+          {phase === "redirecting" ? <span className="status-complete" aria-hidden="true"><CheckIcon/></span> : <span className="status-step-indicator" aria-hidden="true"><span className="status-orbit active"/><span key={activeStage} className="status-step-number">{activeStage + 1}</span></span>}
           <div><h2 id="analysis-progress-title" className={phase === "redirecting" ? "redirecting-message" : undefined}>{phase === "redirecting" ? t.statusRedirecting : t.statusLoading}</h2><p>{phase === "redirecting" ? t.statusRedirectingCopy : t.statusLoadingCopy}</p></div>
           {longWait && phase === "analyzing" ? <p className="analysis-long-wait" role="status">{t.longWait}</p> : null}
         </div>
@@ -448,7 +455,7 @@ export function UploadFlow({ mockMode, initialRole, initialSeniority, handoffFro
           const active = phase === "analyzing" && index === activeStage;
           return <li className={`${complete ? "complete" : ""}${active ? " active" : ""}`} aria-current={active ? "step" : undefined} key={step}>{complete ? <CheckIcon/> : <span>{index + 1}</span>}<div><b>{step}</b><small>{detail}</small></div></li>;
         })}</ol>
-        <div className="evidence-preview"><span className="evidence-mark" aria-hidden="true">“</span><div><b>{t.evidenceTitle}</b><p>{t.evidenceCopy}</p></div></div>
+        {file ? <UploadedCvPreview file={file} locale={locale} complete={phase === "redirecting"}/> : null}
       </div>
     </div> : null}
     {mockMode ? <div className="dev-badge">DEV · MOCK MODE</div> : null}

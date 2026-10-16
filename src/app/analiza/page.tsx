@@ -21,7 +21,7 @@ export default async function AnalysisPage({ searchParams }: { searchParams: Pro
   const stage = parseCareerContext(params.careerContext) === "first_job" && (!selected || selected === "junior") ? "first_job" : selected;
   return <UploadFlow
     mockMode={process.env.MOCK_MODE === "true"}
-    initialRole={parseTargetRoleId(params.role) || "frontend_developer"}
+    initialRole={parseTargetRoleId(params.role)}
     initialSeniority={stage}
     handoffFromMobile={params.handoff === "mobile"}
     initialHandoffOrigin={parseHandoffOrigin(params.handoff_origin) || undefined}

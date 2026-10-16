@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LandingPage } from "@/components/landing-page";
 import { brand } from "@/lib/brand";
 
-const title = `Developer CV review: first impression and clear next steps | ${brand.name}`;
-const description = "See what a hiring manager understands from your CV. Get an evidence-based review of responsibility, impact, technical credibility and clear next steps.";
+const title = `Software Engineer CV Review and ATS Check | ${brand.name}`;
+const description = "Review your developer CV or resume in English or Polish. Get a free ATS readability check and one improvement backed by a quote. The full review is paid.";
 
 export const metadata: Metadata = {
   title: { absolute: title },

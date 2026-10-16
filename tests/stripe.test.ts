@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { buildCheckoutSessionParams, checkoutIdempotencyKey, priceForPlan, shouldRecordCheckoutExpired } from "@/lib/payments/stripe";
+import { buildCheckoutSessionParams, checkoutIdempotencyKey, priceForPlan, shouldRecordCheckoutExpired, createCheckout, createExpressWalletCheckout } from "@/lib/payments/stripe";
+import type { Analysis } from "@/lib/data/store";
 import { readFileSync } from "node:fs";
 
 const originalFullPrice = process.env.STRIPE_PRICE_FULL_REVIEW;
@@ -18,6 +19,13 @@ afterEach(() => {
 
 describe("Stripe price boundary", () => {
   const analysis = { id: "analysis_123", plan: "full_review" as const, locale: "pl" as const, market: "pl" as const };
+
+  it("rejects school reports before reading prices or creating hosted or wallet sessions", async () => {
+    const schoolReport = { ...analysis, schoolGroupId: "school-group" } as Analysis;
+    await expect(createCheckout(schoolReport)).rejects.toThrow("SCHOOL_CHECKOUT_DISABLED");
+    await expect(createExpressWalletCheckout(schoolReport)).rejects.toThrow("SCHOOL_CHECKOUT_DISABLED");
+    await expect(createCheckout(analysis as Analysis, undefined, true)).rejects.toThrow("SCHOOL_CHECKOUT_DISABLED");
+  });
 
   it("maps each report plan to its own server-side price", () => {
     process.env.STRIPE_PRICE_FULL_REVIEW = "price_full";

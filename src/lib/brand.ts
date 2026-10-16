@@ -1,3 +1,5 @@
+import { resolvePublicSiteUrl } from "./public-site-url";
+
 export const PRODUCT_ID = "cv-review" as const;
 
 export type BrandConfig = {
@@ -17,7 +19,7 @@ export const brand: BrandConfig = {
   wordmarkPrefix: prefix,
   wordmarkAccent: accent,
   monogram: process.env.NEXT_PUBLIC_BRAND_MONOGRAM?.trim() || "CV",
-  siteUrl: process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://cvunfold.com",
+  siteUrl: resolvePublicSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || undefined,
 };
 

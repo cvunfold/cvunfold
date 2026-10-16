@@ -1,0 +1,106 @@
+:root {
+  --site-topbar-height: 82px;
+  --site-topbar-background: #f0f2eb;
+  --site-topbar-scroll-offset: calc(var(--site-topbar-height) + 24px);
+}
+
+.site-topbar.site-header,
+.site-topbar.school-header,
+.site-topbar.report-mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  color: var(--ink);
+  background: var(--site-topbar-background);
+  border-bottom: 1px solid #dce1d5;
+  box-shadow: 0 3px 18px rgba(7, 22, 47, .07);
+  clip-path: none;
+}
+
+.site-topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  width: min(1180px, calc(100% - 48px));
+  min-height: calc(var(--site-topbar-height) - 1px);
+  margin-inline: auto;
+}
+
+.site-topbar .logo { color: var(--ink); }
+.site-topbar .site-topbar-inner > nav { align-items: center; gap: 25px; font-size: 13px; font-weight: 500; }
+.site-topbar .language-switch { border-color: #d1d8c8; font-weight: 600; }
+.site-topbar .button { border-radius: 8px; font-weight: 600; }
+.site-topbar:not(.public-header) .site-topbar-inner > a:not(.logo) { font-size: 13px; font-weight: 500; }
+.site-topbar.site-header:not(.public-header) .site-topbar-inner > a:last-child,
+.site-topbar.report-mobile-header .site-topbar-inner > a:last-child { margin-left: auto; }
+.site-topbar.school-header .site-topbar-inner { flex-wrap: wrap; gap: 18px; }
+.site-topbar.school-header .school-header-actions { margin-left: auto; font-size: 13px; }
+.site-topbar.school-header .school-header-actions > .button { min-height: 42px; }
+
+.product-landing section[id],
+.report-v3 [id^="section:"],
+.school-shell .school-feedback { scroll-margin-top: var(--site-topbar-scroll-offset); }
+
+@media screen {
+  .report-v3 .report-sidebar { top: var(--site-topbar-height); height: calc(100dvh - var(--site-topbar-height)); }
+}
+
+@media (max-width: 1120px) {
+  .site-topbar-inner { gap: 20px; }
+  .site-topbar .site-topbar-inner > nav { gap: 18px; }
+}
+@media screen and (max-width: 1050px) {
+  .site-topbar.public-header nav { display: flex; margin-left: auto; }
+  .site-topbar.public-header nav > a:not(.school-nav-link):not(.articles-nav-link) { display: none; }
+  .site-topbar.public-header nav > .articles-nav-link,
+  .site-topbar.public-header nav > .school-nav-link { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+  .site-topbar.public-header .language-switch { margin-left: 0; }
+}
+@media (max-width: 640px) {
+  :root { --site-topbar-height: 72px; }
+  .site-topbar-inner { width: calc(100% - 32px); gap: 10px; }
+  .site-topbar .logo { font-size: 23px; gap: 6px; }
+  .site-topbar .brand-mark { width: 29px; height: 31px; }
+  .site-topbar .site-topbar-inner > nav { font-size: 11px; }
+  .site-topbar.public-header .language-switch { padding: 4px 5px; font-size: 10px; }
+  .site-topbar.public-header .button { display: none; }
+  .site-topbar.school-header .site-topbar-inner { gap: 12px; padding-block: 14px; }
+  .site-topbar.school-header .school-brand { gap: 10px; }
+  .site-topbar.school-header .school-brand-wordmark { font-size: 23px; }
+  .site-topbar.school-header .school-brand-audience { padding-left: 10px; font-size: 17px; gap: 6px; }
+  .site-topbar.school-header .school-brand-cap { width: 19px; }
+  .site-topbar.school-header .school-header-actions { width: 100%; justify-content: space-between; gap: 12px; }
+  .site-topbar.school-header .school-header-actions > .button { font-size: 12px; padding-inline: 14px; }
+  .school-shell { --site-topbar-scroll-offset: 184px; }
+}
+@media (max-width: 380px) {
+  .site-topbar-inner { gap: 8px; }
+  .site-topbar.public-header .site-topbar-inner > nav { gap: 10px; }
+  .site-topbar .logo,
+  .site-topbar.school-header .school-brand-wordmark { font-size: 20px; gap: 5px; }
+  .site-topbar .brand-mark { width: 25px; height: 27px; }
+}
+@media print {
+  .site-topbar.site-header,
+  .site-topbar.school-header,
+  .site-topbar.report-mobile-header {
+    position: static;
+    display: block !important;
+    background: #fff;
+    border: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  .site-topbar-inner { width: 100%; min-height: 0; padding-bottom: 7mm; border-bottom: 1px solid var(--ink); }
+  .site-topbar nav,
+  .site-topbar .language-switch,
+  .site-topbar .button,
+  .site-topbar.report-mobile-header .site-topbar-inner > a:not(.logo) { display: none; }
+}
+.site-topbar.public-header .school-nav-link{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}

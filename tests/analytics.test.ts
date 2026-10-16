@@ -26,6 +26,11 @@ afterEach(() => {
 });
 
 describe("purchase measurement boundary", () => {
+  it("school conversions exclude contact details and use closed placements", () => {
+    expect(safeAnalyticsPayload("school_contact_sent", { locale: "pl", email: "mentor@example.com", name: "Test Mentor", school: "Private", phone: "+48123456789", message: "Private enquiry", requestId: "private" }).properties).toEqual({ locale: "pl" });
+    expect(safeAnalyticsPayload("school_demo_clicked", { locale: "en", school_placement: "preview" }).properties).toEqual({ locale: "en", school_placement: "preview" });
+    expect(safeAnalyticsPayload("school_demo_clicked", { school_placement: "private-school-name" }).properties).toEqual({});
+  });
   it("emits a confirmed purchase and Ads conversion once per transaction in the browser", () => {
     const gtag = vi.fn();
     window.gtag = gtag;

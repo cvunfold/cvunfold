@@ -1,7 +1,8 @@
 import type { Locale } from "@/lib/i18n";
 
-export const plans = ["full_review", "job_match"] as const;
-export type Plan = (typeof plans)[number];
+export const plans = ["full_review"] as const;
+// Historical reports and payments retain their original plan identifier.
+export type Plan = (typeof plans)[number] | "job_match";
 export type Market = "pl" | "en";
 
 type PlanDefinition = {
@@ -15,17 +16,21 @@ type PlanDefinition = {
 
 export const PLAN_CATALOG: Record<Market, Record<Plan, PlanDefinition>> = {
   pl: {
-    full_review: { plan: "full_review", market: "pl", locale: "pl", amountMinor: 2900, currency: "PLN", stripePriceEnv: "STRIPE_PRICE_FULL_REVIEW" },
+    full_review: { plan: "full_review", market: "pl", locale: "pl", amountMinor: 5900, currency: "PLN", stripePriceEnv: "STRIPE_PRICE_FULL_REVIEW" },
     job_match: { plan: "job_match", market: "pl", locale: "pl", amountMinor: 3900, currency: "PLN", stripePriceEnv: "STRIPE_PRICE_JOB_MATCH" },
   },
   en: {
-    full_review: { plan: "full_review", market: "en", locale: "en", amountMinor: 900, currency: "EUR", stripePriceEnv: "STRIPE_PRICE_FULL_REVIEW_EUR" },
+    full_review: { plan: "full_review", market: "en", locale: "en", amountMinor: 1900, currency: "EUR", stripePriceEnv: "STRIPE_PRICE_FULL_REVIEW_EUR" },
     job_match: { plan: "job_match", market: "en", locale: "en", amountMinor: 1200, currency: "EUR", stripePriceEnv: "STRIPE_PRICE_JOB_MATCH_EUR" },
   },
 };
 
 export function isPlan(value: unknown): value is Plan {
-  return typeof value === "string" && plans.includes(value as Plan);
+  return value === "full_review" || value === "job_match";
+}
+
+export function isPurchasablePlan(value: unknown): value is (typeof plans)[number] {
+  return (plans as readonly unknown[]).includes(value);
 }
 
 export function marketForLocale(locale: Locale): Market {

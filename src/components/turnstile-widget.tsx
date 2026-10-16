@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { Locale } from "@/lib/i18n";
+import type { TurnstileAction } from "@/lib/security/turnstile";
 
 declare global {
   interface Window {
@@ -12,7 +13,7 @@ declare global {
   }
 }
 
-export function TurnstileWidget({ siteKey, locale, onToken }: { siteKey?: string; locale: Locale; onToken: (token: string) => void }) {
+export function TurnstileWidget({ siteKey, locale, onToken, action = "cv_analysis" }: { siteKey?: string; locale: Locale; onToken: (token: string) => void; action?: TurnstileAction }) {
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!siteKey || !root.current) return;
@@ -22,7 +23,7 @@ export function TurnstileWidget({ siteKey, locale, onToken }: { siteKey?: string
       if (cancelled || !root.current || !window.turnstile || widgetId) return;
       widgetId = window.turnstile.render(root.current, {
         sitekey: siteKey,
-        action: "cv_analysis",
+        action,
         language: locale,
         theme: "light",
         size: "flexible",
@@ -44,7 +45,7 @@ export function TurnstileWidget({ siteKey, locale, onToken }: { siteKey?: string
       document.head.appendChild(script);
     }
     return () => { cancelled = true; if (widgetId && window.turnstile) window.turnstile.remove(widgetId); };
-  }, [locale, onToken, siteKey]);
+  }, [locale, onToken, siteKey, action]);
   if (!siteKey) return null;
   return <div className="turnstile-shell"><span>{locale === "pl" ? "Ochrona przed automatycznymi nadużyciami" : "Protection against automated abuse"}</span><div ref={root}/></div>;
 }

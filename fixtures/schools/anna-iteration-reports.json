@@ -1,0 +1,1599 @@
+{
+  "before": {
+    "sourceUrl": "/demo/schools/anna-questions-start.pdf",
+    "sourceSha256": "d1d6bc38d7aab48abb610de85e71313ac9e6e4704d19868bf26b50e9cbceeae2",
+    "sourceText": "Anna Kowalska\nFrontend Developer | pierwsza praca\nE-mail: [EMAIL UKRYTY] | Telefon: [TELEFON UKRYTY]\nPROFIL\nSzukam pierwszej pracy jako Frontend Developer po sześciomiesięcznym kursie React i TypeScript.\nWcześniej pracowałam w obsłudze klientów sklepu internetowego.\nPROJEKTY\nStudyTogether, 2026. Projekt końcowy kursu, aplikacja do umawiania wspólnej nauki. React, TypeScript,\nREST API, CSS Modules. Czteroosobowy zespół przygotował logowanie, listę spotkań, wyszukiwarkę i\nformularz dodawania spotkania. Współtworzyłam interfejs aplikacji i uczestniczyłam w cotygodniowych\nspotkaniach. Projekt pokazaliśmy na prezentacji końcowej. Repozytorium:\nhttps://example.com/anna/study-together\nUMIEJĘTNOŚCI\nReact, TypeScript, HTML, CSS, JavaScript i Git. Podstawy komponentów, hooków, typowania propsów oraz\npracy z REST API.\nDOŚWIADCZENIE\n2022-2025, konsultantka sklepu internetowego. Wyjaśnianie statusu zamówień, odpowiedzi na reklamacje i\nwspółpraca z magazynem. Nie była to rola programistyczna.\nEDUKACJA\n2026, Akademia Kodu, kurs Frontend. 2021, technikum ekonomiczne. Angielski B1.\nFikcyjne CV | CVUnfold | pytania, odpowiedzi, poprawki",
+    "report": {
+      "version": "2.1.0",
+      "rubricVersion": "technical-v2.2.0",
+      "promptVersion": "review-modular-v3.1.2+evidence-policy-v3.0.2+category-signals-v3.1.2+roles-v2.0.0:frontend_developer+career-v3.0.1:first_job+language-v2.0.1:pl+evidence-signals-v3.1.3+source-quotes-v2.0.2+report-writer-v3.1.0",
+      "locale": "pl",
+      "document": {
+        "detectedLanguage": "pl",
+        "parseQuality": "good",
+        "targetRole": "Frontend Developer",
+        "targetSeniority": "first_job",
+        "perceivedRole": "Początkująca osoba na stanowisko Frontend Developer, szukająca pierwszej pracy po sześciomiesięcznym kursie React i TypeScript.",
+        "perceivedSeniority": "junior",
+        "perceivedSeniorityConfidence": "high",
+        "careerContext": "first_job"
+      },
+      "summary": {
+        "overallScore": 71,
+        "oneSentenceVerdict": "Czytelne CV początkującej osoby z konkretnym projektem zespołowym i jasno opisanym wkładem w interfejs, ale z ograniczoną dokumentacją weryfikacji działania, kontroli frontendowych i efektu iteracji.",
+        "strongestSignal": "Jasno przypisany wkład w interfejs aplikacji: „Współtworzyłam interfejs aplikacji”.",
+        "biggestRisk": "Opis projektu nie pokazuje, jak sprawdzano zachowanie interfejsu ani jakie konkretne decyzje frontendowe zostały podjęte."
+      },
+      "recruiterPerspective": {
+        "profileSummary": "CV przedstawia osobę po sześciomiesięcznym kursie React i TypeScript, aplikującą na pierwszą pracę frontendową. Najmocniejszym dowodem praktyki jest końcowy projekt kursu wykonany w czteroosobowym zespole, obejmujący logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania. Wkład kandydatki został ograniczony do współtworzenia interfejsu, co jest adekwatne do poziomu pierwszej pracy, lecz opis nie pokazuje jeszcze szczegółów implementacji i weryfikacji.",
+        "seniorityAlignment": "aligned",
+        "seniorityAlignmentExplanation": "Poziom junior jest zgodny z zakresem udokumentowanym w CV: projekt edukacyjny, praca zespołowa i współtworzenie interfejsu. CV nie przypisuje kandydatce komercyjnego doświadczenia programistycznego ani szerszej odpowiedzialności, a jednocześnie jasno wskazuje, że szuka pierwszej pracy.",
+        "positiveSignals": [
+          {
+            "title": "Konkretny projekt z zachowaniem aplikacji",
+            "explanation": "CV opisuje projekt końcowy jako „aplikacja do umawiania wspólnej nauki” oraz wymienia funkcje przygotowane przez zespół: „logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania”.",
+            "evidenceRefs": [
+              "seg_3",
+              "seg_5"
+            ]
+          },
+          {
+            "title": "Jasno określony wkład w interfejs",
+            "explanation": "Zakres osobistego udziału jest wskazany wprost: „Współtworzyłam interfejs aplikacji”.",
+            "evidenceRefs": [
+              "seg_6"
+            ]
+          },
+          {
+            "title": "Praktyka z podstawowym frontendowym stosem",
+            "explanation": "Projekt jest powiązany z technologiami „React, TypeScript, REST API, CSS Modules”, a CV dodatkowo wymienia podstawy komponentów, hooków i typowania propsów.",
+            "evidenceRefs": [
+              "seg_4",
+              "seg_9"
+            ]
+          },
+          {
+            "title": "Czytelne osadzenie projektu edukacyjnego",
+            "explanation": "CV informuje, że jest to „Projekt końcowy kursu”, wskazuje „Czteroosobowy zespół” oraz odnotowuje prezentację końcową projektu.",
+            "evidenceRefs": [
+              "seg_3",
+              "seg_5",
+              "seg_7"
+            ]
+          }
+        ],
+        "reservations": [
+          {
+            "title": "Brak opisanej weryfikacji działania interfejsu",
+            "explanation": "Opis projektu nie wskazuje nazwanych scenariuszy manualnych, testów, ustaleń z przeglądu ani poprawki powiązanej ze sprawdzeniem zachowania interfejsu.",
+            "evidenceRefs": [],
+            "kind": "gap",
+            "issueId": "concern_1"
+          },
+          {
+            "title": "Brak udokumentowanego efektu lub iteracji",
+            "explanation": "CV opisuje funkcjonalności przygotowane przez zespół i prezentację projektu, ale nie podaje obserwowanego rezultatu dla użytkownika, zmiany po feedbacku ani kolejnej iteracji.",
+            "evidenceRefs": [],
+            "kind": "gap",
+            "issueId": "concern_2"
+          },
+          {
+            "title": "Ograniczona ekspozycja na konkretne decyzje frontendowe",
+            "explanation": "CV wskazuje współtworzenie interfejsu i funkcje aplikacji, lecz nie opisuje granic komponentów, przepływu danych, walidacji, obsługi błędów ani innej konkretnej kontroli frontendowej.",
+            "evidenceRefs": [],
+            "kind": "gap",
+            "issueId": "concern_3"
+          },
+          {
+            "title": "Nieopisany rezultat współpracy",
+            "explanation": "Udokumentowano pracę w „Czteroosobowy zespół” i udział w „cotygodniowych spotkaniach”, ale nie wskazano tematu przeglądu, uzgodnionego interfejsu, feedbacku ani zmiany w dostarczeniu wynikającej ze współpracy.",
+            "evidenceRefs": [],
+            "kind": "gap",
+            "issueId": "concern_4"
+          }
+        ],
+        "likelyInterviewQuestions": [
+          {
+            "question": "Jakie elementy interfejsu współtworzyłaś osobiście i jak były zbudowane w React?",
+            "whyThisQuestion": "CV wskazuje współtworzenie interfejsu, ale nie rozdziela konkretnych ekranów, komponentów ani zakresu implementacji.",
+            "evidenceRefs": [
+              "seg_6"
+            ]
+          },
+          {
+            "question": "Jak sprawdzałaś, czy logowanie, wyszukiwarka i formularz dodawania spotkania działają poprawnie?",
+            "whyThisQuestion": "Opis funkcjonalności nie zawiera nazwanych scenariuszy, testów ani innych czynności weryfikacyjnych.",
+            "evidenceRefs": [
+              "seg_5"
+            ]
+          },
+          {
+            "question": "Jak w zespole uzgadnialiście podział pracy i zmiany w interfejsie?",
+            "whyThisQuestion": "CV potwierdza pracę w czteroosobowym zespole i cotygodniowe spotkania, ale nie opisuje decyzji ani efektu współpracy.",
+            "evidenceRefs": [
+              "seg_5",
+              "seg_6"
+            ]
+          }
+        ]
+      },
+      "categoryScores": [
+        {
+          "key": "impact",
+          "weight": 0.15,
+          "label": "Co robią projekty i jak działają",
+          "score": 68,
+          "evidenceStatus": "concrete",
+          "evidenceRefs": [
+            "seg_3",
+            "seg_5"
+          ],
+          "rationale": "Projekt ma jasno opisany cel: „aplikacja do umawiania wspólnej nauki”, a jego funkcjonalności są konkretne: „logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania”. Nie opisano jednak rezultatu użytkowego ani iteracji."
+        },
+        {
+          "key": "ownership",
+          "weight": 0.15,
+          "label": "Twój wkład w projekty",
+          "score": 84,
+          "evidenceStatus": "concrete",
+          "evidenceRefs": [
+            "seg_6"
+          ],
+          "rationale": "Osobisty udział jest wyraźnie przypisany przez stwierdzenie „Współtworzyłam interfejs aplikacji”. Zakres nie obejmuje jednak bardziej szczegółowego rozbicia ekranów, komponentów lub konkretnych zadań."
+        },
+        {
+          "key": "credibility",
+          "weight": 0.35,
+          "label": "Podstawy techniczne i praktyka",
+          "score": 52,
+          "evidenceStatus": "indirect",
+          "evidenceRefs": [
+            "seg_4",
+            "seg_5"
+          ],
+          "rationale": "CV deklaruje użycie „React, TypeScript, REST API, CSS Modules” i opisuje projekt zespołowy. Dokumentacja pozostaje pośrednia, ponieważ nie pokazuje konkretnych implementacji ani nazwanej weryfikacji działania interfejsu."
+        },
+        {
+          "key": "architecture",
+          "weight": 0.05,
+          "label": "Struktura projektu i decyzje",
+          "score": 52,
+          "evidenceStatus": "indirect",
+          "evidenceRefs": [
+            "seg_5",
+            "seg_6"
+          ],
+          "rationale": "Wymienione funkcje „logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania” oraz udział w tworzeniu „interfejsu aplikacji” wskazują na pewien zakres struktury produktu. Brakuje jednak opisu granic komponentów, przepływu danych lub innych decyzji frontendowych."
+        },
+        {
+          "key": "collaboration",
+          "weight": 0.05,
+          "label": "Współpraca i korzystanie z feedbacku",
+          "score": 52,
+          "evidenceStatus": "indirect",
+          "evidenceRefs": [
+            "seg_5",
+            "seg_6"
+          ],
+          "rationale": "CV dokumentuje „Czteroosobowy zespół” oraz „cotygodniowe spotkania”, ale nie opisuje konkretnego feedbacku, przeglądu ani zmiany wynikającej ze współpracy."
+        },
+        {
+          "key": "clarity",
+          "weight": 0.25,
+          "label": "Czytelność CV i opis projektów",
+          "score": 100,
+          "evidenceStatus": "concrete",
+          "evidenceRefs": [
+            "seg_0",
+            "seg_2",
+            "seg_3",
+            "seg_5",
+            "seg_6",
+            "seg_7",
+            "seg_c"
+          ],
+          "rationale": "Cel zawodowy, charakter projektu, podział odpowiedzialności i kontekst edukacyjny są opisane bez sugerowania doświadczenia komercyjnego. CV wprost wskazuje „Szukam pierwszej pracy jako Frontend Developer” oraz „Nie była to rola programistyczna”."
+        }
+      ],
+      "recruiterSimulation": {
+        "after5Seconds": "Widzę osobę szukającą pierwszej pracy frontendowej po kursie oraz jeden projekt końcowy wykonany w zespole.",
+        "after10Seconds": "Widzę konkretny zakres aplikacji i informację „Współtworzyłam interfejs aplikacji”, a także technologie React i TypeScript.",
+        "after20Seconds": "Profil jest czytelny i adekwatny do pierwszej pracy, ale nadal nie wiadomo, jakie konkretne elementy interfejsu zostały wykonane, jak je sprawdzano i jakie decyzje frontendowe podjęto.",
+        "simulatedDecision": "maybe",
+        "confidence": "high",
+        "reasons": [
+          "Projekt edukacyjny ma jasno opisane funkcjonalności.",
+          "Osobisty wkład w interfejs jest wskazany wprost.",
+          "CV nie dokumentuje nazwanej weryfikacji zachowania interfejsu.",
+          "Opis architektury UI, współpracy i efektu iteracji jest ograniczony."
+        ],
+        "whatCouldImproveDecision": [
+          "Doprecyzowanie konkretnych ekranów lub komponentów współtworzonych osobiście.",
+          "Dodanie faktycznie wykonanych sposobów sprawdzania działania interfejsu.",
+          "Opisanie istniejących decyzji dotyczących przepływu danych, walidacji lub obsługi błędów, jeśli były wykonywane.",
+          "Wskazanie konkretnego feedbacku i zmiany w projekcie, jeśli miały miejsce."
+        ]
+      },
+      "strengths": [
+        {
+          "id": "strength_1",
+          "title": "Konkretny projekt aplikacyjny",
+          "explanation": "CV opisuje aplikację do umawiania wspólnej nauki oraz funkcje przygotowane przez zespół, w tym logowanie, listę spotkań, wyszukiwarkę i formularz.",
+          "evidenceRefs": [
+            "seg_3",
+            "seg_5"
+          ]
+        },
+        {
+          "id": "strength_2",
+          "title": "Przypisany wkład w interfejs",
+          "explanation": "Zakres udziału jest określony bezpośrednio jako „Współtworzyłam interfejs aplikacji”.",
+          "evidenceRefs": [
+            "seg_6"
+          ]
+        },
+        {
+          "id": "strength_3",
+          "title": "Adekwatny i przejrzysty kontekst pierwszej pracy",
+          "explanation": "CV jasno wskazuje poszukiwanie pierwszej pracy po kursie oraz odróżnia wcześniejszą rolę obsługi klienta od pracy programistycznej.",
+          "evidenceRefs": [
+            "seg_0",
+            "seg_c"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "id": "concern_1",
+          "severity": "important",
+          "category": "credibility",
+          "title": "Brak opisanej weryfikacji działania interfejsu",
+          "verificationEvidenceRefs": [],
+          "diagnosticKind": "missing_verification",
+          "explanation": "Opis projektu nie dokumentuje nazwanych scenariuszy manualnych, testów, ustaleń z przeglądu ani poprawki powiązanej ze sprawdzeniem zachowania interfejsu.",
+          "whyItMatters": "Na poziomie pierwszej pracy frontendowej taki szczegół pomaga odróżnić samą deklarację użycia technologii od praktyki sprawdzania, czy interfejs działa zgodnie z założeniami.",
+          "evidenceRefs": [],
+          "confidence": "high",
+          "action": "Ustal, jakie faktycznie wykonane czynności służyły do sprawdzenia zachowania interfejsu w projekcie StudyTogether, a następnie dodaj do opisu konkretny scenariusz, test, wynik przeglądu lub poprawkę powiązaną z tą weryfikacją.",
+          "suggestion": {
+            "type": "question",
+            "original": "/",
+            "proposed": null,
+            "factualityNote": "Najpierw potrzebne są fakty o rzeczywiście wykonanej weryfikacji. CV nie zawiera obecnie źródłowego zdania do przeredagowania."
+          }
+        },
+        {
+          "id": "concern_2",
+          "severity": "minor",
+          "category": "impact",
+          "title": "Brak udokumentowanego efektu lub iteracji",
+          "verificationEvidenceRefs": [],
+          "diagnosticKind": "other",
+          "explanation": "CV opisuje funkcjonalności przygotowane przez zespół i prezentację projektu, ale nie podaje obserwowanego rezultatu użytkowego, korekty ani kolejnej iteracji.",
+          "whyItMatters": "Nawet w projekcie edukacyjnym opis zmiany, obserwacji lub iteracji lepiej pokazuje, co projekt umożliwił i jak rozwijał się po sprawdzeniu.",
+          "evidenceRefs": [],
+          "confidence": "high",
+          "action": "Ustal, czy podczas pracy nad StudyTogether pojawił się faktycznie zaobserwowany rezultat, feedback, korekta lub kolejna iteracja, i dopiero na tej podstawie uzupełnij opis projektu o ten konkretny efekt.",
+          "suggestion": {
+            "type": "question",
+            "original": "/",
+            "proposed": null,
+            "factualityNote": "Brak udokumentowanego rezultatu lub iteracji wymaga najpierw ustalenia faktów; nie należy dopisywać efektu bez potwierdzenia."
+          }
+        },
+        {
+          "id": "concern_3",
+          "severity": "important",
+          "category": "architecture",
+          "title": "Ograniczona ekspozycja na decyzje frontendowe",
+          "verificationEvidenceRefs": [],
+          "diagnosticKind": "weak_exposure",
+          "explanation": "CV wskazuje współtworzenie interfejsu i funkcje aplikacji, lecz nie opisuje konkretnych granic komponentów, przepływu danych, walidacji, obsługi błędów ani innego frontendowego mechanizmu kontroli.",
+          "whyItMatters": "Dla roli frontendowej szczegóły implementacji interfejsu pozwalają ocenić zakres praktyki bez wymagania doświadczenia komercyjnego lub zaawansowanej architektury.",
+          "evidenceRefs": [],
+          "confidence": "high",
+          "action": "Ustal, które konkretne ekrany, komponenty lub przepływy danych współtworzyłaś w StudyTogether oraz czy zajmowałaś się walidacją lub obsługą błędów; następnie opisz wyłącznie potwierdzone elementy przy swoim wkładzie.",
+          "suggestion": {
+            "type": "question",
+            "original": "/",
+            "proposed": null,
+            "factualityNote": "Obecne CV potwierdza współtworzenie interfejsu, ale nie zawiera szczegółów wystarczających do bezpiecznej redakcji."
+          }
+        },
+        {
+          "id": "concern_4",
+          "severity": "minor",
+          "category": "collaboration",
+          "title": "Nieopisany rezultat współpracy",
+          "verificationEvidenceRefs": [],
+          "diagnosticKind": "weak_exposure",
+          "explanation": "Udokumentowano pracę w czteroosobowym zespole i udział w cotygodniowych spotkaniach, ale nie wskazano konkretnego tematu przeglądu, uzgodnionego interfejsu, feedbacku ani zmiany wynikającej ze współpracy.",
+          "whyItMatters": "Opis konkretnego sposobu współpracy pomaga pokazać, jak kandydatka uczestniczyła w dostarczaniu projektu, bez przypisywania jej nieudokumentowanej samodzielności lub odpowiedzialności za cały zespół.",
+          "evidenceRefs": [],
+          "confidence": "high",
+          "action": "Ustal, czy podczas spotkań zespołu omawiałaś konkretny element interfejsu, otrzymałaś feedback albo wprowadziłaś zmianę wynikającą z uzgodnień, a następnie dodaj tylko ten potwierdzony przykład.",
+          "suggestion": {
+            "type": "question",
+            "original": "/",
+            "proposed": null,
+            "factualityNote": "CV potwierdza spotkania zespołu, ale nie podaje konkretnego rezultatu współpracy, który można obecnie przeredagować."
+          }
+        }
+      ],
+      "jobMatch": null,
+      "nextSteps": [
+        {
+          "issueId": "concern_1",
+          "priority": 1,
+          "title": "Brak opisanej weryfikacji działania interfejsu",
+          "action": "Ustal, jakie faktycznie wykonane czynności służyły do sprawdzenia zachowania interfejsu w projekcie StudyTogether, a następnie dodaj do opisu konkretny scenariusz, test, wynik przeglądu lub poprawkę powiązaną z tą weryfikacją.",
+          "expectedImpact": "high"
+        },
+        {
+          "issueId": "concern_2",
+          "priority": 2,
+          "title": "Brak udokumentowanego efektu lub iteracji",
+          "action": "Ustal, czy podczas pracy nad StudyTogether pojawił się faktycznie zaobserwowany rezultat, feedback, korekta lub kolejna iteracja, i dopiero na tej podstawie uzupełnij opis projektu o ten konkretny efekt.",
+          "expectedImpact": "medium"
+        },
+        {
+          "issueId": "concern_3",
+          "priority": 3,
+          "title": "Ograniczona ekspozycja na decyzje frontendowe",
+          "action": "Ustal, które konkretne ekrany, komponenty lub przepływy danych współtworzyłaś w StudyTogether oraz czy zajmowałaś się walidacją lub obsługą błędów; następnie opisz wyłącznie potwierdzone elementy przy swoim wkładzie.",
+          "expectedImpact": "high"
+        },
+        {
+          "issueId": "concern_4",
+          "priority": 4,
+          "title": "Nieopisany rezultat współpracy",
+          "action": "Ustal, czy podczas spotkań zespołu omawiałaś konkretny element interfejsu, otrzymałaś feedback albo wprowadziłaś zmianę wynikającą z uzgodnień, a następnie dodaj tylko ten potwierdzony przykład.",
+          "expectedImpact": "medium"
+        }
+      ],
+      "limitations": [
+        "Raport ocenia wyłącznie dowody przedstawione w CV względem roli Frontend Developer na etapie pierwszej pracy.",
+        "Wnioski nie są weryfikacją kompetencji, rankingiem kandydatów ani rzeczywistą decyzją rekrutacyjną.",
+        "Brak doświadczenia komercyjnego jest tutaj zakresem etapu pierwszej pracy, a nie ryzykiem samym w sobie.",
+        "Nie oceniano repozytorium ani zawartości linku podanego w CV."
+      ],
+      "evidenceMap": {
+        "seg_3": "Projekt końcowy kursu, aplikacja do umawiania wspólnej nauki.",
+        "seg_5": "Czteroosobowy zespół przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania.",
+        "seg_6": "Współtworzyłam interfejs aplikacji i uczestniczyłam w cotygodniowych spotkaniach.",
+        "seg_4": "React, TypeScript, REST API, CSS Modules.",
+        "seg_0": "Anna Kowalska Frontend Developer | pierwsza praca E-mail: [EMAIL UKRYTY] | Telefon: [TELEFON UKRYTY] PROFIL Szukam pierwszej pracy jako Frontend Developer po sześciomiesięcznym kursie React i TypeScript.",
+        "seg_2": "PROJEKTY StudyTogether, 2026.",
+        "seg_7": "Projekt pokazaliśmy na prezentacji końcowej.",
+        "seg_c": "Nie była to rola programistyczna.",
+        "seg_9": "Podstawy komponentów, hooków, typowania propsów oraz pracy z REST API."
+      },
+      "evidenceAssessment": {
+        "version": "evidence-signals-v3.1.3+source-quotes-v2.0.2",
+        "checks": {
+          "profile": {
+            "perceivedRole": "Entry-level frontend developer seeking a first job after a six-month React and TypeScript course.",
+            "scope": "educational_project",
+            "confidence": "high",
+            "evidence": [
+              {
+                "ref": "seg_3",
+                "quote": "Projekt końcowy kursu, aplikacja do umawiania wspólnej nauki."
+              },
+              {
+                "ref": "seg_6",
+                "quote": "Współtworzyłam interfejs aplikacji i uczestniczyłam w cotygodniowych spotkaniach."
+              }
+            ],
+            "perceivedSeniority": "junior"
+          },
+          "evaluatedStage": "first_job",
+          "categories": [
+            {
+              "key": "impact",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_3",
+                      "quote": "aplikacja do umawiania wspólnej nauki."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Czteroosobowy zespół przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                }
+              ]
+            },
+            {
+              "key": "ownership",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_6",
+                      "quote": "Współtworzyłam interfejs aplikacji"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_6",
+                      "quote": "interfejs aplikacji"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_6",
+                      "quote": "Współtworzyłam interfejs aplikacji"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_6",
+                      "quote": "Współtworzyłam interfejs aplikacji"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "credibility",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_4",
+                      "quote": "React, TypeScript, REST API, CSS Modules."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Czteroosobowy zespół przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                }
+              ]
+            },
+            {
+              "key": "architecture",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_6",
+                      "quote": "interfejs aplikacji"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                }
+              ]
+            },
+            {
+              "key": "collaboration",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Czteroosobowy zespół"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Czteroosobowy zespół przygotował"
+                    },
+                    {
+                      "ref": "seg_6",
+                      "quote": "Współtworzyłam interfejs aplikacji i uczestniczyłam w cotygodniowych spotkaniach."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                }
+              ]
+            },
+            {
+              "key": "clarity",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_0",
+                      "quote": "Szukam pierwszej pracy jako Frontend Developer"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_2",
+                      "quote": "PROJEKTY StudyTogether, 2026."
+                    },
+                    {
+                      "ref": "seg_3",
+                      "quote": "Projekt końcowy kursu"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Czteroosobowy zespół przygotował"
+                    },
+                    {
+                      "ref": "seg_6",
+                      "quote": "Współtworzyłam interfejs aplikacji"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania."
+                    },
+                    {
+                      "ref": "seg_7",
+                      "quote": "Projekt pokazaliśmy na prezentacji końcowej."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_3",
+                      "quote": "Projekt końcowy kursu"
+                    },
+                    {
+                      "ref": "seg_5",
+                      "quote": "Czteroosobowy zespół"
+                    },
+                    {
+                      "ref": "seg_c",
+                      "quote": "Nie była to rola programistyczna."
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "concerns": [
+            {
+              "id": "concern_1",
+              "category": "credibility",
+              "severity": "important",
+              "confidence": "high",
+              "kind": "gap",
+              "diagnosticKind": "missing_verification",
+              "summary": "The project description does not document a named check of interface behavior, such as manual scenarios, tests, review findings, or a correction linked to verification.",
+              "evidence": [],
+              "verificationEvidence": []
+            },
+            {
+              "id": "concern_2",
+              "category": "impact",
+              "severity": "minor",
+              "confidence": "high",
+              "kind": "gap",
+              "diagnosticKind": "other",
+              "summary": "The CV states which functionality the team prepared and that the project was presented, but does not state an observed user-facing result, correction, or iteration.",
+              "evidence": [],
+              "verificationEvidence": []
+            },
+            {
+              "id": "concern_3",
+              "category": "architecture",
+              "severity": "important",
+              "confidence": "high",
+              "kind": "gap",
+              "diagnosticKind": "weak_exposure",
+              "summary": "The CV identifies an interface contribution and several application features, but does not describe concrete component boundaries, data flow, validation, error handling, or another frontend control.",
+              "evidence": [],
+              "verificationEvidence": []
+            },
+            {
+              "id": "concern_4",
+              "category": "collaboration",
+              "severity": "minor",
+              "confidence": "high",
+              "kind": "gap",
+              "diagnosticKind": "weak_exposure",
+              "summary": "Team participation and recurring meetings are documented, but the CV does not identify a review topic, agreed interface, feedback, or delivery change resulting from collaboration.",
+              "evidence": [],
+              "verificationEvidence": []
+            }
+          ]
+        }
+      },
+      "ats": {
+        "score": 100,
+        "checks": [
+          {
+            "id": "text_layer",
+            "status": "pass",
+            "metrics": {
+              "page_count": 1,
+              "pages_with_text": 1
+            }
+          },
+          {
+            "id": "reading_order",
+            "status": "pass",
+            "metrics": {
+              "rows": 21,
+              "inversions": 0,
+              "inversion_budget": 0
+            }
+          },
+          {
+            "id": "layout_columns",
+            "status": "pass",
+            "metrics": {
+              "rows": 21,
+              "column_bands": 1
+            }
+          },
+          {
+            "id": "sections",
+            "status": "pass",
+            "metrics": {
+              "sections_recognized": 4,
+              "core_sections_recognized": 3
+            }
+          },
+          {
+            "id": "dates_titles",
+            "status": "pass",
+            "metrics": {
+              "date_ranges": 1,
+              "job_titles_found": 1
+            }
+          },
+          {
+            "id": "contact_info",
+            "status": "pass",
+            "metrics": {
+              "email_found": 1,
+              "phone_found": 1
+            }
+          },
+          {
+            "id": "glyph_artifacts",
+            "status": "pass",
+            "metrics": {
+              "replacement_chars": 0,
+              "private_use_chars": 0,
+              "control_chars": 0
+            }
+          },
+          {
+            "id": "date_format",
+            "status": "pass",
+            "metrics": {
+              "ambiguous_numeric_dates": 0,
+              "distinct_date_formats": 0
+            }
+          }
+        ]
+      }
+    },
+    "createdAt": "2026-10-12T10:39:01.647Z"
+  },
+  "after": {
+    "sourceUrl": "/demo/schools/anna-questions-revised.pdf",
+    "sourceSha256": "4b105b61f15ed1ad7793d747f9b792ce6499112f4e7febbdac2bf847de2ef682",
+    "sourceText": "Anna Kowalska\nFrontend Developer | pierwsza praca\nE-mail: [EMAIL UKRYTY] | Telefon: [TELEFON UKRYTY]\nPROFIL\nSzukam pierwszej pracy jako Frontend Developer po sześciomiesięcznym kursie React i TypeScript.\nWcześniej pracowałam w obsłudze klientów sklepu internetowego.\nPROJEKTY\nStudyTogether, 2026 Projekt końcowy kursu - aplikacja do umawiania wspólnej nauki. React, TypeScript,\nREST API, CSS Modules. Czteroosobowy zespół przygotował logowanie, listę spotkań, wyszukiwarkę i\nformularz dodawania spotkania. Współtworzyłam formularz MeetingForm: przechowywałam wartości pól w\nlokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback\nonSubmit. Integracja wykorzystywała klient API przygotowany przez mentora. Ręcznie sprawdziłam trzy\nscenariusze walidacji tytułu: pusty tytuł, tytuł zawierający wyłącznie spacje oraz poprawne zgłoszenie. W\nprzypadku tytułu z samymi spacjami wykryłam, że zgłoszenie przechodziło. Poprawiłam warunek walidacji,\nużywając trim, a następnie ponownie sprawdziłam te same trzy scenariusze. Nie pisałam testów\nautomatycznych ani nie sprawdzałam obciążenia lub bezpieczeństwa aplikacji. Uczestniczyłam w\ncotygodniowych spotkaniach zespołu. Projekt pokazaliśmy na prezentacji końcowej. Repozytorium:\nhttps://example.com/anna/study-together\nUMIEJĘTNOŚCI\nReact, TypeScript, HTML, CSS, JavaScript i Git. Podstawy komponentów, hooków, typowania propsów oraz\npracy z REST API.\nDOŚWIADCZENIE\n2022-2025 - konsultantka sklepu internetowego Wyjaśnianie statusu zamówień, odpowiedzi na reklamacje i\nwspółpraca z magazynem. Nie była to rola programistyczna.\nEDUKACJA\n2026 - Akademia Kodu, kurs Frontend 2021 - technikum ekonomiczne Angielski B1\nFikcyjne CV | CVUnfold | pytania, odpowiedzi, poprawki",
+    "report": {
+      "version": "2.1.0",
+      "rubricVersion": "technical-v2.2.0",
+      "promptVersion": "review-modular-v3.1.2+evidence-policy-v3.0.2+category-signals-v3.1.2+roles-v2.0.0:frontend_developer+career-v3.0.1:first_job+language-v2.0.1:pl+evidence-signals-v3.1.3+source-quotes-v2.0.2+report-writer-v3.1.0",
+      "locale": "pl",
+      "document": {
+        "detectedLanguage": "pl",
+        "parseQuality": "good",
+        "targetRole": "Frontend Developer",
+        "targetSeniority": "first_job",
+        "perceivedRole": "Początkująca frontend developerka szukająca pierwszej pracy po kursie React i TypeScript.",
+        "perceivedSeniority": "junior",
+        "perceivedSeniorityConfidence": "high",
+        "careerContext": "first_job"
+      },
+      "summary": {
+        "overallScore": 98,
+        "oneSentenceVerdict": "CV przekonująco dokumentuje konkretny wkład w edukacyjny projekt frontendowy, działanie formularza i naprawę walidacji, dlatego uzasadnia zaproszenie na rozmowę na pierwszą pracę.",
+        "strongestSignal": "Precyzyjnie opisany wkład w komponent MeetingForm oraz samodzielne wykrycie i poprawienie błędu walidacji z ponownym sprawdzeniem scenariuszy.",
+        "biggestRisk": "Opis weryfikacji ogranicza się do ręcznych scenariuszy walidacji, a współpraca zespołowa nie pokazuje jeszcze przeglądu, decyzji uzgodnionej z zespołem ani zmiany wynikającej ze współpracy."
+      },
+      "recruiterPerspective": {
+        "profileSummary": "CV przedstawia osobę po sześciomiesięcznym kursie React i TypeScript, z konkretnym wkładem w końcowy projekt StudyTogether. Dokument opisuje pracę nad formularzem MeetingForm, lokalnym stanem, typowaniem propsów, callbackiem onSubmit oraz naprawą walidacji tytułu. Zakres jest odpowiedni dla pierwszej pracy i nie próbuje przypisywać kandydatce odpowiedzialności za elementy przygotowane przez mentora.",
+        "seniorityAlignment": "aligned",
+        "seniorityAlignmentExplanation": "Poziom junior jest spójny z kontekstem pierwszej pracy i edukacyjnym charakterem projektu. CV pokazuje praktykę na konkretnym komponencie i podstawowe rozumienie przepływu danych, ale nie dokumentuje jeszcze szerszej odpowiedzialności komercyjnej ani rozbudowanych praktyk weryfikacyjnych, których nie trzeba wymagać na tym etapie.",
+        "positiveSignals": [
+          {
+            "title": "Konkretny wkład w interfejs",
+            "explanation": "CV wskazuje konkretny komponent oraz opisuje zachowanie formularza: „Współtworzyłam formularz MeetingForm: przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit.”",
+            "evidenceRefs": [
+              "seg_5"
+            ]
+          },
+          {
+            "title": "Praktyczne debugowanie walidacji",
+            "explanation": "Kandydatka opisała wykrycie błędu dla tytułu zawierającego wyłącznie spacje, poprawę warunku z użyciem trim oraz ponowne sprawdzenie tych samych scenariuszy.",
+            "evidenceRefs": [
+              "seg_7",
+              "seg_8",
+              "seg_9"
+            ]
+          },
+          {
+            "title": "Czytelne przypisanie granic odpowiedzialności",
+            "explanation": "CV rozróżnia własny wkład w formularz od integracji wykorzystującej klient API przygotowany przez mentora, co zwiększa wiarygodność opisu.",
+            "evidenceRefs": [
+              "seg_5",
+              "seg_6"
+            ]
+          },
+          {
+            "title": "Adekwatny zakres projektu dla pierwszej pracy",
+            "explanation": "Projekt końcowy kursu ma jasno opisany cel użytkowy, a udział zespołu i podstawowe technologie są określone bez sugerowania doświadczenia komercyjnego.",
+            "evidenceRefs": [
+              "seg_2",
+              "seg_3",
+              "seg_4"
+            ]
+          }
+        ],
+        "reservations": [
+          {
+            "title": "Ograniczony zakres weryfikacji",
+            "explanation": "CV dokumentuje trzy ręczne scenariusze walidacji tytułu, ale jednocześnie wyraźnie wskazuje, że nie obejmowało testów automatycznych ani sprawdzania obciążenia lub bezpieczeństwa aplikacji.",
+            "evidenceRefs": [
+              "seg_a"
+            ],
+            "kind": "evidence",
+            "issueId": "concern_1"
+          },
+          {
+            "title": "Słabo udokumentowany rezultat współpracy",
+            "explanation": "CV potwierdza udział w cotygodniowych spotkaniach, lecz nie opisuje przeglądu, decyzji uzgodnionej z zespołem ani zmiany w projekcie wynikającej ze współpracy.",
+            "evidenceRefs": [
+              "seg_b"
+            ],
+            "kind": "evidence",
+            "issueId": "concern_2"
+          }
+        ],
+        "likelyInterviewQuestions": [
+          {
+            "question": "Jak działa przepływ danych w komponencie MeetingForm od wpisania wartości do wywołania onSubmit?",
+            "whyThisQuestion": "CV szczegółowo przypisuje kandydatce pracę z useState, propsami i callbackiem, więc rozmowa może sprawdzić praktyczne rozumienie tych elementów.",
+            "evidenceRefs": [
+              "seg_5"
+            ]
+          },
+          {
+            "question": "Dlaczego warunek z trim rozwiązał problem tytułu zawierającego wyłącznie spacje i jak potwierdziłaś poprawkę?",
+            "whyThisQuestion": "CV opisuje konkretny błąd, poprawkę oraz ponowne sprawdzenie trzech scenariuszy.",
+            "evidenceRefs": [
+              "seg_7",
+              "seg_8",
+              "seg_9"
+            ]
+          },
+          {
+            "question": "Jak wyglądała współpraca przy podziale pracy nad formularzem i co zmieniło się w projekcie po spotkaniu lub konsultacji?",
+            "whyThisQuestion": "Dokument potwierdza pracę w czteroosobowym zespole i cotygodniowe spotkania, ale nie pokazuje jeszcze konkretnego rezultatu współpracy.",
+            "evidenceRefs": [
+              "seg_4",
+              "seg_b"
+            ]
+          },
+          {
+            "question": "Jakie dodatkowe testy lub kontrole zaplanowałabyś dla tego formularza przed oddaniem projektu?",
+            "whyThisQuestion": "CV opisuje ręczne sprawdzenie walidacji oraz wskazuje zakres kontroli, którego nie wykonano.",
+            "evidenceRefs": [
+              "seg_7",
+              "seg_a"
+            ]
+          }
+        ]
+      },
+      "categoryScores": [
+        {
+          "key": "impact",
+          "weight": 0.15,
+          "label": "Co robią projekty i jak działają",
+          "score": 100,
+          "evidenceStatus": "concrete",
+          "evidenceRefs": [
+            "seg_2",
+            "seg_5",
+            "seg_7",
+            "seg_8",
+            "seg_9"
+          ],
+          "rationale": "Projekt ma jasno opisany cel, a CV pokazuje działanie formularza, przekazywanie danych, błąd walidacji i jego naprawę."
+        },
+        {
+          "key": "ownership",
+          "weight": 0.15,
+          "label": "Twój wkład w projekty",
+          "score": 100,
+          "evidenceStatus": "concrete",
+          "evidenceRefs": [
+            "seg_5",
+            "seg_8",
+            "seg_9",
+            "seg_6"
+          ],
+          "rationale": "Zakres własnego wkładu jest konkretny: komponent MeetingForm, lokalny useState, typowanie propsów, callback onSubmit oraz poprawa walidacji. Integracja z klientem API została przypisana mentorowi."
+        },
+        {
+          "key": "credibility",
+          "weight": 0.35,
+          "label": "Podstawy techniczne i praktyka",
+          "score": 100,
+          "evidenceStatus": "concrete",
+          "evidenceRefs": [
+            "seg_3",
+            "seg_5",
+            "seg_7",
+            "seg_8",
+            "seg_9"
+          ],
+          "rationale": "CV łączy deklarowane technologie z opisem ich użycia w formularzu i z ręcznym sprawdzeniem zachowania po poprawce."
+        },
+        {
+          "key": "architecture",
+          "weight": 0.05,
+          "label": "Struktura projektu i decyzje",
+          "score": 100,
+          "evidenceStatus": "concrete",
+          "evidenceRefs": [
+            "seg_5",
+            "seg_6",
+            "seg_9",
+            "seg_8"
+          ],
+          "rationale": "Opis rozdziela stan formularza, typowanie danych, callback onSubmit i klient API przygotowany przez mentora. Na poziomie pierwszej pracy daje to czytelny sygnał rozumienia podstawowych granic odpowiedzialności."
+        },
+        {
+          "key": "collaboration",
+          "weight": 0.05,
+          "label": "Współpraca i korzystanie z feedbacku",
+          "score": 52,
+          "evidenceStatus": "indirect",
+          "evidenceRefs": [
+            "seg_4",
+            "seg_5",
+            "seg_6"
+          ],
+          "rationale": "Dokument potwierdza pracę czteroosobowego zespołu, spotkania i korzystanie z przygotowanego przez mentora klienta API, ale nie pokazuje konkretnego przeglądu, uzgodnienia ani zmiany wynikającej ze współpracy."
+        },
+        {
+          "key": "clarity",
+          "weight": 0.25,
+          "label": "Czytelność CV i opis projektów",
+          "score": 100,
+          "evidenceStatus": "concrete",
+          "evidenceRefs": [
+            "seg_0",
+            "seg_2",
+            "seg_5",
+            "seg_7",
+            "seg_8",
+            "seg_9",
+            "seg_6",
+            "seg_a"
+          ],
+          "rationale": "CV jasno określa cel zawodowy, projekt, własny wkład, przebieg weryfikacji oraz zakres działań, których nie wykonano."
+        }
+      ],
+      "recruiterSimulation": {
+        "after5Seconds": "Pierwsza praca frontendowa po kursie, z jednym konkretnie opisanym projektem React i TypeScript.",
+        "after10Seconds": "Widoczny jest własny wkład w MeetingForm oraz praktyczny przykład wykrycia i poprawy błędu walidacji.",
+        "after20Seconds": "CV wygląda wiarygodnie na poziomie juniora i pokazuje podstawy pracy z interfejsem, przepływem danych oraz ręczną weryfikacją; do dopytania pozostają współpraca i szerszy zakres testów.",
+        "simulatedDecision": "interview",
+        "confidence": "high",
+        "reasons": [
+          "Konkretne przypisanie pracy do komponentu MeetingForm.",
+          "Opis działania useState, propsów i callbacka onSubmit.",
+          "Wykrycie błędu, poprawa z użyciem trim i ponowna weryfikacja.",
+          "Jasne oddzielenie własnego wkładu od klienta API przygotowanego przez mentora."
+        ],
+        "whatCouldImproveDecision": [
+          "Doprecyzowanie, czy w ramach zespołu odbywał się przegląd kodu lub uzgodnienia wpływające na implementację.",
+          "Opisanie ewentualnych dodatkowych kontroli formularza, jeśli były wykonywane."
+        ]
+      },
+      "strengths": [
+        {
+          "id": "strength_1",
+          "title": "Konkretny frontendowy wkład",
+          "explanation": "CV opisuje pracę nad konkretnym formularzem, jego lokalnym stanem, typowaniem danych i przekazaniem danych przez callback.",
+          "evidenceRefs": [
+            "seg_5"
+          ]
+        },
+        {
+          "id": "strength_2",
+          "title": "Samodzielne rozwiązywanie problemu",
+          "explanation": "Kandydatka wykryła, że tytuł złożony wyłącznie ze spacji przechodził walidację, poprawiła warunek i ponownie sprawdziła scenariusze.",
+          "evidenceRefs": [
+            "seg_7",
+            "seg_8",
+            "seg_9"
+          ]
+        },
+        {
+          "id": "strength_3",
+          "title": "Wiarygodne przedstawienie zakresu",
+          "explanation": "CV nie przypisuje kandydatce integracji przygotowanej przez mentora ani nie ukrywa, jakich kontroli nie wykonywała.",
+          "evidenceRefs": [
+            "seg_6",
+            "seg_a"
+          ]
+        },
+        {
+          "id": "strength_4",
+          "title": "Dobre dopasowanie do pierwszej pracy",
+          "explanation": "Edukacyjny projekt i opis podstaw React, TypeScript oraz REST API dostarczają adekwatnych dowodów praktyki na poziomie juniora.",
+          "evidenceRefs": [
+            "seg_0",
+            "seg_2",
+            "seg_3",
+            "seg_5"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "id": "concern_1",
+          "severity": "minor",
+          "category": "credibility",
+          "title": "Ograniczony zakres opisanej weryfikacji",
+          "verificationEvidenceRefs": [
+            "seg_7"
+          ],
+          "diagnosticKind": "limited_verification",
+          "explanation": "CV opisuje ręczne sprawdzenie trzech scenariuszy walidacji tytułu, a następnie ponowne sprawdzenie po poprawce. Jednocześnie dokument wyraźnie stwierdza: „Nie pisałam testów automatycznych ani nie sprawdzałam obciążenia lub bezpieczeństwa aplikacji.”",
+          "whyItMatters": "Na poziomie pierwszej pracy ręczna weryfikacja jest wartościowym dowodem praktyki, ale zakres opisanych kontroli nie pokazuje automatyzacji ani innych rodzajów sprawdzania jakości interfejsu.",
+          "evidenceRefs": [
+            "seg_a"
+          ],
+          "confidence": "high",
+          "action": "Ustal, czy poza trzema ręcznymi scenariuszami wykonywałaś jeszcze inne kontrole tego formularza, a jeśli tak, opisz ich zakres i wynik; jeśli nie, pozostaw ograniczenie zakresu w CV bez sugerowania nieudokumentowanych testów.",
+          "suggestion": {
+            "type": "question",
+            "original": null,
+            "proposed": null,
+            "factualityNote": "Nie dodawaj testów automatycznych, kontroli wydajności ani bezpieczeństwa bez potwierdzenia, że faktycznie zostały wykonane."
+          }
+        },
+        {
+          "id": "concern_2",
+          "severity": "minor",
+          "category": "collaboration",
+          "title": "Mało konkretów o rezultacie współpracy",
+          "verificationEvidenceRefs": [],
+          "diagnosticKind": "weak_exposure",
+          "explanation": "CV stwierdza: „Uczestniczyłam w cotygodniowych spotkaniach zespołu.” Dokument potwierdza więc uczestnictwo, ale nie opisuje przeglądu, decyzji uzgodnionej z zespołem ani zmiany w implementacji wynikającej ze współpracy.",
+          "whyItMatters": "Dla pierwszej pracy wystarczy doświadczenie edukacyjne i zespołowe, jednak konkretny przykład uzgodnienia lub feedbacku lepiej pokazałby sposób współpracy przy tworzeniu interfejsu.",
+          "evidenceRefs": [
+            "seg_b"
+          ],
+          "confidence": "medium",
+          "action": "Ustal, czy podczas pracy nad StudyTogether otrzymałaś feedback, uczestniczyłaś w przeglądzie kodu albo zmieniłaś implementację po uzgodnieniu z zespołem, a następnie dodaj wyłącznie potwierdzony przykład z zachowaniem rzeczywistego zakresu własnego wkładu.",
+          "suggestion": {
+            "type": "question",
+            "original": null,
+            "proposed": null,
+            "factualityNote": "Nie przypisuj sobie przeglądu kodu, decyzji zespołowej ani wpływu na implementację bez potwierdzenia w faktach."
+          }
+        }
+      ],
+      "jobMatch": null,
+      "nextSteps": [
+        {
+          "issueId": "concern_1",
+          "priority": 1,
+          "title": "Ograniczony zakres opisanej weryfikacji",
+          "action": "Ustal, czy poza trzema ręcznymi scenariuszami wykonywałaś jeszcze inne kontrole tego formularza, a jeśli tak, opisz ich zakres i wynik; jeśli nie, pozostaw ograniczenie zakresu w CV bez sugerowania nieudokumentowanych testów.",
+          "expectedImpact": "medium"
+        },
+        {
+          "issueId": "concern_2",
+          "priority": 2,
+          "title": "Mało konkretów o rezultacie współpracy",
+          "action": "Ustal, czy podczas pracy nad StudyTogether otrzymałaś feedback, uczestniczyłaś w przeglądzie kodu albo zmieniłaś implementację po uzgodnieniu z zespołem, a następnie dodaj wyłącznie potwierdzony przykład z zachowaniem rzeczywistego zakresu własnego wkładu.",
+          "expectedImpact": "medium"
+        }
+      ],
+      "limitations": [
+        "Raport ocenia wyłącznie dowody przedstawione w CV, a nie rzeczywiste kompetencje kandydatki.",
+        "Raport nie weryfikuje samodzielnie repozytorium ani żadnych linków wskazanych w dokumencie.",
+        "Brak doświadczenia komercyjnego jest tutaj zakresem kontekstu pierwszej pracy, a nie ryzykiem.",
+        "Raport nie stanowi rankingu kandydatów ani faktycznej decyzji rekrutacyjnej."
+      ],
+      "evidenceMap": {
+        "seg_2": "PROJEKTY StudyTogether, 2026 Projekt końcowy kursu - aplikacja do umawiania wspólnej nauki.",
+        "seg_5": "Współtworzyłam formularz MeetingForm: przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit.",
+        "seg_7": "Ręcznie sprawdziłam trzy scenariusze walidacji tytułu: pusty tytuł, tytuł zawierający wyłącznie spacje oraz poprawne zgłoszenie.",
+        "seg_8": "W przypadku tytułu z samymi spacjami wykryłam, że zgłoszenie przechodziło.",
+        "seg_9": "Poprawiłam warunek walidacji, używając trim, a następnie ponownie sprawdziłam te same trzy scenariusze.",
+        "seg_6": "Integracja wykorzystywała klient API przygotowany przez mentora.",
+        "seg_3": "React, TypeScript, REST API, CSS Modules.",
+        "seg_4": "Czteroosobowy zespół przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania.",
+        "seg_0": "Anna Kowalska Frontend Developer | pierwsza praca E-mail: [EMAIL UKRYTY] | Telefon: [TELEFON UKRYTY] PROFIL Szukam pierwszej pracy jako Frontend Developer po sześciomiesięcznym kursie React i TypeScript.",
+        "seg_a": "Nie pisałam testów automatycznych ani nie sprawdzałam obciążenia lub bezpieczeństwa aplikacji.",
+        "seg_b": "Uczestniczyłam w cotygodniowych spotkaniach zespołu."
+      },
+      "evidenceAssessment": {
+        "version": "evidence-signals-v3.1.3+source-quotes-v2.0.2",
+        "checks": {
+          "profile": {
+            "perceivedRole": "Entry-level frontend developer seeking a first job after a React and TypeScript course.",
+            "scope": "educational_project",
+            "confidence": "high",
+            "evidence": [
+              {
+                "ref": "seg_2",
+                "quote": "PROJEKTY StudyTogether, 2026 Projekt końcowy kursu - aplikacja do umawiania wspólnej nauki."
+              },
+              {
+                "ref": "seg_5",
+                "quote": "Współtworzyłam formularz MeetingForm: przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit."
+              }
+            ],
+            "perceivedSeniority": "junior"
+          },
+          "evaluatedStage": "first_job",
+          "categories": [
+            {
+              "key": "impact",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_2",
+                      "quote": "Projekt końcowy kursu - aplikacja do umawiania wspólnej nauki."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Współtworzyłam formularz MeetingForm: przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Współtworzyłam formularz MeetingForm: przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_7",
+                      "quote": "Ręcznie sprawdziłam trzy scenariusze walidacji tytułu: pusty tytuł, tytuł zawierający wyłącznie spacje oraz poprawne zgłoszenie."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_8",
+                      "quote": "W przypadku tytułu z samymi spacjami wykryłam, że zgłoszenie przechodziło."
+                    },
+                    {
+                      "ref": "seg_9",
+                      "quote": "Poprawiłam warunek walidacji, używając trim, a następnie ponownie sprawdziłam te same trzy scenariusze."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "ownership",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Współtworzyłam formularz MeetingForm: przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "formularz MeetingForm"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_8",
+                      "quote": "wykryłam, że zgłoszenie przechodziło."
+                    },
+                    {
+                      "ref": "seg_9",
+                      "quote": "Poprawiłam warunek walidacji, używając trim"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Współtworzyłam formularz MeetingForm"
+                    },
+                    {
+                      "ref": "seg_6",
+                      "quote": "Integracja wykorzystywała klient API przygotowany przez mentora."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "credibility",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_3",
+                      "quote": "React, TypeScript, REST API, CSS Modules."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_7",
+                      "quote": "Ręcznie sprawdziłam trzy scenariusze walidacji tytułu: pusty tytuł, tytuł zawierający wyłącznie spacje oraz poprawne zgłoszenie."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_8",
+                      "quote": "W przypadku tytułu z samymi spacjami wykryłam, że zgłoszenie przechodziło."
+                    },
+                    {
+                      "ref": "seg_9",
+                      "quote": "a następnie ponownie sprawdziłam te same trzy scenariusze."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "architecture",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit."
+                    },
+                    {
+                      "ref": "seg_6",
+                      "quote": "Integracja wykorzystywała klient API przygotowany przez mentora."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "przekazywałam poprawne dane przez callback onSubmit."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_9",
+                      "quote": "Poprawiłam warunek walidacji, używając trim"
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_8",
+                      "quote": "W przypadku tytułu z samymi spacjami wykryłam, że zgłoszenie przechodziło."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_8",
+                      "quote": "wykryłam, że zgłoszenie przechodziło."
+                    },
+                    {
+                      "ref": "seg_9",
+                      "quote": "Poprawiłam warunek walidacji, używając trim"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "collaboration",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_4",
+                      "quote": "Czteroosobowy zespół przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Współtworzyłam formularz MeetingForm"
+                    },
+                    {
+                      "ref": "seg_6",
+                      "quote": "klient API przygotowany przez mentora."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                },
+                {
+                  "satisfied": false,
+                  "evidence": []
+                }
+              ]
+            },
+            {
+              "key": "clarity",
+              "signals": [
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_0",
+                      "quote": "Szukam pierwszej pracy jako Frontend Developer po sześciomiesięcznym kursie React i TypeScript."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_2",
+                      "quote": "PROJEKTY StudyTogether, 2026 Projekt końcowy kursu - aplikacja do umawiania wspólnej nauki."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_5",
+                      "quote": "Współtworzyłam formularz MeetingForm: przechowywałam wartości pól w lokalnym useState, typowałam propsy w TypeScript i przekazywałam poprawne dane przez callback onSubmit."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_7",
+                      "quote": "Ręcznie sprawdziłam trzy scenariusze walidacji tytułu: pusty tytuł, tytuł zawierający wyłącznie spacje oraz poprawne zgłoszenie."
+                    },
+                    {
+                      "ref": "seg_8",
+                      "quote": "W przypadku tytułu z samymi spacjami wykryłam, że zgłoszenie przechodziło."
+                    },
+                    {
+                      "ref": "seg_9",
+                      "quote": "Poprawiłam warunek walidacji, używając trim, a następnie ponownie sprawdziłam te same trzy scenariusze."
+                    }
+                  ]
+                },
+                {
+                  "satisfied": true,
+                  "evidence": [
+                    {
+                      "ref": "seg_6",
+                      "quote": "Integracja wykorzystywała klient API przygotowany przez mentora."
+                    },
+                    {
+                      "ref": "seg_a",
+                      "quote": "Nie pisałam testów automatycznych ani nie sprawdzałam obciążenia lub bezpieczeństwa aplikacji."
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "concerns": [
+            {
+              "id": "concern_1",
+              "category": "credibility",
+              "severity": "minor",
+              "confidence": "high",
+              "kind": "evidence",
+              "diagnosticKind": "limited_verification",
+              "summary": "Verification is clearly described for three manual title-validation scenarios, but automated tests and performance checks are explicitly outside the documented work.",
+              "evidence": [
+                {
+                  "ref": "seg_a",
+                  "quote": "Nie pisałam testów automatycznych ani nie sprawdzałam obciążenia lub bezpieczeństwa aplikacji."
+                }
+              ],
+              "verificationEvidence": [
+                {
+                  "ref": "seg_7",
+                  "quote": "Ręcznie sprawdziłam trzy scenariusze walidacji tytułu: pusty tytuł, tytuł zawierający wyłącznie spacje oraz poprawne zgłoszenie."
+                }
+              ]
+            },
+            {
+              "id": "concern_2",
+              "category": "collaboration",
+              "severity": "minor",
+              "confidence": "medium",
+              "kind": "evidence",
+              "diagnosticKind": "weak_exposure",
+              "summary": "The document establishes team participation and recurring meetings, but does not describe a review, alignment decision, or change resulting from collaboration.",
+              "evidence": [
+                {
+                  "ref": "seg_b",
+                  "quote": "Uczestniczyłam w cotygodniowych spotkaniach zespołu."
+                }
+              ],
+              "verificationEvidence": []
+            }
+          ]
+        }
+      },
+      "ats": {
+        "score": 100,
+        "checks": [
+          {
+            "id": "text_layer",
+            "status": "pass",
+            "metrics": {
+              "page_count": 1,
+              "pages_with_text": 1
+            }
+          },
+          {
+            "id": "reading_order",
+            "status": "pass",
+            "metrics": {
+              "rows": 27,
+              "inversions": 0,
+              "inversion_budget": 0
+            }
+          },
+          {
+            "id": "layout_columns",
+            "status": "pass",
+            "metrics": {
+              "rows": 27,
+              "column_bands": 1
+            }
+          },
+          {
+            "id": "sections",
+            "status": "pass",
+            "metrics": {
+              "sections_recognized": 4,
+              "core_sections_recognized": 3
+            }
+          },
+          {
+            "id": "dates_titles",
+            "status": "pass",
+            "metrics": {
+              "date_ranges": 1,
+              "job_titles_found": 1
+            }
+          },
+          {
+            "id": "contact_info",
+            "status": "pass",
+            "metrics": {
+              "email_found": 1,
+              "phone_found": 1
+            }
+          },
+          {
+            "id": "glyph_artifacts",
+            "status": "pass",
+            "metrics": {
+              "replacement_chars": 0,
+              "private_use_chars": 0,
+              "control_chars": 0
+            }
+          },
+          {
+            "id": "date_format",
+            "status": "pass",
+            "metrics": {
+              "ambiguous_numeric_dates": 0,
+              "distinct_date_formats": 0
+            }
+          }
+        ]
+      }
+    },
+    "createdAt": "2026-10-12T10:43:15.792Z"
+  },
+  "method": {
+    "model": "gpt-5.6-luna",
+    "pipelineVersion": "report-pipeline-v8.0",
+    "promptVersion": "review-modular-v3.1.2+evidence-policy-v3.0.2+category-signals-v3.1.2+roles-v2.0.0:frontend_developer+career-v3.0.1:first_job+language-v2.0.1:pl+evidence-signals-v3.1.3+source-quotes-v2.0.2+report-writer-v3.1.0",
+    "rubricVersion": "technical-v2.2.0",
+    "estimatedCostUsd": 0.0211574,
+    "workflow": "school_questions_answers_brief_ai_rewrite_pdf_recheck",
+    "factLedgerSha256": "64ff4ed41388af2041bab1ff2d70f2e102436eeb4f7f3b3972c131e4249bbf63"
+  }
+}

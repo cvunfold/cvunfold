@@ -1,30 +1,14 @@
-export type ArticleSection = {
-  heading: string;
-  paragraphs: string[];
-  example?: {
-    before: string;
-    after: string;
-    note: string;
-  };
-};
+import { enrichArticles } from "./article-enrichment";
+import { atsGuidePl } from "./ats-guide-pl";
+import { frontendCvPl } from "./frontend-cv-pl";
+import type { Article } from "./article-types";
+export type { Article, ArticleSection } from "./article-types";
+import { firstItCvArticle } from "./first-it-cv-article";
 
-export type Article = {
-  slug: string;
-  category: string;
-  title: string;
-  description: string;
-  excerpt: string;
-  readingTime: string;
-  publishedAt: string;
-  updatedAt?: string;
-  intro: string;
-  sections: ArticleSection[];
-  checklist: string[];
-};
-
-export const articles: Article[] = [
+export const articles: Article[] = enrichArticles([
   {
     slug: "jak-nie-dac-sie-zastapic-przez-ai",
+    cover: {"src": "/images/articles/kariera-ai-v2.webp", "alt": "Ludzka i mechaniczna dłoń wspólnie budują rozwiązanie z elementów kodu i decyzji.", "width": 1600, "height": 800},
     category: "Kariera i AI",
     title: "Czy AI zastąpi programistów? Jak zabezpieczyć swoją karierę",
     description: "Czy AI zastąpi programistów? Sprawdź, które zadania są podatne na automatyzację i jak rozwijać ownership, osąd, wiedzę domenową oraz wpływ.",
@@ -129,6 +113,7 @@ export const articles: Article[] = [
   },
   {
     slug: "dlaczego-ownership-jest-wazny-dla-pracodawcow",
+    cover: {"src": "/images/articles/ownership-v2.webp", "alt": "Dłoń trzyma ciągłą nić łączącą pomysł, budowę, wdrożenie i sprawdzenie efektu.", "width": 1600, "height": 800},
     category: "Ownership",
     title: "Ownership w pracy: co oznacza i jak pokazać je w CV?",
     description: "Ownership w pracy to odpowiedzialność za problem i jego rezultat, nie praca po godzinach. Zobacz, jak pokazać swój realny zakres w CV bez wyolbrzymiania roli.",
@@ -188,6 +173,7 @@ export const articles: Article[] = [
   },
   {
     slug: "jak-pokazac-seniority-w-cv",
+    cover: {"src": "/images/articles/seniority-v2.webp", "alt": "CV otoczone siedmioma symbolami dowodów seniority: progresji, trudności, decyzji, ownership, rezultatów, współpracy i wsparcia innych.", "width": 1600, "height": 800},
     category: "Seniority",
     title: "Jak pokazać seniority w CV? 7 wiarygodnych dowodów",
     description: "Jak pokazać seniority w CV bez pustych deklaracji? Sprawdź 7 dowodów: progresję, trudność problemów, decyzje, ownership, wpływ i szerszy zakres.",
@@ -276,6 +262,7 @@ export const articles: Article[] = [
   },
   {
     slug: "obowiazki-to-nie-rezultaty-jak-opisywac-wplyw",
+    cover: {"src": "/images/articles/obowiazki-rezultaty-v2.webp", "alt": "Lista wykonanych zadań i materiały połączone z gotowym mostem, z którego korzystają ludzie.", "width": 1600, "height": 800},
     category: "Wpływ i rezultaty",
     title: "Obowiązki to nie rezultaty. Jak opisywać wpływ w CV?",
     description: "Zamień listę codziennych obowiązków w uczciwy opis wpływu. Naucz się pokazywać rezultat także wtedy, gdy nie masz gotowych metryk biznesowych.",
@@ -327,124 +314,15 @@ export const articles: Article[] = [
   },
   {
     slug: "pierwsze-20-sekund-cv",
+    cover: {"src": "/images/articles/ats-dopasowanie-v2.webp", "alt": "System odczytuje strukturę CV, a człowiek sprawdza jego treść i dopasowanie do oferty.", "width": 1600, "height": 800},
     category: "ATS i pierwsze wrażenie",
-    title: "ATS i dopasowanie CV do oferty: co czyta system, co widzi człowiek",
-    description: "Jak dopasować CV do oferty i zachować czytelność dla ATS? Oddziel parsowanie oraz słowa kluczowe od prawdziwych dowodów seniority i wpływu.",
-    excerpt: "Dopasowane CV nie kopiuje ogłoszenia. Pomaga systemowi i człowiekowi znaleźć prawdziwe dowody istotne dla konkretnej roli.",
-    readingTime: "8 min",
     publishedAt: "2026-08-08",
     updatedAt: "2026-09-04",
-    intro: "CV przechodzi przez dwie różne warstwy oceny. System może wyciągnąć dane, ułatwić wyszukiwanie albo wesprzeć dopasowanie do kryteriów konkretnej roli. Człowiek próbuje szybko zrozumieć profil, poziom i wiarygodność doświadczenia. Dlatego dopasowanie CV nie polega na przepisaniu ogłoszenia. Ma sprawić, że prawdziwe dowody na najważniejsze wymagania będą łatwe do odczytania przez oprogramowanie i zauważenia przez człowieka — bez udawania, że istnieje jeden uniwersalny wynik ATS.",
-    sections: [
-      {
-        heading: "ATS to kategoria systemów, nie jeden egzamin",
-        paragraphs: [
-          "Applicant Tracking System pomaga firmie obsługiwać kandydatów i etapy procesu. Zakres funkcji zależy od produktu oraz konfiguracji pracodawcy. Sam skrót ATS nie mówi jeszcze, czy firma używa wyłącznie bazy kandydatów, wyszukiwania pełnotekstowego, filtrów, dodatkowego modułu AI czy ręcznej oceny dokumentów.",
-          "Anglojęzyczne poradniki opisują zwykle systemy amerykańskie, a polski kandydat najczęściej trafia na eRecruiter, Traffit lub HRlink. Część pracodawców z międzynarodową rekrutacją korzysta z platform globalnych. Każdy z tych produktów ma inny zestaw funkcji i inną konfigurację w konkretnej firmie, więc nie istnieje jeden wynik, pod który dałoby się CV wyoptymalizować.",
-          "To ważne, ponieważ poradnik obiecujący „zdanie ATS” zwykle upraszcza kilka różnych mechanizmów do jednego wyniku. Możesz sprawdzić techniczną czytelność CV i zgodność z konkretną ofertą. Nie możesz uczciwie obiecać, że jeden procent odwzoruje konfigurację wszystkich pracodawców.",
-        ],
-      },
-      {
-        heading: "Krok pierwszy: parser próbuje wydobyć dane z CV",
-        paragraphs: [
-          "Parser przekształca dokument w dane, które można umieścić w profilu kandydata. Może rozpoznać imię, dane kontaktowe, stanowiska, firmy, daty, edukację lub umiejętności. Gdy układ jest zbyt złożony, część informacji może trafić do niewłaściwego pola albo nie zostać rozpoznana.",
-          "Najbezpieczniejszy dokument ma prawdziwy tekst, standardowe nagłówki i przewidywalną kolejność sekcji. Skan, tekst zapisany jako obraz, wielokolumnowy układ, informacje w nagłówku lub stopce oraz rozbudowane elementy graficzne zwiększają ryzyko błędnego odczytu. Nie oznacza to zakazu dobrego designu. Oznacza, że estetyka nie powinna zależeć od konstrukcji, która gubi treść po prostym zaznaczeniu lub skopiowaniu tekstu.",
-        ],
-      },
-      {
-        heading: "Czytelność dla ATS nie zastępuje przekazu dla człowieka",
-        paragraphs: [
-          "Tu kończy się praca, którą wykona za Ciebie format, i zaczyna ta, której nie wykona. Poprawnie sparsowane CV może nadal nie wyjaśniać poziomu kandydata. System rozpozna nazwę stanowiska, React i pięć lat doświadczenia, ale sama obecność tych pól nie pokazuje, czy podejmowałeś decyzje, odpowiadałeś za rezultat albo rozwiązywałeś problemy o rosnącej złożoności.",
-          "Potrzebujesz obu warstw jednocześnie. Maszynowa ma pozwolić odczytać dokument: jasne sekcje, tekstowy plik i prawdziwe nazwy ważnych kompetencji. Ludzka ma pozwolić zrozumieć doświadczenie: konkretny zakres, decyzje, ograniczenia, wpływ i dowody wspierające docelowy poziom. Pierwszej brakuje sensu bez drugiej, a druga bez pierwszej może nigdy nie zostać przeczytana.",
-        ],
-        example: {
-          before: "Senior Frontend Developer. React, TypeScript, Next.js. Rozwój nowych funkcji.",
-          after: "Odpowiadałem za migrację checkoutu do Next.js: podzieliłem rollout na etapy, uzgodniłem kontrakt API i monitorowałem błędy po uruchomieniu.",
-          note: "Obie wersje są łatwe do odczytania. Tylko druga daje człowiekowi materiał do oceny zakresu odpowiedzialności.",
-        },
-      },
-      {
-        heading: "Krok drugi: wyszukiwanie i filtry zależą od pracodawcy",
-        paragraphs: [
-          "Wróćmy na moment do warstwy maszynowej, bo po zapisaniu aplikacji część systemów pozwala rekruterowi szukać słów i fraz w CV. Dostępne są również filtry oraz zapytania łączące terminy, na przykład wymagające jednocześnie nazwy roli i technologii. To nie jest tajny słownik. Kryteria wynikają z konkretnego stanowiska, sposobu pracy zespołu i ustawień użytkownika systemu.",
-          "Dlatego nazwa kluczowej technologii powinna pojawić się w CV, jeśli naprawdę jej używałeś i jest ważna dla oferty. Umieść ją nie tylko w sekcji umiejętności, ale także przy doświadczeniu, które pokazuje praktyczny zakres. Nie ukrywaj Reacta pod określeniem „biblioteka interfejsowa”, ale też nie twórz pięciu wariantów tej samej nazwy.",
-        ],
-        example: {
-          before: "React, React.js, ReactJS, frontend React, biblioteka React.",
-          after: "React i TypeScript — rozwój checkoutu, optymalizacja renderowania i utrzymanie współdzielonej biblioteki komponentów.",
-          note: "Druga wersja zawiera rozpoznawalną technologię, ale łączy ją z zakresem pracy zamiast sztucznie zwiększać liczbę powtórzeń.",
-        },
-      },
-      {
-        heading: "Dopasowanie zacznij od trzech koszyków",
-        paragraphs: [
-          "Wypisz najważniejsze wymagania i przy każdym zaznacz jedną z trzech sytuacji. Pierwsza: masz już w CV konkretny dowód. Druga: masz doświadczenie, ale dokument je ukrywa albo opisuje zbyt ogólnie. Trzecia: nie masz podstaw, żeby daną kompetencję zadeklarować.",
-          "Tylko drugi koszyk wymaga naprawy ekspozycji. Trzeci nie staje się drugim po dodaniu słowa kluczowego. Jeśli nie pracowałeś z Kubernetesem, wpisanie go do umiejętności może pomóc w prostym wyszukiwaniu, lecz tworzy problem przy pierwszym pytaniu technicznym.",
-          "Dopasuj widoczność. Nie dopasowuj faktów.",
-        ],
-      },
-      {
-        heading: "Wymaganie zamień na pytanie o dowód",
-        paragraphs: [
-          "Ogłoszenia używają szerokich haseł: skalowalność, ownership, architektura, jakość albo współpraca z biznesem. Nie odpowiadaj na nie kolejną etykietą. Zapytaj, jakie zdarzenie z Twojej pracy pozwala czytelnikowi zobaczyć tę kompetencję bez wiary na słowo.",
-          "Dla ownershipu może to być temat doprowadzony od diagnozy do sprawdzenia efektu. Dla architektury — decyzja podjęta przy konkretnym ograniczeniu. Dla współpracy z biznesem — zakres lub priorytet, który pomogłeś uzgodnić. Etykieta wspiera skanowanie; dowód buduje wiarygodność.",
-        ],
-        example: {
-          before: "Ownership, skalowalność, współpraca z biznesem.",
-          after: "Przygotowałem etapowy plan migracji checkoutu, uzgodniłem kolejność z Product i Backendem oraz monitorowałem błędy po wdrożeniu.",
-          note: "Druga wersja nie kopiuje trzech haseł. Pokazuje zakres odpowiedzialności, współpracę i bezpieczny rollout.",
-        },
-      },
-      {
-        heading: "Zmieniaj hierarchię, nie historię kariery",
-        paragraphs: [
-          "Nie potrzebujesz CV pisanego od zera dla każdej aplikacji. Potrzebujesz mocnej wersji bazowej i świadomej zmiany priorytetów. Przenieś wyżej podsumowanie, projekty i punkty, które najlepiej odpowiadają na najważniejsze kryteria. Skróć informacje prawdziwe, ale drugorzędne dla tej roli.",
-          "Przy stanowisku skupionym na wydajności wyeksponuj diagnozę, Web Vitals, monitoring i rezultat. Przy roli związanej z design systemem wyżej powinny znaleźć się API komponentów, dostępność, wersjonowanie oraz wpływ na inne zespoły. Ta sama kariera może mieć różne uczciwe pierwsze plany.",
-        ],
-      },
-      {
-        heading: "Matching i AI są dodatkowymi funkcjami, nie definicją każdego ATS",
-        paragraphs: [
-          "Niektóre platformy oferują dopasowanie kandydata do wymagań lub asystenta wspierającego screening. Taka funkcja może analizować umiejętności, historię stanowisk i kryteria ustawione dla konkretnej roli. Nie należy z tego wnioskować, że każdy ATS automatycznie nadaje kandydatom ten sam wynik.",
-          "Dobry przykład daje Greenhouse: opisuje Talent Matching jako osobną funkcję wymagającą włączenia i kalibracji, a wynik jako wsparcie dla rekrutera, nie automatyczną decyzję o przyjęciu lub odrzuceniu. Inny produkt albo inna firma mogą mieć zupełnie inny proces. Uczciwa optymalizacja zaczyna się więc od oferty i jakości dowodów, a nie od prób odgadnięcia jednego algorytmu.",
-        ],
-      },
-      {
-        heading: "Warstwa człowieka: co dzieje się po 5, 10 i 20 sekundach",
-        paragraphs: [
-          "Po kilku sekundach uwagę przyciągają aktualna rola, nagłówki, firmy, daty i ogólna gęstość dokumentu. Około dziesiątej sekundy odbiorca zaczyna szukać fragmentu, który potwierdza deklarowany poziom: decyzji, rezultatu, skali albo zakresu odpowiedzialności. Po dwudziestu sekundach może już istnieć robocza historia: specjalista od wydajności, produktowy frontendowiec, solidny wykonawca albo profil, którego trudno jednoznacznie opisać.",
-          "To nie jest prawdziwa decyzja rekrutacyjna ani prognoza jej wyniku. Jest to model pierwszego wrażenia na podstawie samego dokumentu. Nie kontrolujesz każdej interpretacji, ale możesz sprawić, aby najmocniejsze, prawdziwe dowody były łatwiejsze do zauważenia niż ogólne obowiązki i drugorzędne technologie.",
-        ],
-      },
-      {
-        heading: "Praktyczny test CV przed wysłaniem",
-        paragraphs: [
-          "Najpierw sprawdź ekstrakcję. Otwórz PDF, zaznacz całą treść i wklej ją do prostego edytora tekstu. Zobacz, czy stanowiska, firmy, daty i punkty zachowują logiczną kolejność. Jeżeli aplikujesz przez formularz, sprawdź również pola uzupełnione po wgraniu pliku i popraw błędy przed wysłaniem.",
-          "Następnie porównaj dokument z ofertą. Sprawdź, czy trzy najważniejsze wymagania prowadzą do konkretnych fragmentów doświadczenia. Usuń kompetencje dodane tylko dlatego, że pojawiły się w ogłoszeniu, i doprecyzuj te, które są prawdziwe, lecz zbyt ogólne.",
-          "Na końcu przeczytaj pierwszą stronę jak człowiek, który nie zna Twojej historii. Czy w kilkanaście sekund wiadomo, jakiej roli szukasz, jaki poziom komunikuje dokument i który fragment jest najmocniejszym dowodem? Technicznie czytelny plik otwiera drzwi do oceny. Nie wykonuje tej pracy za Ciebie.",
-        ],
-      },
-      {
-        heading: "Co mierzy checker ATS, a czego nie powinien obiecywać",
-        paragraphs: [
-          "Checker może użytecznie sprawdzić, czy z pliku da się wydobyć tekst, czy sekcje są rozpoznawalne, czy ważne terminy z konkretnej oferty mają potwierdzenie i czy format nie tworzy oczywistych problemów. To kontrola higieny dokumentu, nie prognoza wyniku rekrutacji.",
-          "Ostrożnie traktuj narzędzie, które pokazuje wysoki procent bez wyjaśnienia kryteriów, obiecuje zgodność ze wszystkimi systemami albo sugeruje, że samo dodanie słów gwarantuje rozmowę. Dobry wynik powinien prowadzić do konkretnego fragmentu CV i rozróżniać błąd odczytu, brak widocznego dowodu oraz rzeczywisty brak informacji.",
-        ],
-      },
-    ],
-    checklist: [
-      "Czy po skopiowaniu tekstu z PDF zachowuje się logiczna kolejność sekcji?",
-      "Czy używasz standardowych nagłówków dla doświadczenia, umiejętności i edukacji?",
-      "Czy kluczowe technologie z oferty są prawdziwe i potwierdzone przy konkretnym doświadczeniu?",
-      "Czy dokument nie polega na skanie, ozdobnych tabelach, nagłówkach lub stopkach zawierających ważną treść?",
-      "Czy odróżniasz techniczną czytelność od oceny seniority, ownershipu i wpływu?",
-      "Czy na pierwszym ekranie wiadomo, jakiej roli szukasz i który dowód najlepiej pokazuje Twój poziom?",
-      "Czy potrafisz obronić każde dopasowanie podczas rozmowy bez dopisywania faktów?",
-      "Czy checker wyjaśnia kryteria zamiast obiecywać uniwersalny wynik ATS?",
-    ],
+    ...atsGuidePl,
   },
   {
     slug: "wiarygodnosc-techniczna-w-cv",
+    cover: {"src": "/images/articles/wiarygodnosc-techniczna-v2.webp", "alt": "Lupa odsłania kod, architekturę i testy potwierdzające deklaracje techniczne w CV.", "width": 1600, "height": 800},
     category: "Wiarygodność techniczna",
     title: "Jak budować wiarygodność techniczną w CV developera?",
     description: "Technologie bez kontekstu są tylko listą słów. Zobacz, jak pokazać decyzje, ograniczenia i praktyczne użycie narzędzi, aby CV brzmiało wiarygodnie.",
@@ -496,6 +374,7 @@ export const articles: Article[] = [
   },
   {
     slug: "ile-stron-powinno-miec-cv-programisty",
+    cover: {"src": "/images/articles/dlugosc-cv-v2.webp", "alt": "Nożyczki usuwają zbędne fragmenty CV, zachowując istotne informacje w układach jedno- i dwustronicowym.", "width": 1600, "height": 800},
     category: "Długość CV",
     title: "Ile stron powinno mieć CV programisty? Co skrócić, a co warto rozwinąć",
     description: "Jedna czy dwie strony CV programisty? Sprawdź, kiedy wystarczy krótki konkret, a kiedy warto pokazać decyzję, ryzyko i efekt swojej pracy.",
@@ -571,6 +450,8 @@ export const articles: Article[] = [
       "Czy możesz skrócić informacje drugorzędne bez usuwania najmocniejszych dowodów?",
     ],
   },
-];
+  firstItCvArticle,
+  frontendCvPl,
+], "pl");
 
 export const articlesBySlug = new Map(articles.map((article) => [article.slug, article]));

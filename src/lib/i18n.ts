@@ -1,4 +1,5 @@
 import type { CareerContext } from "@/lib/ai/career-context";
+import { schoolOfferPath } from "@/lib/schools/urls";
 export const locales = ["pl", "en"] as const;
 export type Locale = (typeof locales)[number];
 
@@ -86,3 +87,11 @@ export const commonCopy = {
     reportNotPerson: "We assess how your experience is presented in the document, not you as a person.",
   },
 } as const;
+
+export function schoolsPath(locale: Locale): string {
+  return schoolOfferPath(locale);
+}
+
+export function cvStoryPath(locale: Locale): string {
+  return locale === "pl" ? "/historia-poprawy-cv" : "/en/cv-improvement-story";
+}

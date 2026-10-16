@@ -1,0 +1,306 @@
+[
+  {
+    "id": "demo-0",
+    "name": "Anna Kowalska",
+    "caseTitle": "Projekt zespołowy po bootcampie",
+    "description": "CV po kursie pokazuje projekt zespołowy i konkretny formularz. Pozwala sprawdzić, czy opisano również weryfikację działania i strukturę kodu.",
+    "sections": [
+      [
+        "Profil",
+        "Szukam pierwszej pracy jako Frontend Developer. Ukończyłam sześciomiesięczny kurs React i TypeScript. Wcześniej obsługiwałam klientów w sklepie internetowym."
+      ],
+      [
+        "Projekty",
+        "StudyTogether, 2026. Projekt końcowy czteroosobowego zespołu: aplikacja do umawiania wspólnej nauki. React, TypeScript, REST API, CSS Modules. Zespół przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania. Brałam udział w implementacji aplikacji i cotygodniowych spotkaniach. Moja gałąź zawiera formularz zapisu z walidacją pustych pól. Projekt pokazaliśmy na prezentacji końcowej. Repozytorium: https://example.com/anna/study-together"
+      ],
+      [
+        "Umiejętności",
+        "React: komponenty i hooki. TypeScript: typowanie propsów. HTML, CSS, podstawy Git. JavaScript: tablice, obiekty i async/await. Jestem otwarta na naukę testowania."
+      ],
+      [
+        "Doświadczenie",
+        "2022-2025, konsultantka sklepu internetowego. Wyjaśnianie statusu zamówień, przygotowanie odpowiedzi na reklamacje, współpraca z magazynem. Nie była to rola programistyczna."
+      ],
+      [
+        "Edukacja",
+        "2026, Akademia Kodu, kurs Frontend. 2021, technikum ekonomiczne. Angielski B1."
+      ]
+    ],
+    "text": "Anna Kowalska\nFrontend Developer | pierwsza praca\nE-mail: kursant1@example.com\nTelefon: +48 000 000 001\n\nProfil\nSzukam pierwszej pracy jako Frontend Developer. Ukończyłam sześciomiesięczny kurs React i TypeScript. Wcześniej obsługiwałam klientów w sklepie internetowym.\n\nProjekty\nStudyTogether, 2026. Projekt końcowy czteroosobowego zespołu: aplikacja do umawiania wspólnej nauki. React, TypeScript, REST API, CSS Modules. Zespół przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania. Brałam udział w implementacji aplikacji i cotygodniowych spotkaniach. Moja gałąź zawiera formularz zapisu z walidacją pustych pól. Projekt pokazaliśmy na prezentacji końcowej. Repozytorium: https://example.com/anna/study-together\n\nUmiejętności\nReact: komponenty i hooki. TypeScript: typowanie propsów. HTML, CSS, podstawy Git. JavaScript: tablice, obiekty i async/await. Jestem otwarta na naukę testowania.\n\nDoświadczenie\n2022-2025, konsultantka sklepu internetowego. Wyjaśnianie statusu zamówień, przygotowanie odpowiedzi na reklamacje, współpraca z magazynem. Nie była to rola programistyczna.\n\nEdukacja\n2026, Akademia Kodu, kurs Frontend. 2021, technikum ekonomiczne. Angielski B1.\n",
+    "sourceUrl": "/demo/schools/01-cv.pdf"
+  },
+  {
+    "id": "demo-1",
+    "name": "Michał Nowak",
+    "caseTitle": "Lista technologii bez przykładów",
+    "description": "CV opiera się na kursach i deklaracjach, z niewielką ilością informacji o projektach.",
+    "sections": [
+      [
+        "Profil",
+        "Ambitny, komunikatywny i szybko uczący się Frontend Developer. Chcę pracować w nowoczesnej firmie i rozwijać swoje umiejętności. Lubię nowe wyzwania."
+      ],
+      [
+        "Umiejętności",
+        "HTML, CSS, JavaScript, TypeScript, React, Redux, Next.js, Node.js, Docker, AWS, Figma, Git, SQL. Znam zasady clean code i agile."
+      ],
+      [
+        "Projekty",
+        "Sklep internetowy w React. Aplikacja pogodowa. Portfolio. Projekty wykonane podczas kursów online. W sklepie użyłem gotowego tutorialu, zmieniłem kolory i nazwy produktów. Aplikacja pogodowa pobiera temperaturę z API. Nie dodałem linków do kodu, bo muszę jeszcze uporządkować repozytoria."
+      ],
+      [
+        "Edukacja",
+        "2025-2026, kursy online: React od podstaw, JavaScript i wprowadzenie do chmury. 2024, liceum ogólnokształcące. Angielski B2."
+      ],
+      [
+        "Zainteresowania",
+        "Gry komputerowe, podróże, sport, muzyka. Szukam pierwszej pracy i mogę rozpocząć od zaraz. Nie mam komercyjnego doświadczenia w IT."
+      ]
+    ],
+    "text": "Michał Nowak\nFrontend Developer | pierwsza praca\nE-mail: kursant2@example.com\nTelefon: +48 000 000 002\n\nProfil\nAmbitny, komunikatywny i szybko uczący się Frontend Developer. Chcę pracować w nowoczesnej firmie i rozwijać swoje umiejętności. Lubię nowe wyzwania.\n\nUmiejętności\nHTML, CSS, JavaScript, TypeScript, React, Redux, Next.js, Node.js, Docker, AWS, Figma, Git, SQL. Znam zasady clean code i agile.\n\nProjekty\nSklep internetowy w React. Aplikacja pogodowa. Portfolio. Projekty wykonane podczas kursów online. W sklepie użyłem gotowego tutorialu, zmieniłem kolory i nazwy produktów. Aplikacja pogodowa pobiera temperaturę z API. Nie dodałem linków do kodu, bo muszę jeszcze uporządkować repozytoria.\n\nEdukacja\n2025-2026, kursy online: React od podstaw, JavaScript i wprowadzenie do chmury. 2024, liceum ogólnokształcące. Angielski B2.\n\nZainteresowania\nGry komputerowe, podróże, sport, muzyka. Szukam pierwszej pracy i mogę rozpocząć od zaraz. Nie mam komercyjnego doświadczenia w IT.\n",
+    "sourceUrl": "/demo/schools/02-cv.pdf"
+  },
+  {
+    "id": "demo-2",
+    "name": "Julia Wiśniewska",
+    "caseTitle": "Samodzielny projekt po angielsku",
+    "description": "CV w języku angielskim opisuje własne decyzje, testy i ograniczenia projektu.",
+    "sections": [
+      [
+        "Profile",
+        "Entry-level Frontend Developer looking for a first professional role. I build React and TypeScript interfaces and document what I implemented. My portfolio contains two independently built projects."
+      ],
+      [
+        "Projects",
+        "LocalEvents, 2026. I designed and implemented event search, date filters and a favourites list in React and TypeScript. A service module isolates API requests from UI components. I added loading, empty and error states; API errors offer a retry action. I wrote 14 component tests using React Testing Library for filters and error recovery. I checked keyboard navigation and labelled form inputs. The demo uses a public dataset, not production customer traffic. Source: https://example.com/julia/local-events. Demo: https://example.com/julia/demo"
+      ],
+      [
+        "Projects continued",
+        "BudgetNotes, 2025. I implemented expense entry and monthly summaries with localStorage persistence. I chose a reducer to keep state transitions in one place. It has no login or backend, which I describe in the README. A fellow student reviewed my form validation; I fixed two edge cases they reported."
+      ],
+      [
+        "Skills",
+        "React and TypeScript used in both projects. Vitest and React Testing Library used in LocalEvents. CSS Grid and responsive layouts. Git branches and pull requests for peer review. Basic REST API integration."
+      ],
+      [
+        "Education",
+        "2025-2026, frontend evening course. 2025, BA in linguistics. English C1. No professional software development experience yet."
+      ]
+    ],
+    "text": "Julia Wiśniewska\nFrontend Developer | pierwsza praca\nE-mail: kursant3@example.com\nTelefon: +48 000 000 003\n\nProfile\nEntry-level Frontend Developer looking for a first professional role. I build React and TypeScript interfaces and document what I implemented. My portfolio contains two independently built projects.\n\nProjects\nLocalEvents, 2026. I designed and implemented event search, date filters and a favourites list in React and TypeScript. A service module isolates API requests from UI components. I added loading, empty and error states; API errors offer a retry action. I wrote 14 component tests using React Testing Library for filters and error recovery. I checked keyboard navigation and labelled form inputs. The demo uses a public dataset, not production customer traffic. Source: https://example.com/julia/local-events. Demo: https://example.com/julia/demo\n\nProjects continued\nBudgetNotes, 2025. I implemented expense entry and monthly summaries with localStorage persistence. I chose a reducer to keep state transitions in one place. It has no login or backend, which I describe in the README. A fellow student reviewed my form validation; I fixed two edge cases they reported.\n\nSkills\nReact and TypeScript used in both projects. Vitest and React Testing Library used in LocalEvents. CSS Grid and responsive layouts. Git branches and pull requests for peer review. Basic REST API integration.\n\nEducation\n2025-2026, frontend evening course. 2025, BA in linguistics. English C1. No professional software development experience yet.\n",
+    "sourceUrl": "/demo/schools/03-cv.pdf"
+  },
+  {
+    "id": "demo-3",
+    "name": "Piotr Zieliński",
+    "caseTitle": "Krótki staż i konkretny zakres",
+    "description": "CV łączy projekt własny z krótkim stażem i jasno oddziela pracę pod opieką od samodzielnej.",
+    "sections": [
+      [
+        "Profil",
+        "Szukam pierwszej pełnoetatowej pracy frontendowej po trzymiesięcznym stażu. Pracuję w React i TypeScript. Na stażu realizowałem małe zadania pod opieką mentora."
+      ],
+      [
+        "Doświadczenie",
+        "07-09.2026, staż Frontend, fikcyjna firma DemoDesk. Dodałem komponent komunikatu o braku wyników i poprawiłem formularz wyszukiwania w panelu wewnętrznym. Mentor wskazywał zadania i zatwierdzał pull requesty. Dopisałem pięć testów formularza w Vitest. Poprawiłem opis błędu po nieudanym żądaniu API. Nie odpowiadałem za architekturę aplikacji ani wdrożenia."
+      ],
+      [
+        "Projekty",
+        "RecipeBox, 2026. Samodzielna lista przepisów z filtrowaniem po składnikach. React, TypeScript, CSS. Implementowałem filtry i zapisywanie ulubionych lokalnie. Rozdzieliłem logikę filtrowania od widoku i dodałem osiem testów jednostkowych. W README opisałem ograniczenie: brak synchronizacji między urządzeniami. Kod: https://example.com/piotr/recipe-box"
+      ],
+      [
+        "Umiejętności",
+        "React, TypeScript, Vitest i Git użyte w stażu lub projekcie. Podstawy HTML semantycznego. Uczę się dostępności i testów komponentów."
+      ],
+      [
+        "Edukacja",
+        "2024-2026, studia inżynierskie, informatyka, w trakcie. Angielski B2. Dostępność: praca pełnoetatowa od listopada."
+      ]
+    ],
+    "text": "Piotr Zieliński\nFrontend Developer | pierwsza praca\nE-mail: kursant4@example.com\nTelefon: +48 000 000 004\n\nProfil\nSzukam pierwszej pełnoetatowej pracy frontendowej po trzymiesięcznym stażu. Pracuję w React i TypeScript. Na stażu realizowałem małe zadania pod opieką mentora.\n\nDoświadczenie\n07-09.2026, staż Frontend, fikcyjna firma DemoDesk. Dodałem komponent komunikatu o braku wyników i poprawiłem formularz wyszukiwania w panelu wewnętrznym. Mentor wskazywał zadania i zatwierdzał pull requesty. Dopisałem pięć testów formularza w Vitest. Poprawiłem opis błędu po nieudanym żądaniu API. Nie odpowiadałem za architekturę aplikacji ani wdrożenia.\n\nProjekty\nRecipeBox, 2026. Samodzielna lista przepisów z filtrowaniem po składnikach. React, TypeScript, CSS. Implementowałem filtry i zapisywanie ulubionych lokalnie. Rozdzieliłem logikę filtrowania od widoku i dodałem osiem testów jednostkowych. W README opisałem ograniczenie: brak synchronizacji między urządzeniami. Kod: https://example.com/piotr/recipe-box\n\nUmiejętności\nReact, TypeScript, Vitest i Git użyte w stażu lub projekcie. Podstawy HTML semantycznego. Uczę się dostępności i testów komponentów.\n\nEdukacja\n2024-2026, studia inżynierskie, informatyka, w trakcie. Angielski B2. Dostępność: praca pełnoetatowa od listopada.\n",
+    "sourceUrl": "/demo/schools/04-cv.pdf"
+  },
+  {
+    "id": "demo-4",
+    "name": "Zofia Wójcik",
+    "caseTitle": "Zmiana branży i praktyka UI",
+    "description": "CV pokazuje doświadczenie spoza IT oraz własny projekt, ale mało opisuje weryfikację techniczną.",
+    "sections": [
+      [
+        "Profil",
+        "Po pięciu latach w obsłudze klienta zmieniam branżę na frontend. Ukończyłam kurs HTML, CSS i JavaScript, obecnie uczę się React. Chcę tworzyć czytelne i dostępne interfejsy."
+      ],
+      [
+        "Projekty",
+        "SalonBook, 2026. Własny prototyp strony rezerwacji dla fikcyjnego salonu. Przygotowałam układ mobilny, formularz wyboru usługi i podsumowanie rezerwacji. HTML, CSS Grid i JavaScript. Formularz sprawdza puste pola i pokazuje komunikat pod polem. Dane są zapisane w tablicy w kodzie, nie ma backendu ani prawdziwych rezerwacji. Dwie koleżanki przetestowały formularz na telefonie; po ich uwagach zwiększyłam obszar klikania przycisków. Kod: https://example.com/zofia/salon-book"
+      ],
+      [
+        "Doświadczenie",
+        "2020-2025, specjalistka obsługi klienta. Przygotowywałam instrukcje dla nowych osób, zbierałam zgłoszenia i przekazywałam powtarzające się problemy do zespołu produktu. Te zadania nie obejmowały pisania kodu."
+      ],
+      [
+        "Umiejętności",
+        "HTML, CSS, JavaScript stosowane w SalonBook. React: ukończone ćwiczenia z komponentów i useState. Figma do prostych makiet. Git: commit i push. Nie pracowałam jeszcze z testami automatycznymi."
+      ],
+      [
+        "Edukacja",
+        "2026, kurs Frontend, 180 godzin. 2019, licencjat zarządzania. Angielski B1."
+      ]
+    ],
+    "text": "Zofia Wójcik\nFrontend Developer | pierwsza praca\nE-mail: kursant5@example.com\nTelefon: +48 000 000 005\n\nProfil\nPo pięciu latach w obsłudze klienta zmieniam branżę na frontend. Ukończyłam kurs HTML, CSS i JavaScript, obecnie uczę się React. Chcę tworzyć czytelne i dostępne interfejsy.\n\nProjekty\nSalonBook, 2026. Własny prototyp strony rezerwacji dla fikcyjnego salonu. Przygotowałam układ mobilny, formularz wyboru usługi i podsumowanie rezerwacji. HTML, CSS Grid i JavaScript. Formularz sprawdza puste pola i pokazuje komunikat pod polem. Dane są zapisane w tablicy w kodzie, nie ma backendu ani prawdziwych rezerwacji. Dwie koleżanki przetestowały formularz na telefonie; po ich uwagach zwiększyłam obszar klikania przycisków. Kod: https://example.com/zofia/salon-book\n\nDoświadczenie\n2020-2025, specjalistka obsługi klienta. Przygotowywałam instrukcje dla nowych osób, zbierałam zgłoszenia i przekazywałam powtarzające się problemy do zespołu produktu. Te zadania nie obejmowały pisania kodu.\n\nUmiejętności\nHTML, CSS, JavaScript stosowane w SalonBook. React: ukończone ćwiczenia z komponentów i useState. Figma do prostych makiet. Git: commit i push. Nie pracowałam jeszcze z testami automatycznymi.\n\nEdukacja\n2026, kurs Frontend, 180 godzin. 2019, licencjat zarządzania. Angielski B1.\n",
+    "sourceUrl": "/demo/schools/05-cv.pdf"
+  },
+  {
+    "id": "demo-5",
+    "name": "Kacper Kamiński",
+    "caseTitle": "Duże deklaracje, mało dowodów",
+    "description": "CV używa języka zaawansowanej roli przy projektach kursowych i nie opisuje skali odpowiedzialności.",
+    "sections": [
+      [
+        "Profil",
+        "Senior-level Frontend Engineer gotowy prowadzić architekturę aplikacji. Jestem ekspertem React i optymalizacji wydajności. Szukam pierwszej komercyjnej pracy po intensywnym kursie."
+      ],
+      [
+        "Projekty",
+        "Enterprise Shop, 2026. Zaawansowany skalowalny sklep w React. Stworzyłem innowacyjną architekturę i zoptymalizowałem wydajność o 80%. Projekt powstał na podstawie tutorialu. Zastosowałem strukturę folderów przedstawioną w kursie. Nie zapisałem pomiarów sprzed zmian ani sposobu pomiaru. Gotowe komponenty koszyka pochodziły z materiałów szkoleniowych. Zmieniłem style i dopisałem filtr produktów. Kod nie jest jeszcze publiczny."
+      ],
+      [
+        "Umiejętności",
+        "Ekspercka znajomość React, Redux, mikrofrontendów, CI/CD, Kubernetes, AWS. TypeScript: używam any, gdy kompilator zgłasza błędy. JavaScript: ćwiczenia kursowe. Jestem liderem i świetnie pracuję pod presją."
+      ],
+      [
+        "Edukacja",
+        "2026, trzymiesięczny kurs online Frontend od zera. Certyfikat ukończenia. 2025, liceum. Angielski komunikatywny. Nie pracowałem jeszcze w zespole programistycznym."
+      ]
+    ],
+    "text": "Kacper Kamiński\nFrontend Developer | pierwsza praca\nE-mail: kursant6@example.com\nTelefon: +48 000 000 006\n\nProfil\nSenior-level Frontend Engineer gotowy prowadzić architekturę aplikacji. Jestem ekspertem React i optymalizacji wydajności. Szukam pierwszej komercyjnej pracy po intensywnym kursie.\n\nProjekty\nEnterprise Shop, 2026. Zaawansowany skalowalny sklep w React. Stworzyłem innowacyjną architekturę i zoptymalizowałem wydajność o 80%. Projekt powstał na podstawie tutorialu. Zastosowałem strukturę folderów przedstawioną w kursie. Nie zapisałem pomiarów sprzed zmian ani sposobu pomiaru. Gotowe komponenty koszyka pochodziły z materiałów szkoleniowych. Zmieniłem style i dopisałem filtr produktów. Kod nie jest jeszcze publiczny.\n\nUmiejętności\nEkspercka znajomość React, Redux, mikrofrontendów, CI/CD, Kubernetes, AWS. TypeScript: używam any, gdy kompilator zgłasza błędy. JavaScript: ćwiczenia kursowe. Jestem liderem i świetnie pracuję pod presją.\n\nEdukacja\n2026, trzymiesięczny kurs online Frontend od zera. Certyfikat ukończenia. 2025, liceum. Angielski komunikatywny. Nie pracowałem jeszcze w zespole programistycznym.\n",
+    "sourceUrl": "/demo/schools/06-cv.pdf"
+  },
+  {
+    "id": "demo-6",
+    "name": "Natalia Lewandowska",
+    "caseTitle": "Projekt z naciskiem na dostępność",
+    "description": "CV opisuje sprawdzanie interfejsu i współpracę, w skali właściwej dla pierwszej pracy.",
+    "sections": [
+      [
+        "Profil",
+        "Kandydatka do pierwszej pracy frontendowej. Tworzę interfejsy w React i TypeScript, zwracając uwagę na dostępność i obsługę błędów. Szukam zespołu, w którym mogę rozwijać praktykę pod opieką bardziej doświadczonych osób."
+      ],
+      [
+        "Projekty",
+        "LearnCards, 2026. W dwuosobowym projekcie przygotowałam interfejs fiszek: dodawanie kart, edycję i tryb nauki. Druga osoba stworzyła API. Uzgodniłyśmy format odpowiedzi i komunikatów błędów. Użyłam formularzy z powiązanymi etykietami, obsługi klawiatury i komunikatów aria-live. Sprawdziłam przejście klawiszem Tab oraz działanie przy powiększeniu 200%. Napisałam 11 testów komponentów w Testing Library, obejmujących walidację i błąd API. Partnerka zgłosiła brak powrotu fokusu po zamknięciu okna; poprawiłam to. Kod: https://example.com/natalia/learn-cards"
+      ],
+      [
+        "Decyzje i ograniczenia",
+        "Wydzieliłam hook do pobierania kart, żeby widoki nie zawierały logiki żądań. Nie wdrażałyśmy autoryzacji i nie używałyśmy danych prawdziwych użytkowników. README opisuje sposób uruchomienia i ograniczenia. Nie mam danych o wykorzystaniu aplikacji poza testami kursowymi."
+      ],
+      [
+        "Umiejętności",
+        "React, TypeScript, HTML semantyczny, CSS, React Testing Library, Vitest, Git i pull requesty. Podstawowa integracja REST API."
+      ],
+      [
+        "Edukacja",
+        "2026, sześciomiesięczny bootcamp Frontend. 2024, szkoła policealna. Angielski B2."
+      ]
+    ],
+    "text": "Natalia Lewandowska\nFrontend Developer | pierwsza praca\nE-mail: kursant7@example.com\nTelefon: +48 000 000 007\n\nProfil\nKandydatka do pierwszej pracy frontendowej. Tworzę interfejsy w React i TypeScript, zwracając uwagę na dostępność i obsługę błędów. Szukam zespołu, w którym mogę rozwijać praktykę pod opieką bardziej doświadczonych osób.\n\nProjekty\nLearnCards, 2026. W dwuosobowym projekcie przygotowałam interfejs fiszek: dodawanie kart, edycję i tryb nauki. Druga osoba stworzyła API. Uzgodniłyśmy format odpowiedzi i komunikatów błędów. Użyłam formularzy z powiązanymi etykietami, obsługi klawiatury i komunikatów aria-live. Sprawdziłam przejście klawiszem Tab oraz działanie przy powiększeniu 200%. Napisałam 11 testów komponentów w Testing Library, obejmujących walidację i błąd API. Partnerka zgłosiła brak powrotu fokusu po zamknięciu okna; poprawiłam to. Kod: https://example.com/natalia/learn-cards\n\nDecyzje i ograniczenia\nWydzieliłam hook do pobierania kart, żeby widoki nie zawierały logiki żądań. Nie wdrażałyśmy autoryzacji i nie używałyśmy danych prawdziwych użytkowników. README opisuje sposób uruchomienia i ograniczenia. Nie mam danych o wykorzystaniu aplikacji poza testami kursowymi.\n\nUmiejętności\nReact, TypeScript, HTML semantyczny, CSS, React Testing Library, Vitest, Git i pull requesty. Podstawowa integracja REST API.\n\nEdukacja\n2026, sześciomiesięczny bootcamp Frontend. 2024, szkoła policealna. Angielski B2.\n",
+    "sourceUrl": "/demo/schools/07-cv.pdf"
+  },
+  {
+    "id": "demo-7",
+    "name": "Adam Dąbrowski",
+    "caseTitle": "Projekty ukryte pod kursami",
+    "description": "Konkretny projekt znajduje się w dalszej części CV, po rozbudowanej liście kursów i zainteresowaniach.",
+    "sections": [
+      [
+        "Profil",
+        "Jestem absolwentem wielu kursów internetowych. Lubię programowanie, technologie i pracę z ludźmi. Poszukuję możliwości rozwoju w IT."
+      ],
+      [
+        "Kursy i certyfikaty",
+        "2024: HTML od zera, CSS i flexbox, JavaScript podstawy, JavaScript zaawansowany, Git podstawy. 2025: React podstawy, React hooki, TypeScript, praca z API, CSS Grid. 2026: Next.js wprowadzenie, kurs testowania, narzędzia deweloperskie. Certyfikaty ukończenia wszystkich kursów."
+      ],
+      [
+        "Zainteresowania",
+        "Bieganie, fotografia, historia komputerów, gry planszowe. Prowadzę prywatne notatki z kursów i regularnie rozwiązuję zadania. Lubię czytać o nowych bibliotekach."
+      ],
+      [
+        "Projekty",
+        "TaskBoard, 2026. Własna tablica zadań w React i TypeScript. Zaimplementowałem dodawanie i edycję zadań, filtrowanie po statusie oraz zapis w localStorage. Dopisałem siedem testów logiki filtrowania. Formularz pokazuje błąd, gdy tytuł jest pusty. Po uwadze kolegi zmieniłem kontrast przycisków. Repozytorium zawiera instrukcję uruchomienia: https://example.com/adam/task-board"
+      ],
+      [
+        "Umiejętności",
+        "React, TypeScript, JavaScript, HTML, CSS, Vitest, Git. Angielski B2."
+      ],
+      [
+        "Edukacja",
+        "2023, technikum informatyczne. Nie mam doświadczenia komercyjnego; szukam pierwszej pracy jako Frontend Developer."
+      ]
+    ],
+    "text": "Adam Dąbrowski\nFrontend Developer | pierwsza praca\nE-mail: kursant8@example.com\nTelefon: +48 000 000 008\n\nProfil\nJestem absolwentem wielu kursów internetowych. Lubię programowanie, technologie i pracę z ludźmi. Poszukuję możliwości rozwoju w IT.\n\nKursy i certyfikaty\n2024: HTML od zera, CSS i flexbox, JavaScript podstawy, JavaScript zaawansowany, Git podstawy. 2025: React podstawy, React hooki, TypeScript, praca z API, CSS Grid. 2026: Next.js wprowadzenie, kurs testowania, narzędzia deweloperskie. Certyfikaty ukończenia wszystkich kursów.\n\nZainteresowania\nBieganie, fotografia, historia komputerów, gry planszowe. Prowadzę prywatne notatki z kursów i regularnie rozwiązuję zadania. Lubię czytać o nowych bibliotekach.\n\nProjekty\nTaskBoard, 2026. Własna tablica zadań w React i TypeScript. Zaimplementowałem dodawanie i edycję zadań, filtrowanie po statusie oraz zapis w localStorage. Dopisałem siedem testów logiki filtrowania. Formularz pokazuje błąd, gdy tytuł jest pusty. Po uwadze kolegi zmieniłem kontrast przycisków. Repozytorium zawiera instrukcję uruchomienia: https://example.com/adam/task-board\n\nUmiejętności\nReact, TypeScript, JavaScript, HTML, CSS, Vitest, Git. Angielski B2.\n\nEdukacja\n2023, technikum informatyczne. Nie mam doświadczenia komercyjnego; szukam pierwszej pracy jako Frontend Developer.\n",
+    "sourceUrl": "/demo/schools/08-cv.pdf"
+  },
+  {
+    "id": "demo-8",
+    "name": "Olga Mazur",
+    "caseTitle": "Portfolio wizualne bez kodu",
+    "description": "CV osoby z praktyką projektową, z linkiem do makiet, ale bez łatwej weryfikacji implementacji.",
+    "sections": [
+      [
+        "Profil",
+        "Szukam pierwszej pracy jako Frontend Developer. Dotychczas zajmowałam się projektowaniem stron. Uczę się przenosić makiety z Figmy do React."
+      ],
+      [
+        "Projekty",
+        "MuseumGuide, 2026. Zaprojektowałam w Figmie stronę fikcyjnego muzeum i przygotowałam responsywną wersję w React. Utworzyłam komponenty kart wystaw i nawigacji. Lista wystaw jest wpisana w kodzie. Korzystałam z biblioteki ikon. Portfolio zawiera obrazy ekranów i makiety: https://example.com/olga/design. Kod jest lokalnie na moim komputerze; nie opublikowałam repozytorium. Nie opisałam sposobu uruchomienia projektu."
+      ],
+      [
+        "Doświadczenie",
+        "2023-2025, projektantka materiałów cyfrowych dla fikcyjnej agencji LayoutLab. Przygotowanie banerów i makiet stron, uzgadnianie zmian z klientem. Implementację wykonywały inne osoby."
+      ],
+      [
+        "Umiejętności",
+        "Figma, typografia, podstawy projektowania UI. React: komponenty i useState w MuseumGuide. CSS i media queries. JavaScript: ćwiczenia. Git: początki. Nie mam jeszcze praktyki z testami ani obsługą API."
+      ],
+      [
+        "Edukacja",
+        "2026, kurs React dla początkujących. 2022, licencjat grafiki. Angielski B2."
+      ]
+    ],
+    "text": "Olga Mazur\nFrontend Developer | pierwsza praca\nE-mail: kursant9@example.com\nTelefon: +48 000 000 009\n\nProfil\nSzukam pierwszej pracy jako Frontend Developer. Dotychczas zajmowałam się projektowaniem stron. Uczę się przenosić makiety z Figmy do React.\n\nProjekty\nMuseumGuide, 2026. Zaprojektowałam w Figmie stronę fikcyjnego muzeum i przygotowałam responsywną wersję w React. Utworzyłam komponenty kart wystaw i nawigacji. Lista wystaw jest wpisana w kodzie. Korzystałam z biblioteki ikon. Portfolio zawiera obrazy ekranów i makiety: https://example.com/olga/design. Kod jest lokalnie na moim komputerze; nie opublikowałam repozytorium. Nie opisałam sposobu uruchomienia projektu.\n\nDoświadczenie\n2023-2025, projektantka materiałów cyfrowych dla fikcyjnej agencji LayoutLab. Przygotowanie banerów i makiet stron, uzgadnianie zmian z klientem. Implementację wykonywały inne osoby.\n\nUmiejętności\nFigma, typografia, podstawy projektowania UI. React: komponenty i useState w MuseumGuide. CSS i media queries. JavaScript: ćwiczenia. Git: początki. Nie mam jeszcze praktyki z testami ani obsługą API.\n\nEdukacja\n2026, kurs React dla początkujących. 2022, licencjat grafiki. Angielski B2.\n",
+    "sourceUrl": "/demo/schools/09-cv.pdf"
+  },
+  {
+    "id": "demo-9",
+    "name": "Tomasz Król",
+    "caseTitle": "Samouk z projektem offline",
+    "description": "CV samouka pokazuje działającą logikę i świadome ograniczenia, bez pracy zespołowej.",
+    "sections": [
+      [
+        "Profil",
+        "Samouk poszukujący pierwszej pracy frontendowej. Od roku uczę się JavaScript i TypeScript, tworząc własne narzędzia. Nie ukończyłem bootcampu."
+      ],
+      [
+        "Projekty",
+        "ReadingLog, 2026. Aplikacja do zapisywania książek w TypeScript bez frameworka. Samodzielnie zaimplementowałem formularz, filtrowanie, sortowanie i eksport JSON. Dane pozostają w localStorage. Logikę sortowania i eksportu objąłem 16 testami w Vitest. Przy imporcie sprawdzam strukturę danych i pokazuję błąd dla niepoprawnego JSON. Wybrałem oddzielenie modelu danych od funkcji zmieniających DOM, żeby testować logikę bez przeglądarki. Kod: https://example.com/tomasz/reading-log"
+      ],
+      [
+        "Ograniczenia",
+        "Projekt działa tylko lokalnie w przeglądarce. Nie ma kont i synchronizacji. Nie pracowałem jeszcze z API ani w zespole. W README opisałem format eksportu i sposób uruchomienia. React ćwiczę obecnie na małej liście zakupów, nie wpisuję go jako głównej umiejętności."
+      ],
+      [
+        "Doświadczenie",
+        "2021-2025, pracownik punktu serwisowego. Ewidencja przyjęć sprzętu i wyjaśnianie statusu napraw klientom. Zadania bez tworzenia oprogramowania."
+      ],
+      [
+        "Umiejętności",
+        "TypeScript, JavaScript, HTML, CSS, Vitest, podstawy Git. Angielski B1."
+      ],
+      [
+        "Edukacja",
+        "2020, technikum elektroniczne. Nauka własna z dokumentacji i kursów w latach 2025-2026."
+      ]
+    ],
+    "text": "Tomasz Król\nFrontend Developer | pierwsza praca\nE-mail: kursant10@example.com\nTelefon: +48 000 000 010\n\nProfil\nSamouk poszukujący pierwszej pracy frontendowej. Od roku uczę się JavaScript i TypeScript, tworząc własne narzędzia. Nie ukończyłem bootcampu.\n\nProjekty\nReadingLog, 2026. Aplikacja do zapisywania książek w TypeScript bez frameworka. Samodzielnie zaimplementowałem formularz, filtrowanie, sortowanie i eksport JSON. Dane pozostają w localStorage. Logikę sortowania i eksportu objąłem 16 testami w Vitest. Przy imporcie sprawdzam strukturę danych i pokazuję błąd dla niepoprawnego JSON. Wybrałem oddzielenie modelu danych od funkcji zmieniających DOM, żeby testować logikę bez przeglądarki. Kod: https://example.com/tomasz/reading-log\n\nOgraniczenia\nProjekt działa tylko lokalnie w przeglądarce. Nie ma kont i synchronizacji. Nie pracowałem jeszcze z API ani w zespole. W README opisałem format eksportu i sposób uruchomienia. React ćwiczę obecnie na małej liście zakupów, nie wpisuję go jako głównej umiejętności.\n\nDoświadczenie\n2021-2025, pracownik punktu serwisowego. Ewidencja przyjęć sprzętu i wyjaśnianie statusu napraw klientom. Zadania bez tworzenia oprogramowania.\n\nUmiejętności\nTypeScript, JavaScript, HTML, CSS, Vitest, podstawy Git. Angielski B1.\n\nEdukacja\n2020, technikum elektroniczne. Nauka własna z dokumentacji i kursów w latach 2025-2026.\n",
+    "sourceUrl": "/demo/schools/10-cv.pdf"
+  }
+]

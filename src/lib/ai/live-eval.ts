@@ -5,6 +5,7 @@ import { reportSchema } from "./schemas/report";
 import { calculateOverall } from "./validate-report";
 import type { Segment } from "@/lib/document-parsing";
 import { isConcreteIssueAction } from "./issue-action";
+import { toLegacyEvidenceUnits } from "@/lib/rubrics/score-scale";
 import type { TargetRoleId } from "@/lib/roles";
 
 export type LiveEvalLocale = "pl" | "en";
@@ -90,15 +91,17 @@ export function evaluateLocaleParity(pl: CVReport, en: CVReport): LiveEvalCheck[
   const categoryDeltas = [...categoryKeys].map((key) => ({
     key,
     delta: Math.abs((plCategories.get(key) ?? -100) - (enCategories.get(key) ?? 100)),
+    evidenceUnitDelta: Math.abs(toLegacyEvidenceUnits(plCategories.get(key) ?? -100, pl.rubricVersion) - toLegacyEvidenceUnits(enCategories.get(key) ?? 100, en.rubricVersion)),
   }));
   const overallDelta = Math.abs(pl.summary.overallScore - en.summary.overallScore);
+  const evidenceUnitDelta = Math.abs(toLegacyEvidenceUnits(pl.summary.overallScore, pl.rubricVersion) - toLegacyEvidenceUnits(en.summary.overallScore, en.rubricVersion));
 
   return [
-    { name: "PL/EN overall score differs by at most 8 points", pass: overallDelta <= 8, detail: `delta ${overallDelta}` },
+    { name: "PL/EN overall score differs by at most 8 legacy evidence units", pass: evidenceUnitDelta <= 8, detail: `displayed delta ${overallDelta}; evidence-unit delta ${evidenceUnitDelta}` },
     {
-      name: "PL/EN category scores differ by at most 15 points",
-      pass: categoryDeltas.every((item) => item.delta <= 15),
-      detail: categoryDeltas.map((item) => `${item.key}:${item.delta}`).join(", "),
+      name: "PL/EN category scores differ by at most 15 legacy evidence units",
+      pass: categoryDeltas.every((item) => item.evidenceUnitDelta <= 15),
+      detail: categoryDeltas.map((item) => `${item.key}:displayed=${item.delta},evidence=${item.evidenceUnitDelta}`).join(", "),
     },
     {
       name: "PL/EN perceived seniority is consistent",

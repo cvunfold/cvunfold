@@ -132,7 +132,7 @@ export function MethodologyPage({ locale }: { locale: Locale }) {
         <p>{t.lead}</p>
       </div>
       <aside className="methodology-author-card">
-        <Image src="/images/pawel-maczka-czarnecki.png" width={512} height={512} sizes="(max-width: 720px) 112px, 180px" alt={en ? "Paweł Mączka-Czarnecki, creator of CV Unfold" : "Paweł Mączka-Czarnecki, twórca CV Unfold"} priority/>
+        <Image src="/images/optimized/pawel-maczka-czarnecki-138b56a27c41.webp" width={512} height={512} sizes="(max-width: 720px) 112px, 180px" alt={en ? "Paweł Mączka-Czarnecki, creator of CV Unfold" : "Paweł Mączka-Czarnecki, twórca CV Unfold"} priority/>
         <div><span>{t.authorLabel}</span><h2>{t.authorName}</h2><strong>{t.authorRole}</strong><p>{t.authorIntro}</p></div>
       </aside>
     </section>

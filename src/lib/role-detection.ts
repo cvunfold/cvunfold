@@ -47,6 +47,16 @@ const BOTH_ENDS_FLOOR = 3;
 // really is QA or DevOps still lands through the skill-only path below.
 const ROLE_SIGNALS: RoleSignals[] = [
   {
+    role: "ai_llm_engineer",
+    titles: [/\bai(?: \/ llm| python)? (?:engineer|developer)\b/, /\b(?:llm|generative ai|genai) (?:engineer|developer)\b/],
+    skills: [/\brag\b/, /retrieval.augmented/, /langchain/, /llamaindex/, /vector (?:database|store)/, /baza wektorowa/, /response evaluation/, /retrieval evaluation/],
+  },
+  {
+    role: "ai_automation_specialist",
+    titles: [/\bai automation (?:specialist|engineer)\b/, /specjalist(?:a|ka) automatyzacji ai\b/],
+    skills: [/\bn8n\b/, /\bmake\.com\b/, /\bdify\b/, /workflow automation/, /automatyzacja procesow/],
+  },
+  {
     role: "frontend_developer",
     titles: [/front[ -]?end (?:developer|engineer|programist(?:a|ka)|dev)\b/, /(?:ui|web) developer\b/],
     skills: [/\breact\b/, /\bvue\b/, /\bangular\b/, /\bsvelte\b/, /next\.?js/, /\bnuxt\b/, /\bredux\b/,

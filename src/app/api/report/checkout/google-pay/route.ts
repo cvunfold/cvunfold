@@ -1,3 +1,5 @@
+import { reportRequestMatches } from "@/lib/security/report-session";
+import { hasReportCodeAccess } from "@/lib/security/report-access-code";
 import { NextResponse } from "next/server";
 import { getAnalysis } from "@/lib/data/store";
 import { createExpressWalletCheckout } from "@/lib/payments/stripe";
@@ -9,8 +11,9 @@ export async function POST(request: Request) {
   const token = reportTokenFromRequest(request);
   if (!token) return NextResponse.json({ error: "REPORT_SESSION_REQUIRED" }, { status: 401 });
   const item = await getAnalysis(token);
-  if (!item) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
+  if (!item || !reportRequestMatches(request, item.id)) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
   if (item.paid) return NextResponse.json({ error: "REPORT_ALREADY_PAID" }, { status: 409 });
+  if (hasReportCodeAccess(item)) return NextResponse.json({ error: "REPORT_ALREADY_UNLOCKED" }, { status: 409 });
   if (process.env.MOCK_MODE === "true") return NextResponse.json({ error: "EXPRESS_WALLET_UNAVAILABLE" }, { status: 404 });
 
   try {
@@ -19,7 +22,8 @@ export async function POST(request: Request) {
   } catch (error) {
     const code = error instanceof Error ? error.message : "STRIPE_CHECKOUT_FAILED";
     const configurationError = [
-      "STRIPE_NOT_CONFIGURED",
+      "ITERATIONS_NOT_CONFIGURED", "STRIPE_NOT_CONFIGURED",
+      "STRIPE_KEY_INVALID", "STRIPE_ENVIRONMENT_MISMATCH", "STRIPE_CHECKOUT_MISMATCH", "PLAN_NOT_AVAILABLE",
       "STRIPE_PRICE_NOT_CONFIGURED",
       "STRIPE_PRICE_MISMATCH",
       "APP_URL_NOT_CONFIGURED",

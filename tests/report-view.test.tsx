@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import React from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReportView } from "@/components/report-view";
 import { createMockReport } from "@/lib/ai/mock-report";
 import { toTeaser } from "@/lib/ai/validate-report";
+import { createAiRoleSample } from "@/lib/ai/ai-role-samples";
 
 const { analytics } = vi.hoisted(() => ({ analytics: vi.fn() }));
 
@@ -68,6 +69,7 @@ describe("free report purchase hierarchy", () => {
     const paywall = container.querySelector<HTMLElement>(".locked");
     expect(container.querySelector(".teaser-profile")?.textContent).toContain(teaser.profileSummary);
     expect(container.querySelector(".teaser-first-impression")?.textContent).toContain(teaser.firstImpression);
+    expect(container.querySelector(".report-overview")).toBeNull();
     expect(hook?.textContent).toContain(teaser.featuredIssue?.title);
     expect(hook?.textContent).toContain(teaser.featuredIssue?.evidence);
     expect(hook?.textContent).toContain(teaser.featuredIssue?.actionDirection);
@@ -164,22 +166,33 @@ describe("ATS presentation", () => {
 });
 
 describe("report header", () => {
-  it("keeps the overall-quality label below the score ring", () => {
+  it("keeps navigation on the visible section when the previous section leaves the viewport", () => {
+    const { container } = render(<ReportView paid data={createMockReport()} mockMode={false} locale="pl"/>);
+    const strengths = container.querySelector<HTMLElement>('[id="section:strengths"]')!;
+    const revision = container.querySelector<HTMLElement>('[id="section:revision"]')!;
+    const observer = IntersectionObserverStub.instances.find(item => item.observed.size === 6 && item.observed.has(strengths) && item.observed.has(revision))!;
+    expect(observer).toBeTruthy();
+    act(() => observer.trigger(strengths));
+    act(() => observer.trigger(revision));
+    act(() => observer.trigger(strengths, false));
+    expect(container.querySelector('.report-section-nav a[aria-current="location"]')?.getAttribute("href")).toBe("#section:revision");
+  });
+
+  it("shows one overall score with its quality label and calibrated caption", () => {
     const { container } = render(<ReportView paid data={createMockReport()} mockMode={false} locale="pl"/>);
     const mobileScore = container.querySelector(".report-mobile-score");
-    const desktopScore = container.querySelector(".secondary-score");
 
     expect(mobileScore?.firstElementChild?.classList.contains("score-ring-with-caption")).toBe(true);
-    expect(mobileScore?.lastElementChild?.textContent).toBe("OGÓLNA JAKOŚĆ KOMUNIKACJI CV");
-    expect(desktopScore?.firstElementChild?.classList.contains("score-ring-with-caption")).toBe(true);
-    expect(desktopScore?.lastElementChild?.textContent).toBe("OGÓLNA JAKOŚĆ KOMUNIKACJI CV");
+    expect(container.querySelector(".report-mobile-summary-title")?.textContent).toBe("OGÓLNA JAKOŚĆ KOMUNIKACJI CV");
+    expect(container.querySelectorAll(".report-overview .score-ring")).toHaveLength(1);
+    expect(container.querySelector(".secondary-score")).toBeNull();
     // The band label itself is covered in score-band.test.ts. Asserting a specific
     // one here coupled a layout test to the mock's weighted score, so it broke when
     // the auto rubric stopped using senior weights.
     expect(mobileScore?.querySelector(".score-ring-caption")?.textContent).toBeTruthy();
   });
 
-  it("places perceived and target labels on the seniority ladder without repeating the level", () => {
+  it("keeps the seniority ladder without the extra impression and target labels", () => {
     const report = createMockReport("senior");
     const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
 
@@ -187,8 +200,9 @@ describe("report header", () => {
     expect(heading?.textContent).toBe(report.document.perceivedRole);
     expect(container.querySelector(".report-target")).toBeNull();
     expect(container.querySelector(".report-sidebar > .perceived-level")).toBeNull();
-    expect(container.querySelector(".seniority-track .is-perceived")?.textContent).toContain("Wrażenie");
-    expect(container.querySelector(".seniority-track .is-target")?.textContent).toContain("Aplikujesz na");
+    expect(container.querySelector(".seniority-track .is-perceived")?.textContent).toBe("Senior");
+    expect(container.querySelector(".seniority-track .is-target")?.textContent).toBe("Senior");
+    expect(container.querySelector(".perception-marker, .target-marker")).toBeNull();
   });
 
   it("shows separate dots when the document impression differs from the target", () => {
@@ -196,8 +210,8 @@ describe("report header", () => {
     const track = container.querySelector(".seniority-track");
 
     expect(track?.querySelectorAll(".is-perceived i, .is-target i")).toHaveLength(2);
-    expect(track?.querySelector(".is-perceived")?.textContent).toContain("WrażenieSenior");
-    expect(track?.querySelector(".is-target")?.textContent).toContain("LeadAplikujesz");
+    expect(track?.querySelector(".is-perceived")?.textContent).toBe("Senior");
+    expect(track?.querySelector(".is-target")?.textContent).toBe("Lead");
   });
 
   it("says the level was inferred when no target was chosen", () => {
@@ -217,7 +231,7 @@ describe("report header", () => {
 });
 
 describe("full report clarity", () => {
-  it("keeps the finding hierarchy as diagnosis, solution, proposed wording and evidence", () => {
+  it("keeps diagnosis, advice and evidence without ready-made wording", () => {
     const report = createMockReport();
     report.issues[0].suggestion!.proposed = "Przykładowy bezpieczny zapis oparty wyłącznie na faktach z CV.";
     const { container } = render(<ReportView paid data={report} mockMode={false} locale="pl"/>);
@@ -225,9 +239,8 @@ describe("full report clarity", () => {
 
     const proposed = issues[0].querySelector(".issue-proposed");
     const evidence = issues[0].querySelector(".issue-evidence");
-    expect(proposed?.textContent).toContain("PROPONOWANY ZAPIS");
-    const proposedBeforeEvidence = proposed && evidence ? Boolean(proposed.compareDocumentPosition(evidence) & Node.DOCUMENT_POSITION_FOLLOWING) : false;
-    expect(proposedBeforeEvidence).toBe(true);
+    expect(proposed).toBeNull();
+    expect(issues[0].querySelector(".issue-grid")?.textContent).toContain("CO ZROBIĆ");
     // issues[0] carries exactly one evidenceRef in the mock fixture, so the singular label is correct here.
     expect(evidence?.textContent).toContain("DOWÓD Z CV");
     expect(issues[1].querySelector(".issue-evidence")).toBeNull();
@@ -302,33 +315,59 @@ it("uses the Mid presentation when auto detects a Mid profile", () => {
 });
 
 
-describe("revision summary access and repetition", () => {
-  it.each(["pl", "en"] as const)("shows copying only with full access (%s)", locale => {
+describe("self-directed revision guidance", () => {
+  it.each(["pl", "en"] as const)("keeps advice behind full access without copyable prompts or CV wording (%s)", locale => {
     const report = createMockReport("first_job", false, "frontend_developer", locale);
-    const title = locale === "pl" ? "Skopiuj podsumowanie" : "Copy summary";
+    report.issues[0].suggestion = { type: "rewrite", original: null, proposed: "Unique generated CV sentence", factualityNote: "Verify facts." };
+    const title = locale === "pl" ? "Jak samodzielnie poprawić CV" : "How to revise your CV";
     const unpaid = render(<ReportView paid={false} data={toTeaser(report)} mockMode={false} locale={locale}/>);
-    expect(screen.queryByRole("button", { name: title })).toBeNull();
+    expect(screen.queryByRole("heading", { name: title })).toBeNull();
     unpaid.unmount();
     const view = render(<ReportView paid data={report} mockMode={false} locale={locale}/>);
-    expect(screen.getByRole("button", { name: title })).toBeTruthy();
-    expect(view.container.querySelector(".improve")).toBeNull();
-    expect(view.container.querySelector(".revision-brief details")?.hasAttribute("open")).toBe(false);
+    expect(screen.getByRole("heading", { name: title })).toBeTruthy();
+    expect(screen.queryByText("Unique generated CV sentence")).toBeNull();
+    expect(view.container.querySelector(".issue-proposed")).toBeNull();
+    expect(view.container.querySelector(".revision-brief button, .revision-brief pre")).toBeNull();
+    expect(view.container.textContent).toContain(report.issues[0].explanation);
+    expect(view.container.textContent).toContain(report.issues[0].action);
   });
-  it("keeps a readable manual fallback when clipboard access fails", async () => {
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) } });
-    render(<ReportView paid data={createMockReport("first_job")} mockMode={false} locale="pl"/>);
-    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Skopiuj podsumowanie" })); });
-    expect(screen.getByText("Kopiowanie się nie udało. Rozwiń podsumowanie i skopiuj tekst ręcznie.")).toBeTruthy();
-    expect(screen.getByText("Pokaż tekst do skopiowania")).toBeTruthy();
+});
+
+it("preserves AI / LLM as one role in the report heading", () => {
+  const report = createAiRoleSample("ai_llm_engineer", "en");
+  render(<ReportView paid data={report} mockMode={false} locale="en" demo={{ name: "Fictional example", note: "Synthetic data", evidence: report.evidenceMap! }}/>);
+  expect(screen.getByRole("heading", { name: "Fictional example · AI / LLM Engineer" })).toBeTruthy();
+});
+
+
+describe("application report actions", () => {
+  beforeEach(() => {
+    Object.defineProperty(HTMLDialogElement.prototype, "showModal", { configurable: true, value: function () { this.setAttribute("open", ""); } });
+    Object.defineProperty(HTMLDialogElement.prototype, "close", { configurable: true, value: function () { this.removeAttribute("open"); } });
   });
-  it("copies the briefing locally without sending its content to analytics", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
-    render(<ReportView paid data={createMockReport("first_job")} mockMode={false} locale="pl"/>);
-    analytics.mockClear();
-    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Skopiuj podsumowanie" })); });
-    expect(writeText).toHaveBeenCalledTimes(1);
-    expect(writeText.mock.calls[0][0]).toContain("Nie dopisuj doświadczenia");
-    expect(analytics).not.toHaveBeenCalled();
+  it("does not delete on opening or cancellation and keeps a failed deletion in the dialog", async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: false }); vi.stubGlobal("fetch", fetch);
+    render(<ReportView paid data={createMockReport()} mockMode locale="pl"/>);
+    const trigger = screen.getByRole("button", { name: "Usuń raport" });
+    trigger.focus(); fireEvent.click(trigger);
+    let dialog = screen.getByRole("dialog", { name: "Usunąć raport?" });
+    expect(fetch).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Anuluj" }));
+    expect(fetch).not.toHaveBeenCalled(); expect(screen.queryByRole("dialog")).toBeNull(); expect(document.activeElement).toBe(trigger);
+    fireEvent.click(trigger); dialog = screen.getByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Usuń raport" }));
+    await waitFor(() => expect(within(dialog).getByRole("alert").textContent).toContain("Nie udało się usunąć raportu"));
+    expect(fetch).toHaveBeenCalledOnce(); expect(fetch).toHaveBeenCalledWith("/api/report", expect.objectContaining({ method: "DELETE" }));
+  });
+  it("submits the star rating and accuracy without an issue selector", async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true, sent: true }) }); vi.stubGlobal("fetch", fetch);
+    const report = createMockReport(); render(<ReportView paid data={report} mockMode locale="en"/>);
+    fireEvent.click(screen.getByRole("radio", { name: "Rating 4 of 5" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "Accuracy" })); fireEvent.click(screen.getByRole("option", { name: "Partly" }));
+    expect(screen.queryByRole("combobox", { name: "What is this about?" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Send feedback" }));
+    await waitFor(() => expect(screen.getByText(/Thank you/)).toBeTruthy());
+    const sent = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(sent).toEqual({ version: 0, rating: 4, accurate: "partly", comment: "", requestId: expect.any(String) });
   });
 });

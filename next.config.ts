@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { buildContentSecurityPolicy } from "./src/lib/security/csp";
+import { SCHOOL_HOST, schoolSiteOrigin } from "./src/lib/schools/urls";
 
 const googleAnalyticsEnabled = Boolean(process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID || process.env.NEXT_PUBLIC_GOOGLE_ADS_ID);
 const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
@@ -11,9 +12,13 @@ const csp = buildContentSecurityPolicy({
   stripeEnabled,
   turnstileEnabled,
   development: process.env.NODE_ENV === "development",
+  schoolStorageUrl: process.env.SCHOOL_BACKGROUND_UPLOADS_ENABLED === "true" ? process.env.SUPABASE_URL : undefined,
 });
 
 const nextConfig: NextConfig = {
+  distDir: process.env.CVUNFOLD_DEV_DIST_DIR || ".next",
+  // Login codes must not appear in the development server's request logs.
+  logging: { incomingRequests: { ignore: [/^\/dla-szkol\/potwierdz(?:\?|$)/, /^\/raport(?:\/|\?|$)/, /^\/en\/report(?:\/|\?|$)/, /^\/api\/report(?:\/|\?|$)/] } },
   poweredByHeader: false,
   // The Open Graph image routes load this font at runtime with `readFile`.
   // Keep it in Vercel's server trace even though the path is resolved dynamically.
@@ -21,9 +26,19 @@ const nextConfig: NextConfig = {
     "/*": ["./src/assets/og-font.ttf"],
   },
   experimental: { serverActions: { bodySizeLimit: "9mb" } },
+  async rewrites() {
+    if (!schoolSiteOrigin()) return [];
+    const has = [{ type: "host" as const, value: SCHOOL_HOST }];
+    return { beforeFiles: [
+      { source: "/", has, destination: "/dla-szkol" },
+      { source: "/robots.txt", has, destination: "/dla-szkol/robots.txt" },
+      { source: "/sitemap.xml", has, destination: "/dla-szkol/sitemap.xml" },
+    ], afterFiles: [], fallback: [] };
+  },
   async headers() {
     const privateRouteHeaders = { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, noimageindex" };
     return [
+      ...["/images/optimized/:path*", "/demo/schools/optimized/:path*"].map(source => ({ source, headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] })),
       {
         source: "/(.*)",
         headers: [
@@ -39,6 +54,7 @@ const nextConfig: NextConfig = {
         ],
       },
       { source: "/api/:path*", headers: [privateRouteHeaders] },
+      ...["panel", "potwierdz", "demo"].map(path => ({ source: `/dla-szkol/${path}/:path*`, headers: [privateRouteHeaders, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }] })),
       { source: "/analiza", headers: [privateRouteHeaders, { key: "Referrer-Policy", value: "no-referrer" }] },
       {
         source: "/raport",
@@ -50,6 +66,8 @@ const nextConfig: NextConfig = {
           { key: "Cross-Origin-Opener-Policy", value: googlePayCrossOriginOpenerPolicy },
         ],
       },
+      { source: "/raport/:id", headers: [privateRouteHeaders, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cross-Origin-Opener-Policy", value: googlePayCrossOriginOpenerPolicy }] },
+      { source: "/en/report/:id", headers: [privateRouteHeaders, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cross-Origin-Opener-Policy", value: googlePayCrossOriginOpenerPolicy }] },
       { source: "/en/analysis", headers: [privateRouteHeaders, { key: "Referrer-Policy", value: "no-referrer" }] },
       {
         source: "/en/report",
@@ -62,7 +80,14 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
+    const schoolsOrigin = schoolSiteOrigin();
     return [
+      ...(schoolsOrigin ? [
+        { source: "/dla-szkol", has: [{ type: "host" as const, value: "cvunfold.com" }], destination: `${schoolsOrigin}/`, permanent: true },
+        { source: "/dla-szkol/:path+", has: [{ type: "host" as const, value: "cvunfold.com" }], destination: `${schoolsOrigin}/dla-szkol/:path+`, permanent: true },
+        { source: "/en/for-schools/:path*", has: [{ type: "host" as const, value: "cvunfold.com" }], destination: `${schoolsOrigin}/en/for-schools/:path*`, permanent: true },
+        { source: "/dla-szkol", has: [{ type: "host" as const, value: SCHOOL_HOST }], destination: `${schoolsOrigin}/`, permanent: true },
+      ] : []),
       {
         source: "/:path*",
         has: [{ type: "host", value: "cvunfold.pl" }],

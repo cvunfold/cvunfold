@@ -1,7 +1,10 @@
+import { readSchoolPackage, schoolUploadLease } from "@/lib/schools/package";
+import { extractSchoolContact, type SchoolContact } from "@/lib/schools/contact";
 import { parseCareerContext } from "@/lib/ai/career-context";
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { createMockReport } from "@/lib/ai/mock-report";
+import { localLiveEvaluationEnabled } from "@/lib/ai/local-live-evaluation";
 import { validateEvidence, toTeaser } from "@/lib/ai/validate-report";
 import { getUnreadableDocumentDiagnostics, parseDocument } from "@/lib/document-parsing";
 import { getNotACvDiagnostics, validateCvText } from "@/lib/document-parsing/cv-detection";
@@ -23,6 +26,8 @@ import type { ReviewTelemetry } from "@/lib/ai/openai-review";
 import { verifyTurnstile } from "@/lib/security/turnstile";
 import { clickAttributionPresent, DEFAULT_LANDING_VARIANT } from "@/lib/audience";
 import { buildSafeAnalysisFailureLog } from "@/lib/observability/analysis-failure";
+import { requireSameOrigin, requireSchoolGroup, SchoolError, schoolFailure } from "@/lib/schools/server";
+import { pendingCodeFromRequest } from "@/lib/security/report-access-code";
 
 export const runtime = "nodejs";
 // The review call may legitimately run for minutes on a slower model. Without an
@@ -38,12 +43,34 @@ export async function POST(request: Request) {
   const ipKey = hmacIdentifier(clientIp);
   const requestedLanguage = request.headers.get("accept-language")?.toLowerCase().startsWith("en") ? "en" : "pl";
   let resolvedLocale: Locale = requestedLanguage;
-  if (!rateLimit(ipKey)) return NextResponse.json({
-    error: requestedLanguage === "en" ? "Too many attempts. Please try again shortly." : "Zbyt wiele prób. Spróbuj ponownie za chwilę.",
-    errorCategory: "rate_limit",
-  }, { status: 429, headers: { "Retry-After": "60" } });
+  let schoolSeat: { groupId: string; schoolId: string; analysisId: string; leaseId: string } | null = null;
+  let schoolExpiry: string | undefined;
+  let schoolPackagePaid = false;
   try {
     const form = await request.formData();
+    const schoolGroupId = String(form.get("schoolGroupId") || "");
+    let schoolContext: Awaited<ReturnType<typeof requireSchoolGroup>> | null = null;
+    let schoolStudentName: string | undefined;
+    if (schoolGroupId) {
+      requireSameOrigin(request);
+      if (!/^[a-f0-9-]{36}$/i.test(schoolGroupId)) throw new SchoolError(400, "Wybierz poprawną grupę.");
+      schoolContext = await requireSchoolGroup(request, schoolGroupId);
+      if (process.env.MOCK_MODE === "true" && process.env.NODE_ENV === "production") throw new SchoolError(503, "Prawdziwe analizy szkoły nie są jeszcze aktywne.");
+      schoolStudentName = String(form.get("schoolStudentName") || "").trim();
+      if (!schoolStudentName || schoolStudentName.length > 120 || form.get("schoolConsent") !== "true") throw new SchoolError(400, "Podaj nazwę kursanta i potwierdź prawo do przetwarzania CV.");
+      // The group determines a comparable rubric. Client fields cannot override it.
+      form.set("role", schoolContext.group.target_role);
+      form.set("seniority", schoolContext.group.target_seniority);
+      form.set("careerContext", schoolContext.group.target_seniority === "first_job" ? "first_job" : "standard");
+      form.set("plan", "full_review");
+      form.delete("jobDescription");
+      form.set("locale", "pl");
+    }
+    const quotaKey = schoolContext ? hmacIdentifier(`school-analysis:${schoolContext.member.schoolId}`) : ipKey;
+    if (!rateLimit(quotaKey, schoolContext ? 60 : 5)) return NextResponse.json({
+      error: requestedLanguage === "en" ? "Too many attempts. Please try again shortly." : "Zbyt wiele prób. Spróbuj ponownie za chwilę.",
+      errorCategory: "rate_limit",
+    }, { status: 429, headers: { "Retry-After": "60" } });
     const requestedLocale = form.get("locale");
     const locale: Locale = isLocale(requestedLocale) ? requestedLocale : "pl";
     resolvedLocale = locale;
@@ -51,14 +78,15 @@ export async function POST(request: Request) {
     const file = form.get("file");
     if (!(file instanceof File)) throw new Error("MISSING_FILE");
     validateUpload(file);
-    const targetRole = parseTargetRoleId(form.get("role") || "frontend_developer");
+    const targetRole = parseTargetRoleId(form.get("role"));
     if (!targetRole) throw new Error("INVALID_TARGET_ROLE");
     let seniority = parseSeniority(form.get("seniority") || "auto");
     if (!seniority) throw new Error("INVALID_TARGET_SENIORITY");
     const careerContext = parseCareerContext(form.get("careerContext") ?? (seniority === "first_job" ? "first_job" : "standard"));
     if (!careerContext) throw new Error("INVALID_CAREER_CONTEXT");
     if (careerContext === "first_job" && (seniority === "auto" || seniority === "junior")) seniority = "first_job";
-    const jobDescription = String(form.get("jobDescription") || "").trim();
+    const jobDescription = "";
+    if (form.get("jobDescription") || form.get("plan") === "job_match") throw new Error("INVALID_PLAN");
     const requestedPlan = String(form.get("plan") || "") as Plan | "";
     if (requestedPlan && requestedPlan !== "full_review" && requestedPlan !== "job_match") throw new Error("INVALID_PLAN");
     if (requestedPlan === "job_match" && !jobDescription) throw new Error("MISSING_JOB_DESCRIPTION");
@@ -70,7 +98,9 @@ export async function POST(request: Request) {
       broad_role_enum: targetRole,
       selected_seniority_enum: seniority,
     });
-    const plan: Plan = requestedPlan || (jobDescription ? "job_match" : "full_review");
+    const plan: Plan = "full_review";
+    const accessCodeHash = schoolContext ? null : pendingCodeFromRequest(request);
+    if (accessCodeHash) requireSameOrigin(request);
     const paidClick = clickAttributionPresent(attribution);
     // broad_role_enum above is the form field, which defaults to
     // frontend_developer and is recorded before the CV is read. These two say
@@ -89,27 +119,43 @@ export async function POST(request: Request) {
         ...(detectedRole ? { detected_role_enum: detectedRole } : {}),
       },
     }).catch(() => undefined);
-    await verifyTurnstile(String(form.get("turnstileToken") || ""), clientIp);
+    // School uploads have a verified, revocable session plus school-wide durable quotas.
+    // Anonymous uploads still require a fresh Turnstile token for each file.
+    if (!schoolContext) await verifyTurnstile(String(form.get("turnstileToken") || ""), clientIp);
     if (jobDescription.length > Number(process.env.MAX_JOB_DESCRIPTION_LENGTH || 20_000)) throw new Error("JOB_DESCRIPTION_TOO_LONG");
     const mockMode = process.env.MOCK_MODE === "true";
     const documentQaMode = mockMode && process.env.NODE_ENV !== "production" && process.env.DOCUMENT_QA_MODE === "true";
+    if (schoolContext) {
+      const entitlement = await readSchoolPackage(schoolGroupId);
+      schoolPackagePaid = entitlement.paid;
+      schoolExpiry = entitlement.paid ? entitlement.expiresAt : undefined;
+      schoolSeat = { groupId: schoolGroupId, schoolId: schoolContext.member.schoolId, analysisId: randomUUID(), leaseId: randomUUID() };
+      await schoolUploadLease("reserve", schoolSeat.groupId, schoolSeat.schoolId, schoolSeat.analysisId, schoolSeat.leaseId);
+    }
     let report;
+    let schoolContact: SchoolContact | undefined;
     let telemetry: ReviewTelemetry = { model: "mock", inputTokens: 0, outputTokens: 0, estimatedCost: 0,
       provenance: { promptVersion: "mock", promptVariant: activePromptVariant(), rubricVersion: "mock", pipelineVersion: REVIEW_PIPELINE_VERSION,
         model: "mock", requestedModel: "mock", fallbackUsed: false,
         modelConfig: { maxOutputTokens: null, timeoutMs: resolveReviewTimeoutMs(), fallbackDisabled: fallbackModelDisabled(), responseFormat: "cv_report", store: false },
         pricing: { inputUsdPerMillion: 0, outputUsdPerMillion: 0, source: "unknown" }, calibrationViolations: [] } };
     let documentKind: "pdf" | "docx" | undefined;
-    if (!mockMode) {
-      const quota = await consumeAnalysisQuota(ipKey);
-      if (!quota.allowed) return NextResponse.json(
+    if (!mockMode || localLiveEvaluationEnabled()) {
+      const quota = schoolContext
+        ? await consumeAnalysisQuota(quotaKey, schoolPackagePaid ? 60 : 20, schoolPackagePaid ? 120 : 50)
+        : await consumeAnalysisQuota(ipKey);
+      if (!quota.allowed) {
+        if (schoolSeat) await schoolUploadLease("release", schoolSeat.groupId, schoolSeat.schoolId, schoolSeat.analysisId, schoolSeat.leaseId);
+        return NextResponse.json(
         { error: locale === "en" ? "You have reached the free analysis limit. Please try again later." : "Osiągnięto limit bezpłatnych analiz. Spróbuj ponownie później.", errorCategory: "rate_limit" },
         { status: 429, headers: { "Retry-After": String(quota.retryAfterSeconds) } },
       );
+      }
       await validateSignature(file);
-      const parsed = await parseDocument(file);
+      const parsed = await parseDocument(file, { includeContact: Boolean(schoolContext) });
       documentKind = parsed.diagnostics.document_kind;
       validateCvText(parsed.text);
+      if (schoolContext) schoolContact = parsed.sourceContact ?? extractSchoolContact(parsed.text);
       const [review, ats] = await Promise.all([
         reviewWithOpenAI({ segments: parsed.segments, targetRole, targetSeniority: seniority, careerContext, jobDescription: jobDescription || undefined, locale }),
         runAtsChecker(file, parsed),
@@ -120,9 +166,10 @@ export async function POST(request: Request) {
       let ats;
       if (documentQaMode) {
         await validateSignature(file);
-        const parsed = await parseDocument(file);
+        const parsed = await parseDocument(file, { includeContact: Boolean(schoolContext) });
         documentKind = parsed.diagnostics.document_kind;
         validateCvText(parsed.text);
+        if (schoolContext) schoolContact = parsed.sourceContact ?? extractSchoolContact(parsed.text);
         ats = await runAtsChecker(file, parsed);
       }
       const mock = createMockReport(seniority, jobDescription.length > 0, targetRole, locale, careerContext);
@@ -133,16 +180,22 @@ export async function POST(request: Request) {
     const retentionDays = Number(process.env.REPORT_RETENTION_DAYS || 30);
     const { token, analysisId } = await saveAnalysisWithRetry(() => ({
       token: createAccessToken(),
-      analysis: { id: randomUUID(), createdAt: new Date(), expiresAt: new Date(Date.now() + retentionDays * 86_400_000),
+      analysis: { id: schoolSeat?.analysisId || randomUUID(), createdAt: new Date(), expiresAt: new Date(Math.min(Date.now() + retentionDays * 86_400_000, schoolExpiry ? Date.parse(schoolExpiry) : Infinity)),
         status: "complete" as const, paid: false, plan, locale, market, attribution,
-        report, feedback: [], durationMs: Date.now() - startedAt, model: telemetry.model, inputTokens: telemetry.inputTokens,
-        outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost, provenance: telemetry.provenance, documentKind },
+        report: { ...report, ...(schoolContact ? { schoolContact } : {}) }, feedback: [], durationMs: Date.now() - startedAt, model: telemetry.model, inputTokens: telemetry.inputTokens,
+        outputTokens: telemetry.outputTokens, estimatedAiCost: telemetry.estimatedCost, provenance: telemetry.provenance, documentKind,
+        ...(accessCodeHash ? { accessCodeHash, accessCodeGrantedAt: new Date() } : {}),
+        ...(schoolContext ? { schoolGroupId, schoolStudentName } : {}) },
     }));
+    if (schoolSeat) await schoolUploadLease("finish", schoolSeat.groupId, schoolSeat.schoolId, analysisId, schoolSeat.leaseId);
     await Promise.all([
       recordFunnelEvent({ name: "analysis_succeeded", analysisId, locale, market, properties: { plan, ...attribution, analysis_success: true, duration_ms: Date.now() - startedAt, model: telemetry.model, prompt_version: report.promptVersion, rubric_version: report.rubricVersion, input_tokens: telemetry.inputTokens, output_tokens: telemetry.outputTokens, estimated_cost: telemetry.estimatedCost, ...(paidClick ? { paid_click: true } : {}) } }),
     ]).catch(() => undefined);
-    return NextResponse.json({ accessToken: token, reportPath: reportPath(locale), teaser: toTeaser(report) });
+    return NextResponse.json(schoolContext ? { analysisId, teaser: toTeaser(report) } : { accessToken: token, reportPath: `${reportPath(locale)}/${analysisId}`, teaser: toTeaser(report) },
+      { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
+    if (schoolSeat) await schoolUploadLease("release", schoolSeat.groupId, schoolSeat.schoolId, schoolSeat.analysisId, schoolSeat.leaseId).catch(() => undefined);
+    if (error instanceof SchoolError) return schoolFailure(error);
     const rawCode = toSafeOpenAIErrorCode(error) || (error instanceof Error ? error.message : "ANALYSIS_FAILED");
     const code = error instanceof Error && /timeout/i.test(`${error.name} ${error.message}`) ? "ANALYSIS_TIMEOUT" : rawCode;
     const messages: Record<string, string> = { EMPTY_FILE: "Plik jest pusty.", FILE_TOO_LARGE: "Plik przekracza dozwolony rozmiar.",

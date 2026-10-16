@@ -3,6 +3,7 @@ import robots from "@/app/robots";
 import sitemap from "@/app/sitemap";
 import { articles } from "@/lib/content/articles";
 import { articlesEn } from "@/lib/content/articles-en";
+import { isPublishedArticle } from "@/lib/content/article-types";
 import {
   AUTHOR_ID,
   SITE_URL,
@@ -27,11 +28,16 @@ describe("public search surfaces", () => {
     expect(urls).not.toContain(absoluteUrl("/analiza"));
     expect(urls).not.toContain(absoluteUrl("/en/analysis"));
     expect(urls.some((url) => url.includes("/raport"))).toBe(false);
-    expect(entries).toHaveLength(18 + articles.length + articlesEn.length);
+    expect(urls).toContain(absoluteUrl("/dla-szkol"));
+    expect(urls).toContain(absoluteUrl("/en/for-schools"));
+    expect(urls).toContain(absoluteUrl("/historia-poprawy-cv"));
+    expect(urls).toContain(absoluteUrl("/en/cv-improvement-story"));
+    expect(urls).not.toContain(absoluteUrl("/artykuly/cv-frontend-developera-przyklad"));
+    expect(entries).toHaveLength(22 + articles.filter(isPublishedArticle).length + articlesEn.filter(isPublishedArticle).length);
 
     for (const entry of entries) {
       expect(entry.url.startsWith(SITE_URL)).toBe(true);
-      expect(entry.lastModified).toBeTruthy();
+      if (entry.url.includes("/artykuly/") || entry.url.includes("/en/articles/")) expect(entry.lastModified).toBeTruthy();
       expect(entry.changeFrequency).toBeUndefined();
       expect(entry.priority).toBeUndefined();
     }
@@ -73,9 +79,9 @@ describe("structured article data", () => {
         url: absoluteUrl("/o-metodologii"),
       },
     });
-    expect(blogPost?.wordCount).toBeGreaterThan(500);
+    expect(blogPost && "wordCount" in blogPost ? blogPost.wordCount : undefined).toBeGreaterThan(500);
     expect(blogPost && "image" in blogPost ? blogPost.image?.[0] : undefined)
-      .toBe(absoluteUrl("/opengraph-image"));
+      .toBe(absoluteUrl("/images/articles/kariera-ai-v2.webp"));
   });
 
   it("publishes the latest real article update in the sitemap", () => {

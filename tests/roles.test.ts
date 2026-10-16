@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { TARGET_ROLES, getTargetRoleProfile, parseTargetRoleId } from "@/lib/roles";
 
 describe("target roles", () => {
-  it("offers six optimized technical specializations and an experimental fallback", () => {
+  it("offers eight optimized technical specializations and an experimental fallback", () => {
     expect(TARGET_ROLES.map((role) => role.id)).toEqual([
       "frontend_developer",
       "backend_developer",
@@ -10,6 +10,8 @@ describe("target roles", () => {
       "mobile_developer",
       "qa_test_automation",
       "devops_platform",
+      "ai_llm_engineer",
+      "ai_automation_specialist",
       "other",
     ]);
   });

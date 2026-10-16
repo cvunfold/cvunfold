@@ -33,8 +33,9 @@ test("mock vertical slice keeps paid details server-side", async ({ page }) => {
   await expect(page.getByText("Zakres ownershipu jest niejasny")).toBeVisible();
   await page.getByRole("button", { name: "Wyślij feedback" }).click();
   await expect(page.getByText(/Dziękujemy/)).toBeVisible();
-  page.once("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "Usuń raport" }).click();
+  await page.getByRole("button", { name: "Usuń raport", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Usunąć raport?" })).toBeVisible();
+  await page.getByRole("dialog").getByRole("button", { name: "Usuń raport", exact: true }).click();
   await expect(page).toHaveURL(/\/\?deleted=1$/);
 });
 

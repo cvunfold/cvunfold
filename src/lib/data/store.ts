@@ -1,3 +1,4 @@
+import { insertFeedbackOnce, sameFeedback, FeedbackConflict } from "./feedback";
 import { createClient } from "@supabase/supabase-js";
 import type { CVReport } from "@/lib/ai/schemas/report";
 import type { ReviewProvenance } from "@/lib/ai/review-provenance";
@@ -12,8 +13,9 @@ import type { Locale } from "@/lib/i18n";
 import type { Market, Plan } from "@/lib/plans";
 import { runtimeEnvironmentFrom, type RuntimeEnvironment } from "@/lib/runtime-environment";
 import { hashToken } from "@/lib/security/tokens";
+import { hasReportCodeAccess } from "@/lib/security/report-access-code";
 
-export type AnalysisFeedback = { rating: number; accurate: string; issueId?: string; comment?: string };
+export type AnalysisFeedback = { submissionId?: string; reportVersion?: number; rating: number; accurate: string; issueId?: string; comment?: string };
 export type Analysis = {
   id: string; createdAt: Date; expiresAt: Date; tokenHash: string; status: "complete" | "deleted";
   paid: boolean; plan: Plan; locale: Locale; market: Market; attribution: Attribution;
@@ -23,8 +25,12 @@ export type Analysis = {
   // From the extraction diagnostics. Sizes how much traffic a scanned PDF costs
   // us: every unreadable_document failure so far has been a PDF with no text layer.
   documentKind?: "pdf" | "docx";
+  schoolGroupId?: string;
+  schoolStudentName?: string;
+  accessCodeHash?: string;
+  accessCodeGrantedAt?: Date;
 };
-export type Purchase = { transactionId: string; value: number; currency: string; plan: Plan };
+export type Purchase = { transactionId: string; value: number; currency: string; plan: Plan; paidAt?: string };
 export type PendingPayment = {
   analysisId: string; checkoutSessionId: string; plan: Plan; locale: Locale; market: Market; amountGross: number; currency: string;
 };
@@ -37,10 +43,13 @@ type Store = {
   events: Array<{ name: string; at: Date }>;
   eventDedupeKeys: Set<string>;
   anonymousRoleCounts: Map<string, number>;
+  revisions?: Map<string, Revision[]>;
 };
 type StoredAnalysisRow = {
+  access_code_hash?: string | null; access_code_granted_at?: string | null;
   id: string; created_at: string; expires_at: string; access_token_hash: string; status: "complete" | "deleted";
   paid_at: string | null; job_description_present: boolean; locale: Locale; market: Market; attribution: Attribution | null; duration_ms: number | null;
+  school_group_id?: string; school_student_name?: string; review_provenance?: ReviewProvenance; review_model?: string;
   reports: { full_report_json: CVReport } | Array<{ full_report_json: CVReport }> | null;
   feedback: Array<{ rating: number; accurate: string; issue_id: string | null; comment: string | null }> | null;
   payments: Array<{ stripe_checkout_session_id: string | null; amount_gross: number; currency: string; plan: Plan; status: string; paid_at: string | null }> | null;
@@ -50,6 +59,7 @@ const globalStore = globalThis as typeof globalThis & { __cvunfold?: Store };
 const store: Store = globalStore.__cvunfold ?? { analyses: new Map(), events: [], eventDedupeKeys: new Set(), anonymousRoleCounts: new Map() };
 store.eventDedupeKeys ??= new Set();
 store.anonymousRoleCounts ??= new Map();
+store.revisions ??= new Map();
 globalStore.__cvunfold = store;
 
 function supabaseClient() {
@@ -112,6 +122,8 @@ export async function saveAnalysis(token: string, analysis: Omit<Analysis, "toke
     review_provenance: analysis.provenance ?? null,
     document_kind: analysis.documentKind ?? null,
     runtime_environment: runtimeEnvironmentFrom(),
+    ...(analysis.accessCodeHash && analysis.accessCodeGrantedAt ? { access_code_hash: analysis.accessCodeHash, access_code_granted_at: analysis.accessCodeGrantedAt.toISOString() } : {}),
+    ...(analysis.schoolGroupId ? { school_group_id: analysis.schoolGroupId, school_student_name: analysis.schoolStudentName } : {}),
   });
   if (analysisError) throw new Error("SUPABASE_SAVE_FAILED");
   const { error: reportError } = await client.from("reports").insert({ analysis_id: analysis.id, report_version: analysis.report.version, full_report_json: analysis.report });
@@ -122,11 +134,25 @@ export async function saveAnalysis(token: string, analysis: Omit<Analysis, "toke
 }
 
 export async function getAnalysis(token: string): Promise<Analysis | undefined> {
+  return readAnalysis("access_token_hash", hashToken(token), token);
+}
+
+// Internal server read. Callers must authorize the analysis's school/group first.
+export async function getAnalysisById(id: string): Promise<Analysis | undefined> {
+  return readAnalysis("id", id);
+}
+
+async function readAnalysis(field: "id" | "access_token_hash", value: string, token?: string): Promise<Analysis | undefined> {
   const client = supabaseClient();
-  if (!client) return memoryGet(token);
+  if (!client) {
+    if (token) return memoryGet(token);
+    return [...store.analyses.values()].find(item => item.id === value && item.status === "complete" && item.expiresAt > new Date());
+  }
   const { data, error } = await client.from("analyses")
-    .select("id,created_at,expires_at,access_token_hash,status,paid_at,job_description_present,locale,market,attribution,duration_ms,reports(full_report_json),feedback(rating,accurate,issue_id,comment),payments(stripe_checkout_session_id,amount_gross,currency,plan,status,paid_at)")
-    .eq("access_token_hash", hashToken(token)).eq("status", "complete").gt("expires_at", new Date().toISOString()).maybeSingle();
+    // Read optional new entitlement columns when present without breaking old
+    // databases while codes are disabled. Only the whitelist below is returned.
+    .select("*,reports(full_report_json),feedback(rating,accurate,issue_id,comment),payments(stripe_checkout_session_id,amount_gross,currency,plan,status,paid_at)")
+    .eq(field, value).eq("status", "complete").gt("expires_at", new Date().toISOString()).maybeSingle();
   if (error) throw new Error("SUPABASE_READ_FAILED");
   if (!data) return undefined;
   const row = data as unknown as StoredAnalysisRow;
@@ -139,7 +165,9 @@ export async function getAnalysis(token: string): Promise<Analysis | undefined> 
     locale: row.locale, market: row.market, attribution: row.attribution || {}, durationMs: row.duration_ms || undefined,
     report: reportRelation.full_report_json,
     purchase: paidPayment ? { transactionId: paidPayment.stripe_checkout_session_id!, value: paidPayment.amount_gross / 100,
-      currency: paidPayment.currency.toUpperCase(), plan: paidPayment.plan } : undefined,
+      currency: paidPayment.currency.toUpperCase(), plan: paidPayment.plan, paidAt: paidPayment.paid_at || undefined } : undefined,
+    schoolGroupId: row.school_group_id, schoolStudentName: row.school_student_name, provenance: row.review_provenance, model: row.review_model,
+    accessCodeHash: row.access_code_hash || undefined, accessCodeGrantedAt: row.access_code_granted_at ? new Date(row.access_code_granted_at) : undefined,
     feedback: (row.feedback || []).map((item) => ({ rating: item.rating, accurate: item.accurate,
       ...(item.issue_id ? { issueId: item.issue_id } : {}), ...(item.comment ? { comment: item.comment } : {}) })),
   };
@@ -152,6 +180,22 @@ export async function markAnalysisPaid(token: string): Promise<boolean> {
     .eq("access_token_hash", hashToken(token)).eq("status", "complete").select("id").maybeSingle();
   if (error) throw new Error("SUPABASE_UPDATE_FAILED");
   return Boolean(data);
+}
+
+export async function grantReportCodeAccess(token: string, codeHash: string): Promise<boolean> {
+  if (!/^[a-f0-9]{64}$/.test(codeHash)) return false;
+  const item = await getAnalysis(token);
+  if (!item || item.schoolGroupId) return false;
+  if (hasReportCodeAccess(item)) return true;
+  const client = supabaseClient();
+  if (!client) { item.accessCodeHash = codeHash; item.accessCodeGrantedAt = new Date(); return true; }
+  const { data, error } = await client.from("analyses").update({ access_code_hash: codeHash, access_code_granted_at: new Date().toISOString() })
+    .eq("access_token_hash", hashToken(token)).eq("status", "complete").is("school_group_id", null)
+    .gt("expires_at", new Date().toISOString()).is("access_code_hash", null).select("id").maybeSingle();
+  if (error) throw new Error("ACCESS_CODE_SAVE_FAILED");
+  if (data) return true;
+  const current = await getAnalysis(token);
+  return Boolean(current && hasReportCodeAccess(current));
 }
 
 export async function savePendingPayment(payment: PendingPayment & { livemode: boolean }): Promise<void> {
@@ -200,13 +244,17 @@ export async function markStripePaymentTerminal(eventId: string, checkoutSession
   return Boolean(data);
 }
 
-export async function addAnalysisFeedback(token: string, feedback: AnalysisFeedback): Promise<boolean> {
+export async function addAnalysisFeedback(token: string, feedback: AnalysisFeedback, requestId?: string, version = 0): Promise<boolean> {
   const client = supabaseClient();
-  if (!client) { const item = memoryGet(token); if (!item) return false; item.feedback.push(feedback); return true; }
+  if (!client) { const item = memoryGet(token); if (!item) return false;
+    const existing = requestId ? item.feedback.find(row => row.submissionId === requestId) : undefined;
+    if (existing) { if ((existing.reportVersion || 0) !== version || !sameFeedback(existing, feedback)) throw new FeedbackConflict(); return true; }
+    item.feedback.push({ ...feedback, reportVersion: version, ...(requestId ? { submissionId: requestId } : {}) }); return true; }
   const { data: analysis, error: readError } = await client.from("analyses").select("id")
     .eq("access_token_hash", hashToken(token)).eq("status", "complete").gt("expires_at", new Date().toISOString()).maybeSingle();
   if (readError) throw new Error("SUPABASE_READ_FAILED");
   if (!analysis) return false;
+  if (requestId) { await insertFeedbackOnce(client, analysis.id, feedback, requestId, version); return true; }
   const { error } = await client.from("feedback").insert({ analysis_id: analysis.id, rating: feedback.rating, accurate: feedback.accurate,
     issue_id: feedback.issueId || null, comment: feedback.comment || null });
   if (error) throw new Error("SUPABASE_UPDATE_FAILED");
@@ -215,7 +263,7 @@ export async function addAnalysisFeedback(token: string, feedback: AnalysisFeedb
 
 export async function deleteAnalysis(token: string): Promise<boolean> {
   const client = supabaseClient();
-  if (!client) { const item = memoryGet(token); if (!item) return false; store.analyses.delete(item.tokenHash); return true; }
+  if (!client) { const item = memoryGet(token); if (!item) return false; store.analyses.delete(item.tokenHash); store.revisions?.delete(item.id); return true; }
   const { data, error } = await client.from("analyses").delete().eq("access_token_hash", hashToken(token)).select("id").maybeSingle();
   if (error) throw new Error("SUPABASE_DELETE_FAILED");
   return Boolean(data);
@@ -242,14 +290,17 @@ export async function rotateAnalysisToken(currentToken: string, nextToken: strin
 export async function cleanupExpired(now = new Date()): Promise<number> {
   const client = supabaseClient();
   if (!client) {
-    let count = 0; for (const [key, item] of store.analyses) if (item.expiresAt <= now) { store.analyses.delete(key); count += 1; }
+    let count = 0; for (const [key, item] of store.analyses) if (item.expiresAt <= now) { store.analyses.delete(key); store.revisions?.delete(item.id); count += 1; }
     return count;
   }
-  const [analysesResult, quotaResult] = await Promise.all([
+  const [analysesResult, quotaResult, schoolSessionsResult] = await Promise.all([
     client.from("analyses").delete({ count: "exact" }).lte("expires_at", now.toISOString()),
     client.from("analysis_rate_limits").delete().lte("expires_at", now.toISOString()),
+    // Activate only after the school migration and Auth configuration are installed.
+    ...(process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY
+      ? [client.from("school_sessions").delete().lte("expires_at", now.toISOString())] : []),
   ]);
-  if (analysesResult.error || quotaResult.error) throw new Error("SUPABASE_DELETE_FAILED");
+  if (analysesResult.error || quotaResult.error || schoolSessionsResult?.error) throw new Error("SUPABASE_DELETE_FAILED");
   return analysesResult.count || 0;
 }
 
@@ -269,8 +320,8 @@ const safePropertyEnums: Record<string, readonly string[]> = {
   landing_variant: ["developer"],
   unreadable_reason: ["pdf_no_text_items", "pdf_empty_text_items", "pdf_page_extraction_failed", "pdf_parse_failed", "pdf_encrypted", "docx_no_text", "docx_parse_failed", "text_below_threshold"],
   not_a_cv_reason: ["too_short", "no_career_anchor", "insufficient_structure", "low_score"],
-  broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
-  detected_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "other"],
+  broad_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "ai_llm_engineer", "ai_automation_specialist", "other"],
+  detected_role_enum: ["frontend_developer", "backend_developer", "fullstack_developer", "mobile_developer", "qa_test_automation", "devops_platform", "ai_llm_engineer", "ai_automation_specialist", "other"],
   role_source: ["autodetected", "user_chose", "not_detected", "detector_error", "not_run"],
   selected_seniority_enum: ["first_job", "auto", "junior", "mid", "senior", "lead"],
   handoff_origin: ["google_cpc", "other"],
@@ -497,4 +548,63 @@ export async function diagnostics(options: { windowDays?: number; runtimeEnviron
     deleted: values.filter((v) => v.status === "deleted").length, feedback: values.reduce((sum, v) => sum + v.feedback.length, 0),
     anonymousAudienceRoles: summarizeAnonymousRoleStatistics(anonymousRoleRows),
     events: Object.fromEntries([...new Set(store.events.map((e) => e.name))].map((name) => [name, store.events.filter((e) => e.name === name).length])) };
+}
+
+export type Revision = { version: number; requestId: string; leaseId: string; leaseUntil: number; status: "running" | "complete"; report?: CVReport; createdAt: string };
+export type RevisionSummary = Pick<Revision, "version" | "createdAt"> & { score: number };
+
+export async function getReportRevisions(item: Analysis): Promise<Revision[]> {
+  const client = supabaseClient();
+  if (!client) return store.revisions!.get(item.id) || [];
+  const { data, error } = await client.from("analysis_revisions").select("version,request_id,lease_id,lease_until,status,report,created_at").eq("analysis_id", item.id).order("version");
+  if (error) throw new Error("REVISION_STORAGE_UNAVAILABLE");
+  return (data || []).map(row => ({ version: row.version, requestId: row.request_id, leaseId: row.lease_id, leaseUntil: new Date(row.lease_until).getTime(), status: row.status, report: row.report || undefined, createdAt: row.created_at }));
+}
+
+export async function reserveReportRevision(token: string, requestId: string, leaseId: string, testAccess = false): Promise<{ version: number; status: "running" | "complete" }> {
+  const client = supabaseClient();
+  if (client) {
+    const { data, error } = await client.rpc("reserve_report_revision", { p_token_hash: hashToken(token), p_request_id: requestId, p_lease_id: leaseId, p_test: testAccess });
+    if (error) throw new Error(["REPORT_NOT_FOUND", "PAYMENT_REQUIRED", "REVISION_BUSY", "REVISION_LIMIT", "LEGACY_REPORT"].find(code => error.message.includes(code)) || "REVISION_STORAGE_UNAVAILABLE");
+    return data;
+  }
+  const item = memoryGet(token);
+  if (!item) throw new Error("REPORT_NOT_FOUND");
+  if (!item.paid && !hasReportCodeAccess(item) && !testAccess) throw new Error("PAYMENT_REQUIRED");
+  if (item.plan !== "full_review") throw new Error("LEGACY_REPORT");
+  const rows = store.revisions!.get(item.id) || [];
+  const completed = rows.find(row => row.requestId === requestId && row.status === "complete");
+  if (completed) return { version: completed.version, status: "complete" };
+  if (rows.some(row => row.status === "running" && row.leaseUntil > Date.now())) throw new Error("REVISION_BUSY");
+  const retained = rows.filter(row => row.status === "complete");
+  const version = [1,2].find(slot => !retained.some(row => row.version === slot));
+  if (!version) throw new Error("REVISION_LIMIT");
+  retained.push({ version, requestId, leaseId, leaseUntil: Date.now() + 480_000, status: "running", createdAt: new Date().toISOString() });
+  store.revisions!.set(item.id, retained);
+  return { version, status: "running" };
+}
+
+export async function finishReportRevision(token: string, leaseId: string, report: CVReport, provenance: ReviewProvenance | null, testAccess = false): Promise<boolean> {
+  const client = supabaseClient();
+  if (client) {
+    const { data, error } = await client.rpc("complete_report_revision", { p_token_hash: hashToken(token), p_lease_id: leaseId, p_report: report, p_provenance: provenance, p_test: testAccess });
+    if (error) throw new Error("REVISION_STORAGE_UNAVAILABLE");
+    return Boolean(data);
+  }
+  const item = memoryGet(token);
+  if (!item || (!item.paid && !hasReportCodeAccess(item) && !testAccess)) return false;
+  const row = store.revisions!.get(item.id)?.find(row => row.leaseId === leaseId && row.status === "running" && row.leaseUntil > Date.now());
+  if (!row) return false;
+  Object.assign(row, { status: "complete", report, createdAt: new Date().toISOString() });
+  return true;
+}
+
+export async function releaseReportRevision(token: string, leaseId: string): Promise<void> {
+  const item = await getAnalysis(token);
+  if (!item) return;
+  const client = supabaseClient();
+  if (client) {
+    const { error } = await client.from("analysis_revisions").delete().eq("analysis_id", item.id).eq("lease_id", leaseId).eq("status", "running");
+    if (error) throw new Error("REVISION_STORAGE_UNAVAILABLE");
+  } else store.revisions!.set(item.id, (store.revisions!.get(item.id) || []).filter(row => row.leaseId !== leaseId || row.status === "complete"));
 }

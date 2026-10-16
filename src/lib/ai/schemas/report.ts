@@ -1,6 +1,9 @@
+import type { EvidenceAssessment } from "../evidence-assessment";
 import type { CareerContext } from "../career-context";
 import { z } from "zod";
 import type { AtsCheckResult } from "@/lib/ats-checker/types";
+
+export const REPORT_SCHEMA_VERSION = "2.1.0";
 
 const evidenceRef = z.string().regex(/^seg_[a-z0-9_]+$/);
 const confidence = z.enum(["low", "medium", "high"]);
@@ -103,7 +106,7 @@ export type EvidenceMap = Record<string, string>;
 // ats is server-computed by the deterministic checker (@/lib/ats-checker), not
 // part of the model's own Zod-validated output, and rides along in the same
 // stored JSON blob. Optional only for reports created before this field existed.
-export type CVReport = ModelReport & { document: ModelReport["document"] & { careerContext?: CareerContext }; evidenceMap?: EvidenceMap; ats?: AtsCheckResult };
+export type CVReport = ModelReport & { document: ModelReport["document"] & { careerContext?: CareerContext }; evidenceMap?: EvidenceMap; evidenceAssessment?: { version: string; checks: EvidenceAssessment }; ats?: AtsCheckResult };
 
 export type TeaserSeverityCounts = { critical: number; important: number; minor: number };
 

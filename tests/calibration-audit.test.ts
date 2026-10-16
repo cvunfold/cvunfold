@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { auditCalibration } from "@/lib/ai/validate-report";
-import { getReviewPrompt } from "@/lib/ai/prompts";
+import { getArchivedReviewPrompt as getReviewPrompt } from "@/lib/ai/prompts/archive";
 import { RUBRIC_CATEGORY_KEYS, type RubricCategoryKey } from "@/lib/ai/schemas/report";
 
 const scores = (overrides: Record<string, number>) =>

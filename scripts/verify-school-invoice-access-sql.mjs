@@ -1,0 +1,55 @@
+import { createRequire } from 'node:module';
+import { readFile } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+const require = createRequire(import.meta.url);
+const { PGlite } = require(process.env.CVUNFOLD_PGLITE_MODULE || '@electric-sql/pglite');
+const db = new PGlite();
+await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;
+create table schools(id uuid primary key);create table school_members(user_id uuid primary key,school_id uuid references schools(id));
+create table school_groups(id uuid primary key,school_id uuid references schools(id));
+create table analyses(id uuid primary key,access_token_hash text unique,status text,expires_at timestamptz,paid_at timestamptz,job_description_present boolean,school_group_id uuid references school_groups(id) on delete cascade,
+locale text,market text,target_role text,target_seniority text,parse_quality text,prompt_version text,rubric_version text,review_model text,input_token_count integer,output_token_count integer,estimated_ai_cost numeric,completed_at timestamptz,duration_ms integer,review_provenance jsonb,document_kind text,runtime_environment text,school_student_name text,created_at timestamptz default now());
+create table reports(analysis_id uuid primary key references analyses(id) on delete cascade,report_version text,full_report_json jsonb);
+create table feedback(id uuid primary key default gen_random_uuid(),analysis_id uuid references analyses(id) on delete cascade);
+create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);`);
+for (const name of ['20261011190000_report_iterations.sql','20261012093043_school_report_iterations.sql','20261013101903_school_invoice_access.sql']) await db.exec(await readFile(new URL('../supabase/migrations/'+name,import.meta.url),'utf8'));
+
+const school=randomUUID(), otherSchool=randomUUID(), group=randomUUID(), secondGroup=randomUUID(), otherGroup=randomUUID(), user=randomUUID(), analysis=randomUUID(), lease=randomUUID();
+await db.query('insert into schools values($1),($2)',[school,otherSchool]);
+await db.query('insert into school_members values($1,$2)',[user,school]);
+await db.query('insert into school_groups values($1,$2),($3,$2),($4,$5)',[group,school,secondGroup,otherGroup,otherSchool]);
+await db.query("insert into school_upload_slots values($1,$2,$3,now()+interval '1 hour','running')",[analysis,group,lease]);
+await db.query("insert into analyses(id,school_group_id,status,expires_at,access_token_hash) values($1,$2,'complete',now()+interval '30 days','hash-invoice')",[analysis,group]);
+const until=new Date(Date.now()+86400000).toISOString(), request=randomUUID();
+const change=(id=school,req=request,action='activate',ref='FV/TEST/1',expiry=until)=>db.query('select change_school_invoice_access($1,$2,$3,$4,$5) as result',[id,req,action,ref,expiry]);
+const access=async id=>(await db.query('select school_group_access($1) as access',[id])).rows[0].access;
+assert.equal((await access(group)).active,false);
+assert.equal((await change()).rows[0].result.replayed,false);
+assert.equal((await access(group)).active,true);assert.equal((await access(secondGroup)).active,true);assert.equal((await access(otherGroup)).active,false);
+const before=(await db.query('select activated_at,expires_at from school_invoice_access where school_id=$1',[school])).rows[0];
+assert.equal((await change()).rows[0].result.replayed,true);
+assert.deepEqual((await db.query('select activated_at,expires_at from school_invoice_access where school_id=$1',[school])).rows[0],before);
+await assert.rejects(change(school,request,'activate','FV/DIFFERENT'),/SCHOOL_ACCESS_REQUEST_REUSED/);
+await assert.rejects(change(randomUUID(),randomUUID()),/SCHOOL_NOT_FOUND/);
+await assert.rejects(change(school,randomUUID(),'activate','',until),/INVALID_ACCESS_CHANGE/);
+const revisionLease=randomUUID(),revisionRequest=randomUUID();
+await db.query('select reserve_school_revision($1,$2,$3,$4,false)',[analysis,school,revisionRequest,revisionLease]);
+await assert.rejects(db.query('select reserve_school_revision($1,$2,$3,$4,false)',[analysis,otherSchool,randomUUID(),randomUUID()]),/REPORT_NOT_FOUND/);
+const revocation=randomUUID();await change(school,revocation,'revoke',null,null);
+assert.equal((await access(group)).active,false);
+assert.equal((await db.query('select school_report_access($1,true) as allowed',[group])).rows[0].allowed,false);
+assert.equal((await db.query('select complete_school_revision($1,$2,$3,$4,$5,false) as saved',[analysis,school,revisionLease,JSON.stringify({version:'test'}),'{}'])).rows[0].saved,false);
+await db.query("insert into school_group_packages(group_id,checkout_session_id,state,amount,currency,expires_at) values($1,'historical-only','paid',29900,'pln',now()+interval '30 days')",[group]);
+assert.equal((await access(group)).active,false); // No legacy fallback after invoice revocation.
+assert.equal((await change(school,request)).rows[0].result.replayed,true);assert.equal((await access(group)).active,false); // Old activation replay cannot undo a later revocation.
+await change(school,randomUUID(),'activate','FV/TEST/2',until);
+assert.equal((await db.query('select complete_school_revision($1,$2,$3,$4,$5,false) as saved',[analysis,school,revisionLease,JSON.stringify({version:'test'}),'{}'])).rows[0].saved,true);
+assert.equal((await db.query('select paid_at from analyses where id=$1',[analysis])).rows[0].paid_at,null);
+await db.query("update school_invoice_access set expires_at=now()-interval '1 second' where school_id=$1",[school]);
+assert.equal((await access(group)).active,false);assert.equal((await access(group)).state,'expired');
+assert.equal((await db.query('select count(*)::int as n from school_access_changes')).rows[0].n,3);
+const rights=(await db.query("select has_table_privilege('anon','school_invoice_access','SELECT') as read,has_function_privilege('authenticated','change_school_invoice_access(uuid,uuid,text,text,timestamptz)','EXECUTE') as activate,has_function_privilege('service_role','change_school_invoice_access(uuid,uuid,text,text,timestamptz)','EXECUTE') as owner,has_function_privilege('service_role','fulfill_school_package(uuid,text,text)','EXECUTE') as stripe,(select relrowsecurity from pg_class where relname='school_invoice_access') as rls")).rows[0];
+assert.deepEqual(rights,{read:false,activate:false,owner:true,stripe:false,rls:true});
+console.log('PASS invoice SQL: whole-school scope, isolated schools, idempotent activation/revocation, conflict detection, historical rights without fallback, expiry, revision authorization, no paid report flag, audit and server-only permissions.');
+await db.close();

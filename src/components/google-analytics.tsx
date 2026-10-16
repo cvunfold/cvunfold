@@ -20,6 +20,8 @@ import { googleCampaignFields } from "@/lib/analytics/safe-attribution";
 import { brand } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n";
 import { DEFAULT_LANDING_VARIANT } from "@/lib/audience";
+import { isPrivateSchoolPage, isSchoolOffer } from "@/lib/analytics/school-pages";
+import { captureLinkedInAttribution, clearLinkedInAttribution } from "@/lib/analytics/linkedin-client";
 
 type Props = { analyticsId?: string; adsId?: string; adsConversionLabel?: string };
 
@@ -28,9 +30,10 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
   const [choice, setChoice] = useState<ConsentChoice | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const lastTrackedPage = useRef("");
-  const enabled = Boolean(analyticsId || adsId);
+  const linkedInEnabled = process.env.NEXT_PUBLIC_LINKEDIN_CONVERSIONS_ENABLED === "true";
+  const enabled = Boolean(analyticsId || adsId || linkedInEnabled);
   const locale: Locale = pathname.startsWith("/en") ? "en" : "pl";
-  const isSensitivePage = pathname === "/raport" || pathname === "/en/report" || pathname.includes("/raport/");
+  const isSensitivePage = pathname === "/raport" || pathname === "/en/report" || pathname.startsWith("/en/report/") || pathname.includes("/raport/") || isPrivateSchoolPage(pathname);
 
   useEffect(() => {
     configureAdsPurchaseDestination(adsId && adsConversionLabel ? `${adsId}/${adsConversionLabel}` : undefined);
@@ -50,7 +53,11 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
   }, []);
 
   useEffect(() => {
-    if (!enabled || choice !== "granted") return;
+    if (linkedInEnabled && !isSensitivePage) captureLinkedInAttribution();
+  }, [choice, isSensitivePage, linkedInEnabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled || isSensitivePage || choice !== "granted") return;
     const attribution = readSafeAttribution();
     const pagePath = safeAnalyticsPath(pathname);
     const pageLocation = safeAnalyticsLocation(pathname, window.location.origin, window.location.search);
@@ -72,7 +79,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
       document.head.appendChild(script);
     }
     markAnalyticsReady();
-  }, [adsId, analyticsId, choice, enabled, pathname]);
+  }, [adsId, analyticsId, choice, enabled, isSensitivePage, pathname]);
 
   useEffect(() => {
     if (!enabled || isSensitivePage || choice !== "granted") return;
@@ -87,6 +94,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
     if (pathname === "/" || pathname === "/en") {
       trackAnalyticsEvent("landing_view", { locale, market: locale, landing_variant: DEFAULT_LANDING_VARIANT });
     }
+    if (isSchoolOffer(pathname)) trackAnalyticsEvent("school_offer_viewed", { locale });
   }, [choice, enabled, isSensitivePage, locale, pathname]);
 
   useEffect(() => {
@@ -95,6 +103,9 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
       const element = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-analytics-event]");
       if (!element) return;
       const eventName = element.dataset.analyticsEvent;
+      if (isSchoolOffer(pathname) && (eventName === "school_demo_clicked" || eventName === "school_contact_clicked" || eventName === "school_email_clicked")) {
+        trackAnalyticsEvent(eventName, { locale, school_placement: element.dataset.analyticsPlacement || "contact" });
+      }
       if (eventName === "hero_cta_clicked") {
         trackAnalyticsEvent(eventName, {
           locale,
@@ -106,7 +117,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
     }
     document.addEventListener("click", trackClick);
     return () => document.removeEventListener("click", trackClick);
-  }, [enabled, isSensitivePage, locale]);
+  }, [enabled, isSensitivePage, locale, pathname]);
 
   if (!enabled || isSensitivePage) return null;
 
@@ -117,6 +128,7 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
     setSettingsOpen(false);
     if (next === "granted") flushPendingAnalytics();
     else {
+      clearLinkedInAttribution();
       resetAnalyticsReady();
       clearPendingAnalytics();
       window.gtag?.("consent", "update", {
@@ -133,14 +145,14 @@ export function GoogleAnalytics({ analyticsId, adsId, adsConversionLabel }: Prop
   const copy = locale === "en" ? {
     eyebrow: "PRIVACY",
     title: `Help us improve ${brand.name}`,
-    body: "With your consent, we use Google tools for statistics and ad measurement. We never send CV, job-description or report content.",
+    body: "With your consent, we use Google and LinkedIn to measure visits and ad-driven purchases. We never send CV, job-description or report content. You can change your choice at any time.",
     reject: "Necessary only",
     accept: "Accept",
     settings: "Privacy settings",
   } : {
     eyebrow: "PRYWATNOŚĆ",
     title: `Pomóż nam ulepszać ${brand.name}`,
-    body: "Za zgodą użyjemy narzędzi Google do statystyk i pomiaru reklam. Nie wysyłamy treści CV, ogłoszeń ani raportów.",
+    body: "Za zgodą użyjemy Google i LinkedIn do pomiaru wizyt i zakupów z reklam. Nie wysyłamy treści CV, ogłoszeń ani raportów. W każdej chwili możesz zmienić wybór.",
     reject: "Tylko niezbędne",
     accept: "Zgadzam się",
     settings: "Ustawienia prywatności",

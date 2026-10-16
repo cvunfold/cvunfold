@@ -160,3 +160,17 @@ describe("privacy-safe document extraction diagnostics", () => {
     await expect(unreadableDiagnostics(file)).resolves.toMatchObject({ reason: "pdf_encrypted" });
   });
 });
+
+describe("opt-in school contact metadata", () => {
+  it("extracts contacts before masking while keeping text and model segments redacted", async () => {
+    const text = "Anna Testowa\nEmail: anna@example.com\nTelefon: +48 501 234 567\nProjekty\n" + "React TypeScript projekt własny z walidacją. ".repeat(20);
+    extractRawText.mockResolvedValue({ value: text, messages: [] });
+    const file = new File([Buffer.from("PK\u0003\u0004synthetic")], "fictional.docx", { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    const school = await parseDocument(file, { includeContact: true });
+    expect(school.sourceContact).toEqual({ emails: ["anna@example.com"], phones: [{ label: "+48 501 234 567", number: "+48501234567" }] });
+    expect(school.text).not.toContain("anna@example.com");
+    expect(school.text).not.toContain("501 234 567");
+    expect(JSON.stringify(school.segments)).not.toContain("anna@example.com");
+    expect((await parseDocument(file)).sourceContact).toBeUndefined();
+  });
+});

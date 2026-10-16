@@ -10,8 +10,9 @@ import {
   sanitizeMarketingAttribution,
 } from "./safe-attribution";
 import { brandStorageKey } from "@/lib/brand";
+import { MEASUREMENT_CONSENT_VERSION } from "./linkedin-shared";
 
-export const CONSENT_STORAGE_KEY = brandStorageKey("google-consent");
+export const CONSENT_STORAGE_KEY = brandStorageKey(`measurement-consent:${MEASUREMENT_CONSENT_VERSION}`);
 const LEGACY_CONSENT_STORAGE_KEY = "cvunfold_google_consent_v1";
 export const CONSENT_UPDATED_EVENT = "cv-review:consent-updated";
 
@@ -45,7 +46,7 @@ export function resetAnalyticsReady(): void {
 }
 
 export function safeAnalyticsPath(pathname: string): string {
-  if (pathname === "/raport" || pathname === "/en/report" || pathname.includes("/raport/")) return pathname.startsWith("/en") ? "/en/report" : "/raport";
+  if (pathname === "/raport" || pathname === "/en/report" || pathname.startsWith("/en/report/") || pathname.includes("/raport/")) return pathname.startsWith("/en") ? "/en/report" : "/raport";
   return pathname.slice(0, 160);
 }
 
@@ -59,13 +60,16 @@ export function safeAnalyticsLocation(pathname: string, origin: string, search =
 
 export function readConsent(): ConsentChoice | null {
   if (typeof window === "undefined") return null;
-  const value = window.localStorage.getItem(CONSENT_STORAGE_KEY) || window.localStorage.getItem(LEGACY_CONSENT_STORAGE_KEY);
-  if (!window.localStorage.getItem(CONSENT_STORAGE_KEY) && (value === "granted" || value === "denied")) window.localStorage.setItem(CONSENT_STORAGE_KEY, value);
-  return value === "granted" || value === "denied" ? value : null;
+  try {
+    const value = window.localStorage.getItem(CONSENT_STORAGE_KEY);
+    if (value === "granted" || value === "denied") return value;
+    const previous = window.localStorage.getItem(brandStorageKey("google-consent")) || window.localStorage.getItem(LEGACY_CONSENT_STORAGE_KEY);
+    return previous === "denied" ? "denied" : null;
+  } catch { return null; }
 }
 
 export function writeConsent(value: ConsentChoice): void {
-  window.localStorage.setItem(CONSENT_STORAGE_KEY, value);
+  try { window.localStorage.setItem(CONSENT_STORAGE_KEY, value); } catch { return; }
   window.dispatchEvent(new CustomEvent(CONSENT_UPDATED_EVENT, { detail: value }));
 }
 
