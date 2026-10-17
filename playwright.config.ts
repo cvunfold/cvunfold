@@ -4,6 +4,8 @@ const port = 3107;
 export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 45_000,
+  // A clean CI runner compiles each first-visited route on demand.
+  expect: { timeout: 15_000 },
   fullyParallel: false,
   workers: 2,
   webServer: {
