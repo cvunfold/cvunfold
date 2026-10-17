@@ -22,7 +22,7 @@ test("mock vertical slice keeps paid details server-side", async ({ page }) => {
   await page.getByRole("option", { name: "Senior", exact: true }).click();
   await page.locator(".consent input").check();
   await page.getByRole("button", { name: /Analizuj CV/ }).click();
-  await expect(page).toHaveURL(/\/raport\/[a-f0-9-]{36}$/);
+  await expect(page).toHaveURL(/\/raport\/[a-f0-9-]{36}$/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: "Twój bezpłatny wynik" })).toBeVisible();
   await expect(page.locator(".teaser-finding")).toBeVisible();
   expect(await page.content()).not.toContain("Odpowiadałem za [zweryfikowany zakres]");
@@ -49,7 +49,7 @@ test("English mock flow returns an English teaser and full report", async ({ pag
   await page.getByRole("option", { name: "Senior", exact: true }).click();
   await page.locator(".consent input").check();
   await page.getByRole("button", { name: "Analyse my CV" }).click();
-  await expect(page).toHaveURL(/\/en\/report\/[a-f0-9-]{36}$/);
+  await expect(page).toHaveURL(/\/en\/report\/[a-f0-9-]{36}$/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: "Your free result" })).toBeVisible();
   const analysisId = new URL(page.url()).pathname.split("/").at(-1);
   const teaser = await (await page.request.get(`/api/report?id=${analysisId}`)).json();

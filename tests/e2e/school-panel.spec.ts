@@ -29,7 +29,7 @@ test("school demo, report switching, synthetic batch and protected entry", async
   await page.getByRole("button", { name: "Pokaż wszystkich" }).click();
   await expect(page.getByRole("heading", { name: "Kursanci (10)" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.screenshot({ path: `/private/tmp/cvunfold-schools-${test.info().project.name}.png`, fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("school-panel.png"), fullPage: true });
   await page.goto("/dla-szkol/panel");
   await expect(page.getByRole("heading", { name: "Panel Twojej szkoły" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Kursanci (10)" })).toHaveCount(0);
