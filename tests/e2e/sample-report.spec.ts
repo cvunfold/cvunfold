@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("public sample report uses clearly fictional evidence", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".landing-page > .site-header")).toHaveCSS("position", "sticky");
-  await page.getByRole("link", { name: "Zobacz przykładowy raport" }).click();
+  await page.getByRole("link", { name: "Przejrzyj przykładowy raport", exact: true }).click();
   await expect(page).toHaveURL(/\/przykladowy-raport$/);
   await expect(page.getByRole("heading", { name: "Przykładowy raport CV" })).toBeVisible();
   await expect(page.getByText("Dane syntetyczne · fikcyjna kandydatka").last()).toBeVisible();

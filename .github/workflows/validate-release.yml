@@ -31,3 +31,5 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright test tests/e2e/mock-flow.spec.ts tests/e2e/sample-report.spec.ts tests/e2e/school-offer.spec.ts tests/e2e/school-panel.spec.ts

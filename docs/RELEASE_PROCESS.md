@@ -7,6 +7,9 @@ This runs lint, unit tests, the production build, and TypeScript checking. The
 lockfile is committed and installation must use `pnpm install --frozen-lockfile`.
 Unit tests run in an isolated mock environment without inherited deployment
 credentials. The production build still receives the configured environment.
+GitHub also checks the individual mock flow, public sample report, school offer,
+and school demo in desktop and mobile Chromium before allowing a merge. Email
+delivery is covered separately by unit tests with a mocked provider.
 
 Keep all runtime sources, public assets, scripts required by the build, tests,
 and migration SQL in Git. Keep environment files, credentials, database CLI state,
