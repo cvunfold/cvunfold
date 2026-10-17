@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n";
+import { rescaleLegacyEvidenceScore, usesFullEvidenceScale } from "@/lib/rubrics/score-scale";
 
 type ScoreRingProps = {
   score: number;
@@ -7,6 +8,7 @@ type ScoreRingProps = {
   locale?: Locale;
   statusLabel?: string;
   captionBelow?: boolean;
+  rubricVersion?: string;
 };
 
 // Bands follow the prompt's own score calibration, so the ring cannot tell the
@@ -20,8 +22,9 @@ const BANDS = [
   { min: 0, tone: "critical", pl: "Dokument nie broni poziomu", en: "Does not support the level" },
 ] as const;
 
-export function scoreBand(score: number) {
-  return BANDS.find((band) => score >= band.min) ?? BANDS[BANDS.length - 1];
+export function scoreBand(score: number, rubricVersion?: string) {
+  const fullScale = usesFullEvidenceScale(rubricVersion);
+  return BANDS.find(band => score >= (fullScale && band.min > 0 ? rescaleLegacyEvidenceScore(band.min) : band.min)) ?? BANDS[BANDS.length - 1];
 }
 
 export function ScoreRing({
@@ -31,8 +34,9 @@ export function ScoreRing({
   ariaLabel = `Wynik ${score} na 100`,
   statusLabel,
   captionBelow = false,
+  rubricVersion,
 }: ScoreRingProps) {
-  const band = scoreBand(score);
+  const band = scoreBand(score, rubricVersion);
   const style = { "--score": `${score * 3.6}deg` } as React.CSSProperties;
   const status = statusLabel ?? (locale === "en" ? band.en : band.pl);
   const ring = <div className={`score-ring${compact ? " compact" : ""} tone-${band.tone}`} style={style} aria-label={ariaLabel}>

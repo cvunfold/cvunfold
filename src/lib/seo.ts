@@ -24,9 +24,12 @@ export function articleWordCount(article: Article): number {
   const text = [
     article.title,
     article.intro,
+    ...(article.openingParagraphs ?? []),
     ...article.sections.flatMap((section) => [
       section.heading,
       ...section.paragraphs,
+      ...(section.blocks ?? []).flatMap(block => block.type === "list" ? block.items : [block.text]),
+      ...(section.paragraphsAfterExample ?? []),
       ...(section.example ? [section.example.before, section.example.after, section.example.note] : []),
     ]),
     ...article.checklist,
@@ -35,9 +38,7 @@ export function articleWordCount(article: Article): number {
 }
 
 export function articleImageUrl(article: Article, locale: Locale = "pl"): string {
-  void article;
-  void locale;
-  return absoluteUrl("/opengraph-image");
+  return absoluteUrl(article.cover?.src ?? (locale === "pl" ? "/opengraph-image" : "/en/opengraph-image"));
 }
 
 export function buildArticleStructuredData(article: Article, locale: Locale = "pl") {
@@ -55,8 +56,8 @@ export function buildArticleStructuredData(article: Article, locale: Locale = "p
         description: article.description,
         articleSection: article.category,
         image: [articleImageUrl(article, locale)],
-        datePublished: `${article.publishedAt}T09:00:00+02:00`,
-        dateModified: `${article.updatedAt ?? article.publishedAt}T09:00:00+02:00`,
+        ...(article.publishedAt ? { datePublished: `${article.publishedAt}T09:00:00+02:00` } : {}),
+        ...(article.updatedAt || article.publishedAt ? { dateModified: `${article.updatedAt ?? article.publishedAt}T09:00:00+02:00` } : {}),
         inLanguage: language,
         isAccessibleForFree: true,
         wordCount: articleWordCount(article),

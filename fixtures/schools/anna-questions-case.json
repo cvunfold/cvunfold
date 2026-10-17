@@ -1,0 +1,18 @@
+{
+  "name": "Anna Kowalska",
+  "sourceUrl": "/demo/schools/anna-questions-start.pdf",
+  "sections": [
+    ["Profil", "Szukam pierwszej pracy jako Frontend Developer po sześciomiesięcznym kursie React i TypeScript. Wcześniej pracowałam w obsłudze klientów sklepu internetowego."],
+    ["Projekty", "StudyTogether, 2026. Projekt końcowy kursu, aplikacja do umawiania wspólnej nauki. React, TypeScript, REST API, CSS Modules. Czteroosobowy zespół przygotował logowanie, listę spotkań, wyszukiwarkę i formularz dodawania spotkania. Współtworzyłam interfejs aplikacji i uczestniczyłam w cotygodniowych spotkaniach. Projekt pokazaliśmy na prezentacji końcowej. Repozytorium: https://example.com/anna/study-together"],
+    ["Umiejętności", "React, TypeScript, HTML, CSS, JavaScript i Git. Podstawy komponentów, hooków, typowania propsów oraz pracy z REST API."],
+    ["Doświadczenie", "2022-2025, konsultantka sklepu internetowego. Wyjaśnianie statusu zamówień, odpowiedzi na reklamacje i współpraca z magazynem. Nie była to rola programistyczna."],
+    ["Edukacja", "2026, Akademia Kodu, kurs Frontend. 2021, technikum ekonomiczne. Angielski B1."]
+  ],
+  "factLedger": {
+    "ownership": "Anna samodzielnie napisała pola formularza dodawania spotkania i walidację pustego tytułu. Formularz był jej zadaniem w projekcie kursowym. Pozostałe funkcje przygotowali inni członkowie zespołu. Mentor pokazał wspólny klient API i pomógł przy połączeniu formularza z aplikacją. Anna nie pisała backendu ani logowania.",
+    "verification": "Anna ręcznie sprawdziła pusty tytuł, tytuł z samymi spacjami i poprawne zgłoszenie. Przy tytule z samymi spacjami wykryła błąd: zgłoszenie przechodziło. Poprawiła warunek walidacji, używając trim, i ponownie sprawdziła te same trzy scenariusze. Nie pisała testów automatycznych i nie sprawdzała obciążenia ani bezpieczeństwa aplikacji.",
+    "structure": "Formularz był komponentem MeetingForm. Wartości pól przechowywała w lokalnym useState, typowała propsy w TypeScript i przekazywała poprawne dane przez callback onSubmit. Integracja wykorzystywała klient API przygotowany przez mentora. Anna nie projektowała architektury całej aplikacji.",
+    "collaboration": "Na przeglądzie projektu kolega wskazał, że sam czerwony obrys nie wyjaśnia błędu pola. Anna dodała tekstowy komunikat pod pustym polem i sprawdziła widok wspólnie z kolegą. Zmianę oddała w swojej gałęzi i pull requeście. Nie ma danych o użytkownikach ani wyniku komercyjnym projektu.",
+    "limits": "To projekt kursowy, bez wdrożenia komercyjnego. Anna nie ma doświadczenia zawodowego w programowaniu. Nie ma mierników przychodów, liczby użytkowników ani procentowych rezultatów. Wsparcie mentora musi pozostać widoczne."
+  }
+}

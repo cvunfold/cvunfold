@@ -1,4 +1,6 @@
 const plToEn = {
+  "cv-frontend-developera-przyklad": "frontend-developer-cv-example",
+  "cv-bez-doswiadczenia-w-it": "tech-cv-with-no-experience",
   "jak-nie-dac-sie-zastapic-przez-ai": "how-to-stay-relevant-in-the-age-of-ai",
   "dlaczego-ownership-jest-wazny-dla-pracodawcow": "why-ownership-matters-to-employers",
   "jak-pokazac-seniority-w-cv": "how-to-show-seniority-in-a-cv",

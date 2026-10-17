@@ -1,56 +1,26 @@
 import type { Seniority } from "@/lib/rubrics/technical-v1";
 import type { CareerContext } from "../career-context";
-import { careerPolicy, CAREER_POLICY_VERSION } from "../career-context";
-import { PROMPT_VERSION, SYSTEM_PROMPT } from "./review-pl-v3";
-import { EN_PROMPT_VERSION, EN_SYSTEM_PROMPT } from "./review-en-v1";
-import { EN2_PROMPT_VERSION, EN2_SYSTEM_PROMPT } from "./review-en-v2";
-import { EN3_PROMPT_VERSION, EN3_SYSTEM_PROMPT } from "./review-en-v3";
-import { PL_RC_PROMPT_VERSION, PL_RC_SYSTEM_PROMPT } from "./review-pl-v1_6-rc1";
-import { PL_RC2_PROMPT_VERSION, PL_RC2_SYSTEM_PROMPT } from "./review-pl-v1_6-rc2";
-import { PL_RC3_PROMPT_VERSION, PL_RC3_SYSTEM_PROMPT } from "./review-pl-v1_6-rc3";
-import { PL_RC4_PROMPT_VERSION, PL_RC4_SYSTEM_PROMPT } from "./review-pl-v1_6-rc4";
+import type { TargetRoleId } from "@/lib/roles";
 import type { Locale } from "@/lib/i18n";
-
-// The single place that decides which review prompt is live. Every recorded
-// promptVersion originates here, so a stored report can always be traced back to
-// the exact wording that produced it.
-export const REVIEW_PROMPT_VARIANTS = ["stable", "v1.6-rc1", "v1.6-rc2", "v1.6-rc3", "v1.6-rc4"] as const;
+import { SHARED_POLICY, SHARED_POLICY_VERSION } from "./shared";
+import { LANGUAGE_POLICIES, LANGUAGE_POLICY_VERSION } from "./languages";
+import { ROLE_POLICIES, ROLE_POLICY_VERSION } from "./roles";
+import { STAGE_POLICIES, STAGE_POLICY_VERSION } from "./stages";
+import { SIGNAL_POLICY, SCOPE_POLICY, CATEGORY_POLICY_VERSION, CATEGORY_SIGNALS } from "./rubric";
+export const REVIEW_PROMPT_VARIANTS = ["modular-v3"] as const;
 export type ReviewPromptVariant = (typeof REVIEW_PROMPT_VARIANTS)[number];
-
-export type ResolvedReviewPrompt = {
-  version: string;
-  systemPrompt: string;
-  variant: ReviewPromptVariant;
-};
-
-export function activePromptVariant(): ReviewPromptVariant {
-  const requested = process.env.CV_REVIEW_PROMPT_VARIANT?.trim();
-  return REVIEW_PROMPT_VARIANTS.includes(requested as ReviewPromptVariant)
-    ? requested as ReviewPromptVariant
-    : "stable";
+export const REVIEW_PROMPT_VERSION = "review-modular-v3.1.2";
+export type ResolvedReviewPrompt = { version: string; systemPrompt: string; assessmentPrompt: string; variant: ReviewPromptVariant };
+// Deprecated environment variants identify archived experiments. They cannot
+// silently restore a superseded calibration in the current pipeline.
+export function activePromptVariant(): ReviewPromptVariant { return "modular-v3"; }
+export function resolveEvaluationStage(seniority: Seniority, context: CareerContext): Seniority {
+  return (seniority === "auto" || seniority === "junior") && context === "first_job" ? "first_job" : seniority;
 }
-
-function getBaseReviewPrompt(locale: Locale): ResolvedReviewPrompt {
-  const variant = activePromptVariant();
-  if (locale === "en") {
-    // v1.6-rc1/rc2 were Polish-only canaries, deliberately: English stayed on
-    // its stable prompt so each measured the Polish rewrite alone. rc3 is where
-    // review-en-v2 catches up, so from rc3 onward both locales move together
-    // under the same variant selector.
-    if (variant === "v1.6-rc4") return { version: EN3_PROMPT_VERSION, systemPrompt: EN3_SYSTEM_PROMPT, variant };
-    if (variant === "v1.6-rc3") return { version: EN2_PROMPT_VERSION, systemPrompt: EN2_SYSTEM_PROMPT, variant };
-    return { version: EN_PROMPT_VERSION, systemPrompt: EN_SYSTEM_PROMPT, variant: "stable" };
-  }
-  if (variant === "v1.6-rc4") return { version: PL_RC4_PROMPT_VERSION, systemPrompt: PL_RC4_SYSTEM_PROMPT, variant };
-  if (variant === "v1.6-rc3") return { version: PL_RC3_PROMPT_VERSION, systemPrompt: PL_RC3_SYSTEM_PROMPT, variant };
-  if (variant === "v1.6-rc2") return { version: PL_RC2_PROMPT_VERSION, systemPrompt: PL_RC2_SYSTEM_PROMPT, variant };
-  if (variant === "v1.6-rc1") return { version: PL_RC_PROMPT_VERSION, systemPrompt: PL_RC_SYSTEM_PROMPT, variant };
-  return { version: PROMPT_VERSION, systemPrompt: SYSTEM_PROMPT, variant: "stable" };
-}
-
-export function getReviewPrompt(locale: Locale, seniority: Seniority = "auto", context: CareerContext = "standard"): ResolvedReviewPrompt {
-  const base = getBaseReviewPrompt(locale);
-  const stage = (seniority === "auto" || seniority === "junior") && context === "first_job" ? "first_job" : seniority;
-  const shared = base.systemPrompt.replace(/\n2\. (?:OCZEKIWANIA WEDŁUG POZIOMU|EXPECTATIONS BY LEVEL)[\s\S]*?(?=\n3\.)/, "\n");
-  return { ...base, version: `${base.version}+${CAREER_POLICY_VERSION}:${stage}`, systemPrompt: `${shared}\n\n${careerPolicy(locale, stage)}` };
+export function getReviewPrompt(locale: Locale, seniority: Seniority = "auto", context: CareerContext = "standard", targetRole: TargetRoleId = "frontend_developer"): ResolvedReviewPrompt {
+  const stage = resolveEvaluationStage(seniority, context);
+  const semantics = [SHARED_POLICY, `# Target role: ${targetRole}\n${ROLE_POLICIES[targetRole]}`, `# Selected stage: ${stage}\n${STAGE_POLICIES[stage]}`].join("\n\n");
+  const assessmentPrompt = [semantics, "# Assessment only\nInfer document profile from source evidence. evaluatedStage must equal payload.evaluationStage unless that field is auto; only then use the level mapped from scope (educational_project/supported_tasks=junior, independent_delivery=mid, area_tradeoffs=senior, direction_through_others=lead, unclear=auto). A resolved first_job stage overrides a requested auto/junior selector. Assess the resolved selected stage even if perceived level differs. Quote actual task/responsibility scope, not the goal/title/years, for non-unclear level, but do not assume it is verified competence. Record six ordered category signal lists and distinct concerns with stable IDs, source quotations or an explicit document gap. Write assessment summaries in English, independent of requested report language. No report prose, edits, action plan, free-choice scores or hiring decision.", SIGNAL_POLICY, SCOPE_POLICY, JSON.stringify(CATEGORY_SIGNALS), `# Level reference\n${Object.entries(STAGE_POLICIES).filter(([key]) => key !== "auto").map(([key, value]) => `${key}: ${value}`).join("\n")}`].join("\n\n");
+  const systemPrompt = [semantics, `# Report writing only\nThe supplied lockedAssessment is authoritative. Explain its profile, category scores, evidence references, concerns and document-reception decision in the requested language; do not reassess. Keep each concern ID/category/severity and diagnosticKind. Do not add new issues or silently remove a material concern. For a gap use evidenceRefs=[]; for supported concerns cite supplied source refs. Questions come before edits needing facts. Preserve assessment concerns even when the score is high; do not downgrade severity to justify scores.\nUse the provided version/rubricVersion/requiredPromptVersion and locale. Return the CVReport schema. All categories use supplied labels/weights/scores. Explain role-appropriate work boundaries, not irrelevant software architecture for manual QA or non-developer work. No job description means jobMatch=null. With a job description, missingEvidence contains only genuinely missing evidence of a requirement stated in that description; omit optional or explicitly unnecessary skills, including automation in a manual-QA offer. Positive signals and strengths need source refs; summarize the established positive signals when present. Reservations link to concern IDs; nextSteps link to existing issues and give complete document-specific instructions in priority order. Missing verification is distinct from limited described verification; quote checks of the same project in verificationEvidenceRefs. Preserve the specific assessed gap: functional checks do not answer a separate question about post-delivery monitoring. REWRITE and EXPOSE only rephrase/reposition established source facts, with an exact source excerpt as original and unchanged employer/time attribution; otherwise QUESTION/GAP with proposed=null. Use JSON null for absent original text, never the string null. Do not write suggestion-type labels as actions or generic fallback advice. Do not repeat one concern across many issues. If there are no assessed concerns, say that no material evidence gap was identified rather than inventing a biggestRisk. First-job absence of commercial experience is scope, never a risk. Include limitations that this is CV evidence feedback, not competence verification, candidate ranking or an actual hiring decision.`, LANGUAGE_POLICIES[locale]].join("\n\n");
+  return { version: `${REVIEW_PROMPT_VERSION}+${SHARED_POLICY_VERSION}+${CATEGORY_POLICY_VERSION}+${ROLE_POLICY_VERSION}:${targetRole}+${STAGE_POLICY_VERSION}:${stage}+${LANGUAGE_POLICY_VERSION}:${locale}`, variant: activePromptVariant(), assessmentPrompt, systemPrompt };
 }

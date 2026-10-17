@@ -3,6 +3,20 @@ import { describe, expect, it } from "vitest";
 import { safeVercelAnalyticsUrl } from "@/components/vercel-web-analytics";
 
 describe("what Vercel Web Analytics is allowed to see", () => {
+  it("measures public school offers without enquiry details", () => {
+    for (const path of ["/dla-szkol", "/en/for-schools"]) {
+      expect(safeVercelAnalyticsUrl(`https://cvunfold.com${path}?utm_source=linkedin&email=mentor@example.com&school=Private&gclid=private#message`)).toBe(`https://cvunfold.com${path}?utm_source=linkedin`);
+    }
+    expect(safeVercelAnalyticsUrl("https://cvunfold.com/en/for-schools/panel?code=secret")).toBeNull();
+  });
+  it("removes the unique report ID from English report analytics", () => {
+    expect(safeVercelAnalyticsUrl("https://cvunfold.com/en/report/11111111-1111-4111-8111-111111111111#private-key")).toBe("https://cvunfold.com/en/report");
+  });
+  it("drops school panel and login callback events entirely", () => {
+    expect(safeVercelAnalyticsUrl("https://cvunfold.com/dla-szkol/potwierdz?code=private-auth-code")).toBeNull();
+    expect(safeVercelAnalyticsUrl("https://cvunfold.com/dla-szkol/panel?report=private-student-id")).toBeNull();
+    expect(safeVercelAnalyticsUrl("https://cvunfold.com/dla-szkol/demo")).toBeNull();
+  });
   it("never forwards the report access token that lives in the fragment", () => {
     // This is the whole reason the hook exists: /raport carries the token that
     // unlocks a private report, and Web Analytics reports the page URL verbatim.

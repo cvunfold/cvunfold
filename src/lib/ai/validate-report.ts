@@ -3,6 +3,8 @@ import { reportSchema } from "./schemas/report";
 import type { RubricCategory } from "@/lib/rubrics/technical-v1";
 import { normalizeCategoryEvidence, normalizeDiagnosticKind, prioritizeFirstJobIssues, alignNextSteps } from "./report-policy";
 import { normalizeIssueAction } from "./issue-action";
+import { normalizeReportRecommendations } from "./report-recommendations";
+import { getScoreThresholds } from "@/lib/rubrics/score-scale";
 
 export function calculateOverall(categories: ModelReport["categoryScores"]): number {
   const weight = categories.reduce((sum, category) => sum + category.weight, 0);
@@ -93,13 +95,11 @@ function excessiveSemanticNovelty(proposed: string, sources: string[]): boolean 
 
 export type CalibrationViolation = { category: string; score: number; severity: "important" | "critical"; cap: number };
 
-// The prompt caps a category touched by a material issue. Models honour that
-// unevenly — the same CV scored 77 to 89 across four of them — so record every
-// breach instead of trusting the instruction. Reported, not corrected: clamping
-// scores server-side would change results rather than measure them.
-const CALIBRATION_CAPS = { important: 79, critical: 65 } as const;
-
-export function auditCalibration(report: Pick<CVReport, "categoryScores" | "issues">): CalibrationViolation[] {
+// Current assessments apply severity caps before report writing. The audit
+// verifies the final report and also handles historical model-scored reports
+// using their original rubric boundaries. It reports any breach without repair.
+export function auditCalibration(report: Pick<CVReport, "categoryScores" | "issues"> & Partial<Pick<CVReport, "rubricVersion">>): CalibrationViolation[] {
+  const thresholds = getScoreThresholds(report.rubricVersion);
   const scores = new Map(report.categoryScores.map((category) => [category.key, category.score]));
   const strictest = new Map<string, "important" | "critical">();
   for (const issue of report.issues) {
@@ -108,14 +108,14 @@ export function auditCalibration(report: Pick<CVReport, "categoryScores" | "issu
   }
   return [...strictest].flatMap(([category, severity]) => {
     const score = scores.get(category);
-    const cap = CALIBRATION_CAPS[severity];
+    const cap = severity === "critical" ? thresholds.criticalCap : thresholds.importantCap;
     return score !== undefined && score > cap ? [{ category, score, severity, cap }] : [];
   });
 }
 
-export function validateEvidence(report: ModelReport, validRefs: Set<string>, evidence: EvidenceMap = {}): CVReport {
+export function validateEvidence(report: ModelReport, validRefs: Set<string>, evidence: EvidenceMap = {}, options: { diagnosticsLocked?: boolean } = {}): CVReport {
   const parsed = reportSchema.parse(report);
-  const keep = (refs: string[]) => refs.filter((ref) => validRefs.has(ref));
+  const keep = (refs: string[]) => [...new Set(refs.filter((ref) => validRefs.has(ref)))];
   const categoryScores = parsed.categoryScores.map(category => normalizeCategoryEvidence(category, validRefs, parsed.locale));
   const strengths = parsed.strengths.filter((item) => keep(item.evidenceRefs).length > 0).map((item) => ({ ...item, evidenceRefs: keep(item.evidenceRefs) }));
   let issues = parsed.issues.filter((item) => item.suggestion?.type === "gap" || item.suggestion?.type === "question" || keep(item.evidenceRefs).length > 0)
@@ -129,7 +129,7 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
       // employer name from the role header, say — that the issue's own evidence
       // never had reason to cite. The prompt's own rule is "facts from the CV",
       // not "facts already listed on this issue".
-      const sources = [...Object.values(evidence), item.suggestion?.original || ""];
+      const sources = options.diagnosticsLocked ? Object.values(evidence) : [...Object.values(evidence), item.suggestion?.original || ""];
       const guardedSuggestion = item.suggestion?.type === "rewrite" || item.suggestion?.type === "expose";
       // A GAP or QUESTION never has replacement text by design — the reader is
       // meant to supply the missing fact, not receive a drafted one. Drop
@@ -137,17 +137,19 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
       // instead of rendering an empty proposed-text box.
       const rawProposed = guardedSuggestion ? item.suggestion?.proposed ?? null : null;
       const proposed = rawProposed && /[\p{L}\p{N}]{2,}/u.test(rawProposed) ? rawProposed : null;
+      const originalSupported = !options.diagnosticsLocked || Object.values(evidence).some(source => item.suggestion?.original && source.includes(item.suggestion.original));
+      const original = originalSupported ? item.suggestion?.original ?? null : null;
       const unsafeRewrite = guardedSuggestion
-        ? !item.suggestion?.original?.trim() || Boolean(proposed && (unsupportedFacts(proposed, sources) || excessiveSemanticNovelty(proposed, sources)))
+        ? !original?.trim() || Boolean(proposed && (unsupportedFacts(proposed, sources) || excessiveSemanticNovelty(proposed, sources)))
         : false;
       const suggestion = unsafeRewrite ? {
         type: "question" as const,
-        original: item.suggestion?.original || null,
+        original,
         proposed: null,
         factualityNote: parsed.locale === "en"
           ? "This rewrite needs facts the cited CV fragment does not contain. Confirm them yourself before adding anything."
           : "Ta wersja wymaga faktów, których nie ma w cytowanym fragmencie CV. Potwierdź je, zanim cokolwiek dopiszesz.",
-      } : item.suggestion ? { ...item.suggestion, proposed } : item.suggestion;
+      } : item.suggestion ? { ...item.suggestion, original, proposed } : item.suggestion;
       return {
         ...item,
         severity: item.severity === "critical" && item.confidence === "low" ? "important" as const : item.severity,
@@ -160,9 +162,12 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
       };
     });
   const originalActions = new Map(issues.map(issue => [issue.id, issue.action]));
-  issues = issues.map(issue => normalizeDiagnosticKind(issue, validRefs, parsed.locale));
+  // The quoted assessment already established this diagnosis and severity.
+  // Legacy text repairs can confuse checks of the project with a distinct gap
+  // in post-delivery operations, then replace the specific advice with a template.
+  if (!options.diagnosticsLocked) issues = issues.map(issue => normalizeDiagnosticKind(issue, validRefs, parsed.locale));
   const policyAdjustedActions = new Map(issues.filter(issue => originalActions.get(issue.id) !== issue.action).map(issue => [issue.id, issue]));
-  if (parsed.document.targetSeniority === "first_job") issues = prioritizeFirstJobIssues(issues, categoryScores);
+  if (!options.diagnosticsLocked && parsed.document.targetSeniority === "first_job") issues = prioritizeFirstJobIssues(issues, categoryScores);
   const nextSteps = alignNextSteps(parsed.nextSteps.map(step => {
     const adjusted = step.issueId ? policyAdjustedActions.get(step.issueId) : undefined;
     return adjusted ? { ...step, action: adjusted.action, title: parsed.locale === "pl" ? "Doprecyzuj zakres istniejącej weryfikacji" : "Clarify the scope of existing verification" } : step;
@@ -198,10 +203,11 @@ export function validateEvidence(report: ModelReport, validRefs: Set<string>, ev
   const evidenceMap = Object.fromEntries([...usedRefs]
     .filter((ref) => validRefs.has(ref) && typeof evidence[ref] === "string")
     .map((ref) => [ref, evidence[ref].trim().slice(0, 600)]));
-  return { ...parsed, evidenceMap, recruiterPerspective, categoryScores, strengths, issues, nextSteps, summary: { ...parsed.summary, overallScore: calculateOverall(categoryScores) } };
+  return normalizeReportRecommendations({ ...parsed, evidenceMap, recruiterPerspective, categoryScores, strengths, issues, nextSteps, summary: { ...parsed.summary, overallScore: calculateOverall(categoryScores) } });
 }
 
 export function withRecruiterPerspective(report: CVReport): CVReport {
+  report = normalizeReportRecommendations(report);
   if (report.recruiterPerspective) return report;
   const ranks = { first_job: 0, junior: 0, mid: 1, senior: 2, lead: 3 } as const;
   const target = report.document.targetSeniority;

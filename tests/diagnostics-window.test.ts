@@ -4,6 +4,7 @@ import { clampWindowDays, isRealPurchase, summarizeTrafficMix } from "@/lib/data
 import { clickAttributionPresent } from "@/lib/audience";
 import { roleSources } from "@/lib/analytics/events";
 import { GET } from "@/app/api/admin/diagnostics/route";
+import { REVIEW_PIPELINE_VERSION } from "@/lib/ai/review-provenance";
 
 describe("diagnostics window", () => {
   it("keeps a caller-supplied window inside one day and the retention period", () => {
@@ -128,9 +129,18 @@ describe("authenticated runtime configuration", () => {
       expect(denied.status).toBe(401);
       const response = await GET(new Request("https://cvunfold.test/api/admin/diagnostics?configuration=1", { headers: { authorization: "Bearer synthetic-admin-only" } }));
       const value = await response.json();
-      expect(value).toMatchObject({ reviewModel: "gpt-6-luna", noEvidenceScore: 20, pipelineVersion: "report-pipeline-v6.3" });
+      expect(value).toMatchObject({ reviewModel: "gpt-6-luna", noEvidenceScore: 20, pipelineVersion: REVIEW_PIPELINE_VERSION });
       expect(JSON.stringify(value)).not.toContain("synthetic-private-key");
       expect(JSON.stringify(value)).not.toContain("synthetic-admin-only");
+    } finally { vi.unstubAllEnvs(); }
+  });
+
+  it("reports the effective default model when the environment has no override", async () => {
+    vi.stubEnv("ADMIN_SECRET", "synthetic-admin-only");
+    vi.stubEnv("OPENAI_REVIEW_MODEL", undefined);
+    try {
+      const response = await GET(new Request("http://localhost/api/admin/diagnostics?configuration=1", { headers: { authorization: "Bearer synthetic-admin-only" } }));
+      expect((await response.json()).reviewModel).toBe("gpt-6-luna");
     } finally { vi.unstubAllEnvs(); }
   });
 });

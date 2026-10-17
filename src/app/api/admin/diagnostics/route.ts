@@ -6,13 +6,14 @@ import { RUBRIC_VERSION } from "@/lib/rubrics/technical-v1";
 import { activePromptVariant } from "@/lib/ai/prompts";
 import { isRuntimeEnvironment, runtimeEnvironmentFrom } from "@/lib/runtime-environment";
 import { constantTimeEqual } from "@/lib/security/tokens";
+import { resolveReviewModel } from "@/lib/ai/model-config";
 export async function GET(request: Request) {
   const expected = process.env.ADMIN_SECRET; const received = request.headers.get("authorization")?.replace(/^Bearer /, "");
   if (!expected || !received || !constantTimeEqual(expected, received)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const requestUrl = new URL(request.url);
   if (requestUrl.searchParams.get("configuration") === "1") return NextResponse.json({
     runtimeEnvironment: runtimeEnvironmentFrom(),
-    reviewModel: process.env.OPENAI_REVIEW_MODEL || null,
+    reviewModel: resolveReviewModel(),
     promptVariant: activePromptVariant(),
     rubricVersion: RUBRIC_VERSION,
     pipelineVersion: REVIEW_PIPELINE_VERSION,

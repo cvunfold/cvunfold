@@ -1,8 +1,13 @@
+import { enrichArticles } from "./article-enrichment";
+import { atsGuideEn } from "./ats-guide-en";
+import { frontendCvEn } from "./frontend-cv-en";
 import type { Article } from "./articles";
+import { firstItCvArticleEn } from "./first-it-cv-article-en";
 
-export const articlesEn: Article[] = [
+export const articlesEn: Article[] = enrichArticles([
   {
-    slug: "how-to-stay-relevant-in-the-age-of-ai", category: "Career and AI", title: "Will AI replace software developers? How to future-proof your career", readingTime: "14 min", publishedAt: "2026-08-09", updatedAt: "2026-08-12",
+    slug: "how-to-stay-relevant-in-the-age-of-ai",
+    cover: {"src": "/images/articles/kariera-ai-v2.webp", "alt": "A human hand and a robotic hand build a solution from code and design decisions.", "width": 1600, "height": 800}, category: "Career and AI", title: "Will AI replace software developers? How to future-proof your career", readingTime: "14 min", publishedAt: "2026-08-09", updatedAt: "2026-08-12",
     description: "Will AI replace software developers? Learn which tasks are easiest to automate and how to build value through ownership, judgement, domain context and impact.",
     excerpt: "AI accelerates predictable tasks. Build an advantage around decisions, context, responsibility and measurable impact.",
     intro: "Will AI replace software developers? It will change the work and reduce the value of some repeatable tasks, but that does not justify a promise that the whole profession will disappear or remain unchanged. A better question is how to avoid being replaceable where your role currently consists mainly of predictable execution. This guide helps you move your value towards context, judgement, responsibility and carrying important problems through to outcomes.",
@@ -21,7 +26,8 @@ export const articlesEn: Article[] = [
     checklist: ["Do you know which parts of your work are predictable and easy to accelerate with AI?", "Can you name the problems you own, not only the tasks you complete?", "Do you show decisions that require domain context, judgement or risk management?", "Can you explain how you verify AI-assisted work?", "Do you return to outcomes after release instead of ending responsibility at the pull request?", "Does your work help other people make better decisions?", "Does your CV show outcomes and responsibility more clearly than tools?"],
   },
   {
-    slug: "why-ownership-matters-to-employers", category: "Ownership", title: "Ownership at work: what it means and how to show it on a CV", readingTime: "7 min", publishedAt: "2026-08-08", updatedAt: "2026-08-18",
+    slug: "why-ownership-matters-to-employers",
+    cover: {"src": "/images/articles/ownership-v2.webp", "alt": "A hand holds an unbroken thread connecting an idea, development, delivery and verification.", "width": 1600, "height": 800}, category: "Ownership", title: "Ownership at work: what it means and how to show it on a CV", readingTime: "7 min", publishedAt: "2026-08-08", updatedAt: "2026-08-18",
     description: "Ownership at work means responsibility for a problem and its outcome, not working overtime. Learn how to show your real scope on a CV without exaggeration.",
     excerpt: "‘Worked on the project’ does not reveal what you actually owned. Show the problem, your decision and the scope of your responsibility.",
     intro: "Ownership at work means taking responsibility for a problem and for what happens after your decision. It is not a corporate euphemism for working overtime, nor a promise to do everything alone. To an employer, it signals that you can spot ambiguity, make decisions within your scope, involve the right people and carry a topic to a useful outcome. That signal often disappears from a CV even when it is present in day-to-day work.",
@@ -34,7 +40,8 @@ export const articlesEn: Article[] = [
     ], checklist: ["Is the problem you personally owned clear?", "Do you separate your contribution from the team's work?", "Do you show at least one decision or trade-off?", "Does the outcome appear next to the responsibility?"],
   },
   {
-    slug: "how-to-show-seniority-in-a-cv", category: "Seniority", title: "How to show seniority on a CV: 7 credible signals", readingTime: "5 min", publishedAt: "2026-08-08", updatedAt: "2026-08-24",
+    slug: "how-to-show-seniority-in-a-cv",
+    cover: {"src": "/images/articles/seniority-v2.webp", "alt": "A CV surrounded by seven signs of seniority: progression, complexity, decisions, ownership, outcomes, collaboration and enabling others.", "width": 1600, "height": 800}, category: "Seniority", title: "How to show seniority on a CV: 7 credible signals", readingTime: "5 min", publishedAt: "2026-08-08", updatedAt: "2026-08-24",
     description: "How do you show seniority without empty claims? Use seven credible signals: progression, difficult problems, decisions, ownership, outcomes and wider influence.",
     excerpt: "A job title alone does not establish level. Use seven kinds of evidence to distinguish a mature profile from a list of responsibilities.",
     intro: "How do you show seniority when years of experience and a job title reveal so little? A strong CV leaves evidence of expanding scope: harder challenges, consequential choices, responsibility for results and influence beyond your own task list. You do not need all seven signals in every bullet. The document should build a consistent pattern that you can defend in an interview.",
@@ -50,7 +57,8 @@ export const articlesEn: Article[] = [
     ], checklist: ["Do your two latest roles show progression in difficulty or responsibility?", "Does the most important project state the challenge you solved?", "Does at least one bullet show an important choice and a real constraint?", "Do you distinguish your contribution from the team's work?", "Do you show a result without inventing numbers?", "Does collaboration have a specific subject rather than a list of functions?", "Does the experience content support the level in your title?"],
   },
   {
-    slug: "responsibilities-are-not-outcomes", category: "Impact and outcomes", title: "Responsibilities are not outcomes: how to show impact", readingTime: "7 min", publishedAt: "2026-08-08",
+    slug: "responsibilities-are-not-outcomes",
+    cover: {"src": "/images/articles/obowiazki-rezultaty-v2.webp", "alt": "A completed task list and construction materials connect to a finished bridge used by people.", "width": 1600, "height": 800}, category: "Impact and outcomes", title: "Responsibilities are not outcomes: how to show impact", readingTime: "7 min", publishedAt: "2026-08-08",
     description: "Turn a daily responsibility list into an honest description of impact, even when you do not have business metrics.",
     excerpt: "‘Developed a React application’ says what you did. It does not say what became better. An outcome does not always need a percentage.",
     intro: "Most weak CV bullets are not false; they are simply too close to a job description. The candidate says what they did every day while the employer tries to determine whether the work changed anything. Impact answers that question without inventing numbers.",
@@ -63,124 +71,15 @@ export const articlesEn: Article[] = [
   },
   {
     slug: "the-first-20-seconds-of-a-cv",
+    cover: {"src": "/images/articles/ats-dopasowanie-v2.webp", "alt": "A machine reads the structure of a CV while a person checks its content against a job description.", "width": 1600, "height": 800},
     category: "ATS and first impression",
-    title: "ATS and tailoring a CV: what software reads and people judge",
-    description: "Learn how to tailor a CV while keeping it readable for ATS. Separate parsing and keywords from truthful evidence of seniority, ownership and impact.",
-    excerpt: "A tailored CV does not echo an advert. It helps software and people find truthful evidence relevant to a particular role.",
-    readingTime: "7 min",
     publishedAt: "2026-08-08",
     updatedAt: "2026-09-04",
-    intro: "A CV passes through two different layers of assessment. Software may extract information, support search or assist matching against criteria for a particular role. A person tries to understand the profile, level and credibility of the experience quickly. Tailoring therefore does not mean paraphrasing the job description. It means making truthful evidence for the most important requirements easy for software to read and for a person to notice — without pretending that one universal ATS score exists.",
-    sections: [
-      {
-        heading: "An ATS is a category of software, not one exam",
-        paragraphs: [
-          "An applicant tracking system helps an employer manage candidates and recruitment stages. The available features depend on the platform and the employer's setup. Knowing that a company uses an ATS does not tell you whether it relies on a candidate database, full-text search, filters, an additional AI feature or primarily manual review.",
-          "The mix of vendors also differs by country, so guidance written for one market often describes software your employer does not use. A candidate applying in Poland frequently meets local platforms such as eRecruiter, Traffit or HRlink, while an international employer may run something else entirely. The principle survives the difference: each product exposes different features, and each employer configures them differently.",
-          "This matters because advice that promises to help you ‘pass the ATS’ often collapses several different mechanisms into one mysterious score. You can test whether a CV is technically readable and whether it reflects a particular job description. You cannot honestly claim that one percentage reproduces every employer's process.",
-        ],
-      },
-      {
-        heading: "Step one: a parser extracts information",
-        paragraphs: [
-          "A parser turns a document into information that can populate a candidate profile. It may identify contact details, job titles, employers, dates, education and skills. When the layout is difficult to interpret, content can end up in the wrong field or fail to appear in the profile at all.",
-          "A safer CV uses selectable text, familiar headings and a predictable reading order. Scanned pages, text embedded in images, complicated columns, important content in headers or footers and decorative graphics can increase parsing risk. This is not a ban on thoughtful design. It means the design should not depend on a structure that loses meaning when the text is selected or copied.",
-        ],
-      },
-      {
-        heading: "Machine readability does not replace a clear message for people",
-        paragraphs: [
-          "This is where formatting stops working for you and judgement takes over. A perfectly parsed CV can still fail to communicate a candidate's level. Software may identify a Senior Frontend Developer title, React and five years of experience. Those fields alone do not show whether you made decisions, owned an outcome or solved increasingly complex problems.",
-          "You need both layers at once. The machine layer lets software read the file: clear sections, actual text and accurate names for relevant skills. The human layer lets a person understand the experience: concrete scope, decisions, constraints, impact and evidence that supports the target level. The first is pointless without the second, and the second may never be read without the first.",
-        ],
-        example: {
-          before: "Senior Frontend Developer. React, TypeScript, Next.js. Developed new features.",
-          after: "Owned the checkout migration to Next.js: split the rollout into stages, aligned the API contract and monitored errors after launch.",
-          note: "Both versions are technically readable. Only the second gives a person useful evidence about responsibility.",
-        },
-      },
-      {
-        heading: "Step two: search and filters reflect the employer's criteria",
-        paragraphs: [
-          "Back to the machine layer for a moment, because once an application is stored, some systems let recruiters search CVs for words and phrases. They may also offer filters or Boolean queries that combine terms, such as a role title and a technology. This is not a secret master list of keywords. The criteria come from a particular vacancy, team and user configuration.",
-          "If you genuinely used an important technology named in the job description, it should be easy to find in your CV. Do not leave it only in a skills list: connect it to experience that shows the practical scope. Do not hide React behind ‘a user-interface library’, but do not manufacture five variants of the same name either.",
-        ],
-        example: {
-          before: "React, React.js, ReactJS, frontend React, React library.",
-          after: "React and TypeScript — checkout development, rendering optimisation and maintenance of a shared component library.",
-          note: "The second version contains the recognisable technology, but connects it to work instead of manufacturing repetitions.",
-        },
-      },
-      {
-        heading: "Start tailoring with three evidence buckets",
-        paragraphs: [
-          "List the most important requirements and assign each one to one of three groups. Evidence means the CV already contains a specific example. Hidden evidence means you have the experience, but the document buries it or describes it too broadly. A gap means you have no honest basis for claiming the skill.",
-          "Only the second group needs an exposure fix. The third does not become evidence after you add a keyword. If you have not used Kubernetes, placing it in a skills section might satisfy a simple search, but it creates a problem as soon as someone asks what you did with it.",
-          "Tailor visibility. Do not tailor the facts.",
-        ],
-      },
-      {
-        heading: "Turn each requirement into a question about proof",
-        paragraphs: [
-          "Job descriptions use broad labels: scalability, ownership, architecture, quality or stakeholder work. Do not answer a label with another label. Ask which event from your work would let the reader see that capability without taking it on trust.",
-          "Ownership might be a problem you carried from diagnosis to outcome. Architecture might be a decision shaped by a real constraint. Stakeholder work might be a scope or priority you helped resolve. A label supports scanning; evidence creates credibility.",
-        ],
-        example: {
-          before: "Ownership, scalable architecture and stakeholder management.",
-          after: "Designed a staged checkout migration, aligned sequencing with Product and Backend, and monitored errors after release.",
-          note: "The second version does not repeat three labels. It shows responsibility, collaboration and a controlled rollout.",
-        },
-      },
-      {
-        heading: "Change the hierarchy, not your career history",
-        paragraphs: [
-          "You do not need a completely new CV for every application. Keep a strong base version and change its priorities deliberately. Move the summary, projects and bullets that answer the most important criteria higher. Compress experience that is true but secondary for this role.",
-          "For a performance-focused position, foreground diagnosis, Web Vitals, monitoring and outcomes. For a design-system role, give more space to component APIs, accessibility, versioning and the effect on other teams. The same career can support different truthful foregrounds.",
-        ],
-      },
-      {
-        heading: "Matching and AI are optional features, not the definition of every ATS",
-        paragraphs: [
-          "Some platforms offer candidate matching or an assistant that supports screening. Such a feature may consider skills, job history and criteria configured for a vacancy. That does not mean every ATS automatically gives every candidate the same kind of score.",
-          "Greenhouse provides a useful example: it describes Talent Matching as a separate feature that must be enabled and calibrated, and presents its output as assistance for recruiters rather than an automatic accept-or-reject decision. Another platform or employer may use a different process entirely. Honest optimisation therefore starts with the job and the quality of your evidence, not with guessing one algorithm.",
-        ],
-      },
-      {
-        heading: "The human layer: what happens after 5, 10 and 20 seconds",
-        paragraphs: [
-          "Within the first few seconds, the current role, headings, employers, dates and document density attract attention. Around the ten-second mark, the reader starts looking for something that supports the claimed level: a decision, outcome, scale or scope of responsibility. By twenty seconds, a working story may have formed — performance specialist, product-minded frontend engineer, reliable executor or a profile that remains difficult to describe.",
-          "This is not a real hiring decision or a prediction of an application outcome. It is a model of first impression based on the document alone. You cannot control every interpretation, but you can make the strongest truthful evidence easier to find than generic duties and secondary technologies.",
-        ],
-      },
-      {
-        heading: "A practical pre-submission test",
-        paragraphs: [
-          "Start with extraction. Open the PDF, select all of the content and paste it into a plain-text editor. Check whether job titles, employers, dates and bullets still follow a logical order. If an application form extracts details from the upload, review the populated fields and correct mistakes before submitting.",
-          "Then compare the CV with the job description. Check whether the three most important requirements lead to specific experience. Remove skills added only because they appeared in the advert, and make genuine but vague experience more precise.",
-          "Finally, read the first page as someone who does not know your story. Within a short scan, is the target role clear, does the document communicate an appropriate level and is the strongest evidence easy to find? A readable file enables assessment. It does not perform that assessment for you.",
-        ],
-      },
-      {
-        heading: "What an ATS checker can test — and what it should not promise",
-        paragraphs: [
-          "A checker can usefully test whether text can be extracted, sections are recognisable, relevant terms from a specific job have supporting evidence and the format creates obvious parsing problems. That is document hygiene, not a prediction of a hiring outcome.",
-          "Be cautious when a tool presents a high percentage without explaining its criteria, claims compatibility with every system or implies that adding words guarantees an interview. A useful finding should point to a specific part of the CV and distinguish a parsing problem, missing visible evidence and genuinely absent information.",
-        ],
-      },
-    ],
-    checklist: [
-      "Does copied PDF text preserve the logical order of sections?",
-      "Do you use familiar headings for experience, skills and education?",
-      "Are important technologies from the job description truthful and supported by specific experience?",
-      "Does the document avoid scans, decorative tables, headers or footers that contain essential content?",
-      "Do you separate technical readability from judgement of seniority, ownership and impact?",
-      "Does the first screen make the target role and the strongest evidence of level easy to identify?",
-      "Could you defend every point of alignment in an interview without inventing facts?",
-      "Does the checker explain its criteria instead of promising a universal ATS score?",
-    ],
+    ...atsGuideEn,
   },
   {
-    slug: "technical-credibility-in-a-developer-cv", category: "Technical credibility", title: "How to build technical credibility in a developer CV", readingTime: "7 min", publishedAt: "2026-08-08",
+    slug: "technical-credibility-in-a-developer-cv",
+    cover: {"src": "/images/articles/wiarygodnosc-techniczna-v2.webp", "alt": "A magnifying glass reveals code, architecture and tests supporting technical claims on a CV.", "width": 1600, "height": 800}, category: "Technical credibility", title: "How to build technical credibility in a developer CV", readingTime: "7 min", publishedAt: "2026-08-08",
     description: "Technology names without context are only words. Show decisions, constraints and practical use so your CV reads as credible.",
     excerpt: "A long technology list does not prove depth. Credibility appears when a tool has context, purpose and consequences.",
     intro: "Technical credibility does not come from listing every tool you have touched. It appears when the reader sees what a technology was used for, which problem it solved, which constraint mattered and what you decided.",
@@ -192,7 +91,8 @@ export const articlesEn: Article[] = [
     ], checklist: ["Do key technologies appear in the context of a real problem?", "Do you show at least one trade-off or constraint?", "Is your exposure to each tool represented honestly?", "Can you expand every technical bullet in an interview?"],
   },
   {
-    slug: "how-many-pages-should-a-developer-cv-be", category: "CV length", title: "How many pages should a developer CV be? What to cut and what to expand", readingTime: "7 min", publishedAt: "2026-08-11",
+    slug: "how-many-pages-should-a-developer-cv-be",
+    cover: {"src": "/images/articles/dlugosc-cv-v2.webp", "alt": "Scissors trim redundant CV details while important information remains in one-page and two-page layouts.", "width": 1600, "height": 800}, category: "CV length", title: "How many pages should a developer CV be? What to cut and what to expand", readingTime: "7 min", publishedAt: "2026-08-11",
     description: "Should a developer CV be one or two pages? Learn when a concise fact is enough and when a decision, risk or outcome deserves more space.",
     excerpt: "Two pages are not automatically too long, and one sentence is not automatically too short. Every extra line should add a new piece of evidence.",
     intro: "The question ‘one page or two?’ looks like a formatting choice, but it is really about information hierarchy. A CV should be short enough to understand quickly and specific enough to preserve the value of the experience. Two pages can be entirely reasonable for an experienced developer. The problem starts when the second page exists only because ordinary responsibilities have been expanded without adding a new signal.",
@@ -205,6 +105,8 @@ export const articlesEn: Article[] = [
       { heading: "The right length follows priorities, not a rule", paragraphs: ["There is no single correct page count for a junior, a senior and someone changing specialisation. There is a useful quality check: every extra bullet should add context, evidence or an important condition of fit for the role.", "Keep compact facts where a concrete action creates a good interview hook. Expand a few points that genuinely need to prove level, decision-making or impact. Then a second page is not evidence of poor editing; it is a consequence of relevant experience that still matters to the reader."] },
     ], checklist: ["Does the second page add new evidence rather than repeat standard duties?", "Does every compact bullet name a concrete action and object?", "Do two or three strongest bullets show a decision, constraint or responsibility?", "Do metrics include enough context to explain difficulty and contribution?", "Can you cut secondary information without removing the strongest evidence?"],
   },
-];
+  firstItCvArticleEn,
+  frontendCvEn,
+], "en");
 
 export const articlesEnBySlug = new Map(articlesEn.map((article) => [article.slug, article]));

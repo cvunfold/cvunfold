@@ -1,7 +1,9 @@
 "use client";
 
 import { Analytics } from "@vercel/analytics/next";
+import { usePathname } from "next/navigation";
 import { safeAnalyticsPath } from "@/lib/analytics/client";
+import { isPrivateSchoolPage } from "@/lib/analytics/school-pages";
 import {
   marketingAttributionFromSearch,
   marketingAttributionKeys,
@@ -26,6 +28,7 @@ import {
 export function safeVercelAnalyticsUrl(rawUrl: string): string | null {
   try {
     const url = new URL(rawUrl);
+    if (isPrivateSchoolPage(url.pathname)) return null;
     const path = safeAnalyticsPath(url.pathname);
     const isReport = path === "/raport" || path === "/en/report";
     const attribution = marketingAttributionFromSearch(url.search);
@@ -39,6 +42,8 @@ export function safeVercelAnalyticsUrl(rawUrl: string): string | null {
 // Not consent-gated: Web Analytics is cookieless and stores no identifier, so it
 // runs on legitimate interest — see PRIVACY_AND_RETENTION.md.
 export function VercelWebAnalytics() {
+  const pathname = usePathname();
+  if (isPrivateSchoolPage(pathname)) return null;
   return <Analytics beforeSend={(event) => {
     const url = safeVercelAnalyticsUrl(event.url);
     return url ? { ...event, url } : null;

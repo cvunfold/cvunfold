@@ -1,9 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm verify",
   "crons": [
     {
       "path": "/api/cron/retention",
       "schedule": "17 3 * * *"
+    },
+    {
+      "path": "/api/cron/school-uploads",
+      "schedule": "* * * * *"
     }
   ]
 }

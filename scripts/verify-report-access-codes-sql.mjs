@@ -1,0 +1,34 @@
+import { createRequire } from 'node:module';
+import { readFile } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import { randomUUID, createHash } from 'node:crypto';
+const require = createRequire(import.meta.url);
+const { PGlite } = require(process.env.CVUNFOLD_PGLITE_MODULE || '@electric-sql/pglite');
+const db = new PGlite();
+await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
+create table public.analyses(id uuid primary key,access_token_hash text unique,status text,expires_at timestamptz,paid_at timestamptz,job_description_present boolean,school_group_id uuid);`);
+for (const file of ['20261011190000_report_iterations.sql','20261012191813_report_access_codes.sql']) await db.exec(await readFile(new URL('../supabase/migrations/' + file, import.meta.url), 'utf8'));
+await db.exec('alter table public.analyses enable row level security; revoke all on public.analyses from public,anon,authenticated; grant all on public.analyses to service_role; set role service_role;');
+const id = randomUUID(), tokenHash = 'fictional-private-token-hash';
+await db.query(`insert into analyses(id,access_token_hash,status,expires_at,job_description_present) values($1,$2,'complete',now()+interval '30 days',false)`, [id,tokenHash]);
+const reserve = (lease, request = randomUUID()) => db.query('select reserve_report_revision($1,$2,$3,false) as result',[tokenHash,request,lease]);
+await assert.rejects(reserve(randomUUID()), /PAYMENT_REQUIRED/);
+await assert.rejects(db.query('update analyses set access_code_granted_at=now() where id=$1',[id]), /analysis_access_code_valid/);
+const hash = createHash('sha256').update('komuna').digest('hex');
+await db.query('update analyses set access_code_hash=$2,access_code_granted_at=now() where id=$1',[id,hash]);
+assert.equal((await db.query('select paid_at from analyses where id=$1',[id])).rows[0].paid_at, null);
+for (let version = 1; version <= 2; version++) {
+  const lease = randomUUID(); assert.equal((await reserve(lease)).rows[0].result.version, version);
+  assert.equal((await db.query('select complete_report_revision($1,$2,$3,null,false) as result',[tokenHash,lease,'{}'])).rows[0].result, true);
+}
+await assert.rejects(reserve(randomUUID()), /REVISION_LIMIT/);
+await db.query("update analyses set expires_at=now()-interval '1 second' where id=$1",[id]);
+await assert.rejects(reserve(randomUUID()), /REPORT_NOT_FOUND/);
+assert.equal((await db.query('select complete_report_revision($1,$2,$3,null,false) as result',[tokenHash,randomUUID(),'{}'])).rows[0].result, false);
+const school = randomUUID();
+await db.query(`insert into analyses(id,access_token_hash,status,expires_at,job_description_present,school_group_id) values($1,'school-token','complete',now()+interval '30 days',false,$2)`,[randomUUID(),school]);
+await assert.rejects(db.query("update analyses set access_code_hash=$1,access_code_granted_at=now() where access_token_hash='school-token'",[hash]), /analysis_access_code_valid/);
+await db.exec('set role anon');
+await assert.rejects(db.query('select reserve_report_revision($1,$2,$3,false)',[tokenHash,randomUUID(),randomUUID()]), /permission denied/);
+await db.close();
+console.log('Local PostgreSQL access-code checks passed: code grant, payment separation, two rechecks, expiry, school isolation and RPC permissions.');

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicSocialMetadata } from "@/lib/public-page-metadata";
 
 type LegalKind = "terms" | "privacy" | "cookies" | "delete" | "contact";
 
@@ -31,6 +32,7 @@ export function legalMetadata(locale: "pl" | "en", kind: LegalKind): Metadata {
   const [plPath, enPath] = paths[kind];
   const [title, description] = copy[locale][kind];
   return {
+    ...publicSocialMetadata(locale, { title, description, path: locale === "pl" ? plPath : enPath }),
     title,
     description,
     alternates: {

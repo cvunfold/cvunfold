@@ -1,8 +1,9 @@
 import Stripe from "stripe";
 import type { Analysis } from "@/lib/data/store";
-import { fulfillStripePayment, savePendingPayment } from "@/lib/data/store";
+import { fulfillStripePayment, savePendingPayment, getReportRevisions } from "@/lib/data/store";
 import { reportPath } from "@/lib/i18n";
-import { getPlanDefinition, isPlan, type Plan } from "@/lib/plans";
+import { getPlanDefinition, isPlan, isPurchasablePlan, type Plan } from "@/lib/plans";
+import { assertStripeKeyEnvironment, assertStripeLivemode } from "./stripe-mode";
 
 let stripeClient: Stripe | undefined;
 
@@ -17,6 +18,7 @@ const CHECKOUT_INTEGRATION_IDENTIFIERS = {
 export function getStripe(): Stripe {
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) throw new Error("STRIPE_NOT_CONFIGURED");
+  assertStripeKeyEnvironment(secretKey);
   stripeClient ??= new Stripe(secretKey, { apiVersion: "2026-07-29.dahlia" });
   return stripeClient;
 }
@@ -47,6 +49,7 @@ export function buildCheckoutSessionParams(
   surface: CheckoutSurface,
 ): Stripe.Checkout.SessionCreateParams {
   const metadata = {
+    package_version: "report_iterations_v1",
     analysis_id: analysis.id,
     plan: analysis.plan,
     locale: analysis.locale,
@@ -88,19 +91,30 @@ export function checkoutIdempotencyKey(analysisId: string, price: string, surfac
   return `analysis:${analysisId}:${price}:${surface}:${version}`;
 }
 
-async function createValidatedCheckoutSession(analysis: Analysis, surface: CheckoutSurface, requestOrigin?: string): Promise<Stripe.Checkout.Session> {
+async function createValidatedCheckoutSession(analysis: Analysis, surface: CheckoutSurface, requestOrigin?: string, schoolPanel = false): Promise<Stripe.Checkout.Session> {
+  if (schoolPanel || analysis.schoolGroupId) throw new Error("SCHOOL_CHECKOUT_DISABLED");
+  if (!isPurchasablePlan(analysis.plan)) throw new Error("PLAN_NOT_AVAILABLE");
+  if (analysis.plan === "full_review") {
+    try { await getReportRevisions(analysis); } catch { throw new Error("ITERATIONS_NOT_CONFIGURED"); }
+  }
   const stripe = getStripe();
   const definition = getPlanDefinition(analysis.plan, analysis.locale);
   const price = priceForPlan(analysis.plan, analysis.locale);
-  const stripePrice = await stripe.prices.retrieve(price);
+  const stripePrice = await stripe.prices.retrieve(price, { expand: ["product"] });
+  assertStripeLivemode(stripePrice.livemode);
+  const product = stripePrice.product;
   if (!stripePrice.active || stripePrice.recurring || stripePrice.unit_amount !== definition.amountMinor
-    || stripePrice.currency.toUpperCase() !== definition.currency) throw new Error("STRIPE_PRICE_MISMATCH");
-  const reportUrl = `${appUrl(requestOrigin)}${reportPath(analysis.locale)}`;
+    || stripePrice.currency.toUpperCase() !== definition.currency || stripePrice.tax_behavior !== "inclusive"
+    || typeof product === "string" || product.deleted || !product.active) throw new Error("STRIPE_PRICE_MISMATCH");
+  const reportUrl = `${appUrl(requestOrigin)}${reportPath(analysis.locale)}/${analysis.id}`;
+  const params = buildCheckoutSessionParams(analysis, stripePrice.id, reportUrl, surface);
+
   const session = await stripe.checkout.sessions.create(
-    buildCheckoutSessionParams(analysis, stripePrice.id, reportUrl, surface),
+    params,
     { idempotencyKey: checkoutIdempotencyKey(analysis.id, price, surface) },
   );
-  if (session.amount_total == null || !session.currency) throw new Error("STRIPE_CHECKOUT_FAILED");
+  assertStripeLivemode(session.livemode);
+  if (session.amount_total !== definition.amountMinor || session.currency?.toUpperCase() !== definition.currency) throw new Error("STRIPE_CHECKOUT_MISMATCH");
   // The express wallet element needs a live session before the reader has done
   // anything at all: it is mounted on render purely to discover whether Apple
   // Pay or Google Pay is available on the device. Persisting that probe made
@@ -122,8 +136,8 @@ async function createValidatedCheckoutSession(analysis: Analysis, surface: Check
   return session;
 }
 
-export async function createCheckout(analysis: Analysis, requestOrigin?: string): Promise<string> {
-  const session = await createValidatedCheckoutSession(analysis, "hosted", requestOrigin);
+export async function createCheckout(analysis: Analysis, requestOrigin?: string, schoolPanel = false): Promise<string> {
+  const session = await createValidatedCheckoutSession(analysis, "hosted", requestOrigin, schoolPanel);
   if (!session.url) throw new Error("STRIPE_CHECKOUT_FAILED");
   return session.url;
 }
@@ -137,6 +151,7 @@ export async function createExpressWalletCheckout(analysis: Analysis, requestOri
 export async function markExpressWalletCheckoutStarted(sessionId: string, expectedAnalysisId: string): Promise<void> {
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
+  assertStripeLivemode(session.livemode);
   if (session.metadata?.analysis_id !== expectedAnalysisId || session.metadata?.checkout_surface !== "express_wallet") {
     throw new Error("STRIPE_ANALYSIS_MISMATCH");
   }
@@ -182,6 +197,7 @@ export function shouldRecordCheckoutExpired(session: Pick<Stripe.Checkout.Sessio
 
 export async function fulfillCheckoutSession(sessionId: string, eventId: string, expectedAnalysisId?: string): Promise<boolean> {
   const session = await getStripe().checkout.sessions.retrieve(sessionId);
+  assertStripeLivemode(session.livemode);
   if (session.payment_status !== "paid") return false;
   const analysisId = session.metadata?.analysis_id;
   const plan = session.metadata?.plan;
@@ -191,7 +207,8 @@ export async function fulfillCheckoutSession(sessionId: string, eventId: string,
   if (expectedAnalysisId && analysisId !== expectedAnalysisId) throw new Error("STRIPE_ANALYSIS_MISMATCH");
   if (session.amount_total == null || !session.currency) throw new Error("STRIPE_PAYMENT_INVALID");
   const definition = getPlanDefinition(plan, locale);
-  if (session.amount_total !== definition.amountMinor || session.currency.toUpperCase() !== definition.currency || market !== definition.market) {
+  const legacyAmount = plan === "full_review" && !session.metadata?.package_version ? (locale === "pl" ? 2900 : 900) : null;
+  if ((session.amount_total !== definition.amountMinor && session.amount_total !== legacyAmount) || session.currency.toUpperCase() !== definition.currency || market !== definition.market) {
     throw new Error("STRIPE_PAYMENT_MISMATCH");
   }
   const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;

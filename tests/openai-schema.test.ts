@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { zodTextFormat } from "openai/helpers/zod";
 import { reportSchema, modelResponseSchema } from "@/lib/ai/schemas/report";
-import { PROMPT_VERSION, SYSTEM_PROMPT } from "@/lib/ai/prompts/review-pl-v3";
+import { PROMPT_VERSION, SYSTEM_PROMPT } from "@/lib/ai/prompts/archive/review-pl-v3";
 import { createMockReport } from "@/lib/ai/mock-report";
-import { EN_SYSTEM_PROMPT } from "@/lib/ai/prompts/review-en-v1";
+import { EN_SYSTEM_PROMPT } from "@/lib/ai/prompts/archive/review-en-v1";
 
 describe("OpenAI report schema", () => {
   it("can be converted to a strict Structured Outputs format", () => {

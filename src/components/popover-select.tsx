@@ -7,7 +7,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode 
 // role and seniority both needed to look and behave the same way — a single
 // implementation is what keeps that true as either one changes.
 
-export type PopoverSelectOption<T extends string> = { id: T; mark: string; label: string; description?: string };
+export type PopoverSelectOption<T extends string> = { id: T; mark: string; markDescription?: string; label: string; description?: string };
 
 type PopoverSelectProps<T extends string> = {
   label: ReactNode;
@@ -106,6 +106,7 @@ export function PopoverSelect<T extends string>({
         className="role-select-trigger"
         role="combobox"
         aria-labelledby={labelId}
+        aria-describedby={selected?.markDescription ? `${listboxId}-mark-description` : undefined}
         aria-expanded={open}
         aria-required={required || undefined}
         aria-haspopup="listbox"
@@ -117,6 +118,7 @@ export function PopoverSelect<T extends string>({
       >
         <span className="role-select-mark" aria-hidden="true">{selected?.mark ?? "?"}</span>
         <span className="role-select-copy"><b>{selected?.label ?? placeholder}</b>{selected?.description ? <small>{selected.description}</small> : null}</span>
+        {selected?.markDescription ? <span id={`${listboxId}-mark-description`} className="select-mark-description">{selected.markDescription}</span> : null}
         <ChevronIcon open={open} />
       </button>
       {open ? <div className="role-select-popover">
@@ -129,6 +131,7 @@ export function PopoverSelect<T extends string>({
               className={`${index === activeIndex ? "active " : ""}${option.id === value ? "selected" : ""}`}
               role="option"
               aria-selected={option.id === value}
+              aria-describedby={option.markDescription ? `${listboxId}-${index}-mark-description` : undefined}
               onPointerMove={() => setActiveIndex(index)}
               onClick={() => select(index)}
             >
@@ -136,6 +139,7 @@ export function PopoverSelect<T extends string>({
               <span><b>{option.label}</b>{option.description ? <small>{option.description}</small> : null}</span>
               {option.id === value ? <SelectedIcon /> : null}
             </button>
+            {option.markDescription ? <span id={`${listboxId}-${index}-mark-description`} className="select-mark-description">{option.markDescription}</span> : null}
           </li>)}
         </ul>
       </div> : null}

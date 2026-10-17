@@ -62,6 +62,28 @@ export const TARGET_ROLES = [
     experimental: false,
   },
   {
+    id: "ai_llm_engineer",
+    pilot: true,
+    label: "AI / LLM Engineer",
+    shortLabel: "AI",
+    description: "Aplikacje z LLM, RAG, integracje i ocena jakości odpowiedzi.",
+    credibilityLabel: "Wiarygodność inżynierii AI",
+    systemsLabel: "Architektura aplikacji AI i kontrola jakości",
+    evaluationFocus: ["własny wkład w aplikacje LLM, integracje API i RAG", "testowanie odpowiedzi i retrievalu, źródła i obsługa niepewności", "bezpieczeństwo danych, uprawnienia, koszt i opóźnienia"],
+    experimental: false,
+  },
+  {
+    id: "ai_automation_specialist",
+    pilot: true,
+    label: "AI Automation Specialist",
+    shortLabel: "AU",
+    description: "Automatyzacje z AI, integracje i niezawodność procesów, także bez kodu.",
+    credibilityLabel: "Wiarygodność automatyzacji AI",
+    systemsLabel: "Projektowanie przepływów i kontrola procesu",
+    evaluationFocus: ["problem procesu, własny wkład i działanie automatyzacji", "integracje, walidacja danych, obsługa błędów i zapobieganie duplikatom", "testy scenariuszy, uprawnienia i zatwierdzanie działań przez człowieka"],
+    experimental: false,
+  },
+  {
     id: "other",
     label: "Pozostałe",
     shortLabel: "IN",
@@ -83,6 +105,7 @@ export type TargetRoleProfile = {
   systemsLabel: string;
   evaluationFocus: readonly string[];
   experimental: boolean;
+  pilot?: boolean;
 };
 
 const EN_ROLE_COPY: Record<TargetRoleId, Pick<TargetRoleProfile, "description" | "credibilityLabel" | "systemsLabel" | "evaluationFocus">> = {
@@ -121,6 +144,18 @@ const EN_ROLE_COPY: Record<TargetRoleId, Pick<TargetRoleProfile, "description" |
     credibilityLabel: "Operational and platform credibility",
     systemsLabel: "Reliability and platform thinking",
     evaluationFocus: ["reliability and observability", "infrastructure and delivery automation", "security, cost and developer experience"],
+  },
+  ai_llm_engineer: {
+    description: "LLM applications, RAG, integrations and response quality evaluation.",
+    credibilityLabel: "AI engineering credibility",
+    systemsLabel: "AI application architecture and quality control",
+    evaluationFocus: ["personal contribution to LLM applications, API integrations and RAG", "response and retrieval evaluation, sources and uncertainty handling", "data security, permissions, cost and latency"],
+  },
+  ai_automation_specialist: {
+    description: "AI workflows, integrations and process reliability, including no-code solutions.",
+    credibilityLabel: "AI automation credibility",
+    systemsLabel: "Workflow design and process control",
+    evaluationFocus: ["process problem, personal contribution and working automation", "integrations, data validation, error handling and duplicate prevention", "scenario testing, permissions and human approval of actions"],
   },
   other: {
     description: "Experimental analysis based on general CV criteria.",

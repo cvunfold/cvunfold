@@ -1,7 +1,7 @@
 import type { CVReport } from "./schemas/report";
 import { calculateOverall } from "./validate-report";
 import { getRubric, RUBRIC_VERSION } from "@/lib/rubrics/technical-v1";
-import { PROMPT_VERSION } from "./prompts/review-pl-v3";
+import { PROMPT_VERSION } from "./prompts/archive/review-pl-v3";
 import { brand } from "@/lib/brand";
 
 // VertexPay = current role, Railbird Mobility = previous role. Deliberately

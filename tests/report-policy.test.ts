@@ -110,3 +110,28 @@ describe("verification is not an umbrella for every gap", () => {
     expect(normalizeDiagnosticKind(issue, new Set(["seg_real"]), "en")).toMatchObject({ diagnosticKind: "missing_verification", verificationEvidenceRefs: [], severity: "important" });
   });
 });
+
+describe("validated assessment boundaries", () => {
+  it("preserves a specific assessed operations question despite existing functional checks", () => {
+    const input = createMockReport("senior", false, "frontend_developer", "en");
+    input.evidenceMap = { seg_check: "Verified that an interrupted import resumes without duplicate records." };
+    input.issues = [{ ...input.issues[0], id: "post-rollout", category: "credibility", severity: "minor", diagnosticKind: "missing_verification", evidenceRefs: [], verificationEvidenceRefs: ["seg_check"],
+      title: "Post-rollout monitoring is not described", explanation: "The CV documents recovery checks, but leaves monitoring after rollout unspecified.",
+      action: "Confirm whether you monitored the import after rollout and describe only confirmed monitoring.",
+      suggestion: { type: "question", original: null, proposed: null, factualityNote: "Ask for the missing operations detail." },
+    }];
+    input.nextSteps = [{ ...input.nextSteps[0], issueId: "post-rollout", action: input.issues[0].action }];
+    const report = validateEvidence(input, new Set(["seg_check"]), input.evidenceMap, { diagnosticsLocked: true });
+    expect(report.issues[0]).toMatchObject({ title: input.issues[0].title, explanation: input.issues[0].explanation, diagnosticKind: "missing_verification", action: input.issues[0].action, severity: "minor" });
+    expect(report.nextSteps[0].action).toBe(input.issues[0].action);
+  });
+  it("does not use a model-invented original excerpt as evidence for a rewrite", () => {
+    const input = createMockReport("first_job", false, "frontend_developer", "en");
+    input.evidenceMap = { seg_source: "Applied a supplied model API to classify tickets." };
+    input.issues = [{ ...input.issues[0], evidenceRefs: ["seg_source"], suggestion: {
+      type: "rewrite", original: "Trained a custom model.", proposed: "Trained a custom model.", factualityNote: "Use the source.",
+    } }];
+    const report = validateEvidence(input, new Set(["seg_source"]), input.evidenceMap, { diagnosticsLocked: true });
+    expect(report.issues[0].suggestion).toMatchObject({ type: "question", original: null, proposed: null });
+  });
+});

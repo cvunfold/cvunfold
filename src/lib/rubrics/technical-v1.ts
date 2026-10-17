@@ -40,7 +40,7 @@ const genericAutoWeights: Record<string, number> = {
   clarity: .14,
 };
 
-export const RUBRIC_VERSION = "technical-v1.5.0";
+export { SCORE_SCALE_RUBRIC_VERSION as RUBRIC_VERSION } from "./score-scale";
 
 export function parseSeniority(value: unknown): Seniority | null {
   return SENIORITIES.includes(value as Seniority) ? value as Seniority : null;
@@ -64,9 +64,9 @@ export function getRubric(seniority: Seniority, targetRole: TargetRoleId = "fron
     architecture: "Project structure and decisions", collaboration: "Collaboration and use of feedback", clarity: "CV clarity and project descriptions",
   });
   else if (seniority === "mid") Object.assign(labels, locale === "pl" ? {
-    impact: "Efekty dostarczonych rozwiązań", ownership: "Samodzielność i zakres zadań", architecture: "Decyzje techniczne i struktura rozwiązań",
+    impact: "Efekty dostarczonych rozwiązań", ownership: "Samodzielność i zakres zadań", architecture: targetRole === "other" || targetRole === "qa_test_automation" ? role.systemsLabel : "Decyzje techniczne i struktura rozwiązań",
   } : {
-    impact: "Delivered outcomes", ownership: "Independence and scope of work", architecture: "Technical decisions and solution structure",
+    impact: "Delivered outcomes", ownership: "Independence and scope of work", architecture: targetRole === "other" || targetRole === "qa_test_automation" ? role.systemsLabel : "Technical decisions and solution structure",
   });
   const selectedWeights = seniority === "auto" ? genericAutoWeights : weights[seniority];
   return Object.entries(selectedWeights).map(([key, weight]) => ({ key, weight, label: labels[key] }));

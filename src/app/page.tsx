@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LandingPage } from "@/components/landing-page";
 import { brand } from "@/lib/brand";
 
-const title = `Analiza CV developera: pierwsze wrażenie i konkretne wskazówki | ${brand.name}`;
-const description = "Sprawdź, co hiring manager zrozumie z Twojego CV. Otrzymaj analizę odpowiedzialności, wpływu, wiarygodności technicznej i konkretne dowody z dokumentu.";
+const title = `Analiza CV programisty online i test ATS | ${brand.name}`;
+const description = "Sprawdź CV programisty po polsku lub angielsku. Bezpłatnie: test czytelności ATS, pierwsze wrażenie i jedna poprawka z cytatem. Pełny raport jest płatny.";
 
 export const metadata: Metadata = {
   title: { absolute: title },

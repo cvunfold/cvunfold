@@ -1,10 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import { DocumentLanguage } from "@/components/document-language";
+import { AccessCodeDialog } from "@/components/access-code-dialog";
+import { reportAccessCodesEnabled } from "@/lib/security/report-access-code";
 import { GoogleAnalytics, googleConsentDefaults } from "@/components/google-analytics";
 import { VercelWebAnalytics } from "@/components/vercel-web-analytics";
 import { brand } from "@/lib/brand";
 import { SITE_DESCRIPTION, SITE_LOCALE, SITE_NAME, SITE_URL } from "@/lib/seo";
 import "./globals.css";
+import "./form-controls.css";
+import "./product-redesign.css";
+import "./document-scanner.css";
+import "./uploaded-cv-preview.css";
+import "./cv-flow-preview.css";
+import "./cv-story.css";
+import "./report-polish.css";
+import "./site-topbar.css";
+import "./article-content.css";
+import "./disclosures.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -52,12 +64,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   const analyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
   const adsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
   const adsConversionLabel = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL;
-  const analyticsEnabled = process.env.MOCK_MODE !== "true" && Boolean(analyticsId || adsId);
+  const analyticsEnabled = process.env.MOCK_MODE !== "true" && Boolean(analyticsId || adsId || process.env.NEXT_PUBLIC_LINKEDIN_CONVERSIONS_ENABLED === "true");
   return <html lang="pl" data-scroll-behavior="smooth" suppressHydrationWarning>
     {analyticsEnabled ? <head><script dangerouslySetInnerHTML={{ __html: googleConsentDefaults }} /></head> : null}
     <body>
       <DocumentLanguage />
       {children}
+      {reportAccessCodesEnabled() ? <AccessCodeDialog/> : null}
       {analyticsEnabled ? <GoogleAnalytics analyticsId={analyticsId} adsId={adsId} adsConversionLabel={adsConversionLabel} /> : null}
       {process.env.MOCK_MODE !== "true" ? <VercelWebAnalytics /> : null}
     </body>

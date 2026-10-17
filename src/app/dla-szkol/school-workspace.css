@@ -1,0 +1,168 @@
+/* School reports share the application's paper, ink and lime palette. */
+.school-workspace .school-main{padding-top:30px;padding-bottom:64px}
+.school-workspace .school-context{margin-bottom:28px}
+.school-workspace .school-main>.school-heading{align-items:flex-end;gap:24px;padding-bottom:26px}
+.school-workspace .school-main>.school-heading>div:first-child{border-left:0;padding-left:0;flex:1 1 500px}
+.school-workspace .school-main>.school-heading h1{font-size:clamp(32px,3vw,44px);margin:10px 0 22px;line-height:1.12}
+.school-workspace .school-main>.school-heading>.school-actions{max-width:470px;justify-content:flex-end}
+.school-workspace .school-card{box-shadow:0 3px 16px rgba(7,22,47,.025);margin-bottom:24px}
+.school-workspace .school-card>h2{border-bottom:0;padding-bottom:0;margin-bottom:22px}
+.school-workspace .school-stats{gap:16px;margin:24px 0 4px}
+.school-workspace .school-stats>.school-card{min-height:160px;padding:24px;margin-bottom:20px}
+.school-workspace .school-stats>.school-card>strong{font-family:var(--sans);font-size:44px;letter-spacing:-.055em;margin:14px 0}
+.school-workspace .school-progress{background:var(--school-soft);border-color:#dce5ba}
+.school-workspace .school-progress>h2{font-size:23px;margin-bottom:12px}
+.school-workspace .school-progress p{font-size:14px}
+.school-workspace .school-section-heading{margin:38px 0 24px}
+.school-workspace .school-section-heading h2{margin:8px 0;font-size:30px}
+.school-workspace .school-category-grid{gap:6px 32px}
+.school-workspace .school-roster{padding:0;overflow:visible}
+.school-workspace .school-roster>.school-heading{padding:24px 28px 20px;margin:0;border-bottom:0}
+.school-workspace .school-roster h2{margin-top:8px}
+.school-workspace .school-roster>p{padding:0 28px 20px}
+.school-workspace .school-students-table{table-layout:fixed}
+.school-workspace .school-students-table th{background:#f5f6f2;padding:8px 20px;border-block:1px solid var(--line);font-size:11px}
+.school-workspace .school-students-table th:first-child{width:29%;padding-left:28px}
+.school-workspace .school-students-table th:nth-child(2){width:150px}
+.school-workspace .school-students-table th:last-child{width:152px;padding-right:28px}
+.school-workspace .school-students-table .school-sort-button{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;font-size:inherit;min-height:40px}
+.school-workspace .school-students-table td{padding:22px 20px;vertical-align:middle;line-height:1.6}
+.school-workspace .school-students-table td:first-child{padding-left:28px}
+.school-workspace .school-students-table td:last-child{padding-right:28px}
+.school-workspace .school-students-table tbody tr:hover{background:#fafbf7}
+.school-workspace .school-student-name>strong{font-size:14px}
+.school-workspace .school-student-score{font-size:14px;font-weight:700;white-space:normal}
+.school-workspace .school-student-score>span{font-weight:400;color:var(--muted)}
+.school-workspace .school-students-table .school-student-issue{font-size:12px;line-height:1.75;color:var(--muted)}
+.school-workspace .school-students-table small{font-size:10px;margin-top:5px}
+.school-workspace .school-sample-label{font-size:11px;line-height:1.6;margin-top:6px}
+.school-workspace .school-students-table .school-report-button{gap:10px;white-space:nowrap;padding:10px 16px;font-size:12px;min-height:44px}
+.school-workspace .school-problem{padding:16px 12px;display:flex;justify-content:space-between;align-items:center;gap:16px;border-radius:6px}
+.school-workspace .school-problem small{white-space:nowrap;font-size:12px}
+.school-workspace .school-problem:focus-visible,.school-workspace button:focus-visible,.school-workspace a:focus-visible,.school-workspace summary:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+.school-workspace .school-demo-method{margin-top:24px;padding:20px 24px;border-left:1px solid var(--line);background:transparent;box-shadow:none}
+.school-workspace .school-demo-method>summary{cursor:pointer;font-size:13px;font-weight:600;min-height:24px}
+.school-workspace .school-method-content{padding-top:24px}
+.school-workspace .school-method-content h2{margin-top:8px}
+.school-workspace .school-method-content p{font-size:13px}
+.school-workspace .school-switcher{background:#f3f5ed;border-color:#e0e4d6;box-shadow:none;padding:18px 24px}
+.school-workspace .school-report-name h1{margin-bottom:8px}
+.school-workspace .school-report-nav{position:sticky;top:var(--school-topbar-height,var(--site-topbar-height));z-index:50;display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;margin:0 0 24px;padding:12px 0;background:var(--paper);border-bottom:1px solid var(--line);box-shadow:0 6px 12px -10px rgba(7,22,47,.2)}
+.school-workspace .school-report-nav a{flex-shrink:0;white-space:nowrap;display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:12px;font-weight:600;text-decoration:none;color:var(--ink)}
+.school-workspace .school-report-nav a[aria-current="location"]{background:var(--ink);color:white;border-color:var(--ink)}
+.school-workspace .school-report-nav a:not([aria-current="location"]):hover{background:var(--school-soft);color:var(--school-accent);border-color:#cbd8a0}
+.school-workspace :is([id],.school-card){scroll-margin-top:calc(var(--school-topbar-height,var(--site-topbar-height)) + var(--school-report-nav-height,0px) + 24px)}
+.school-workspace .school-report-summary{grid-template-columns:minmax(0,1.05fr) repeat(2,minmax(0,1fr));margin-top:0}
+.school-workspace .school-report-summary>.school-card{min-height:220px}
+.school-workspace .school-report-summary h2{font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:0;color:var(--muted)}
+.school-workspace .school-report-summary p{font-size:14px;line-height:1.75;margin-top:18px}
+.school-workspace .school-report-summary .school-score-card>strong{font-size:60px;margin:14px 0}
+.school-workspace .school-score-unit{font:500 18px/1 var(--sans);letter-spacing:0;margin-left:6px;color:#c7d0d9}
+.school-workspace .school-report-summary small{font-size:12px;line-height:1.8}
+.school-workspace .school-report-analysis>.school-card{padding:30px 32px}
+.school-workspace .school-report-analysis p,.school-workspace .school-report-analysis li{font-size:14px;line-height:1.85}
+.school-workspace .school-recruiter-card>h2{margin-top:8px}
+.school-workspace .school-signal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:26px 0}
+.school-workspace .school-signal-panel{padding:20px;background:#f7f8f4;border-radius:10px;border:1px solid #e6e9de;min-width:0}
+.school-workspace .school-signal-panel h3{margin:0 0 16px;font-size:13px}
+.school-workspace .school-signal-panel ul{padding-left:18px;margin:0}
+.school-workspace .school-signal-panel li+li{margin-top:18px}
+.school-workspace .school-signal-panel p{font-size:13px;color:var(--muted);margin-bottom:0}
+.school-workspace .school-impression-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-bottom:20px}
+.school-workspace .school-impression-step{border-top:2px solid #cedca7;padding-top:14px}
+.school-workspace .school-impression-step h3{margin:0 0 10px;font:600 23px/1.2 var(--serif)}
+.school-workspace .school-impression-step p{font-size:13px;color:var(--muted)}
+.school-workspace .school-area-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 32px}
+.school-workspace .school-area-grid>div{padding:16px 20px;background:#f8f9f6;border:1px solid #e8ebe1;border-radius:10px;min-width:0}
+.school-workspace .school-area-grid .school-meter>div:first-child{margin-top:0}
+.school-workspace .school-area-grid p{font-size:12px;line-height:1.8;margin:0}
+.school-workspace .school-strengths>div+div{padding-top:20px;margin-top:20px;border-top:1px solid var(--line)}
+.school-workspace .school-finding:first-of-type{border-top:0;padding-top:0}
+.school-workspace .school-finding h3{font-size:24px;margin-top:14px}
+.school-workspace .school-severity-critical{background:#faece9;color:#9d3e35}
+.school-workspace .school-severity-important{background:#fbf2df;color:#80591d}
+.school-workspace .school-severity-minor{background:#eef1f5;color:#53617b}
+.school-workspace .school-finding-action{padding:18px 22px;background:#f5f8e9;border:1px solid #e0e8c8;border-radius:9px;margin-top:18px}
+.school-workspace .school-finding-action h4{margin:0;font-size:12px;color:var(--school-accent)}
+.school-workspace .school-finding-action p{margin-bottom:0}
+.school-workspace .school-action-plan ol{list-style:none;counter-reset:school-step;padding:0;margin:0}
+.school-workspace .school-action-plan li{counter-increment:school-step;position:relative;padding:4px 0 20px 54px}
+.school-workspace .school-action-plan li+li{border-top:1px solid var(--line);padding-top:20px}
+.school-workspace .school-action-plan li::before{content:counter(school-step,decimal-leading-zero);position:absolute;left:0;top:12px;font:600 24px/1 var(--serif);color:var(--school-accent)}
+.school-workspace .school-action-plan li+li::before{top:28px}
+.school-workspace .school-action-plan h3{margin-top:4px}
+.school-workspace .school-limitations{background:transparent;box-shadow:none}
+.school-workspace .school-limitations p{font-size:12px;color:var(--muted)}
+.school-workspace .school-report-tools{padding-top:16px}
+.school-workspace .school-version-list button{flex:1;min-width:180px;padding:18px 20px}
+.school-workspace .school-version-list strong{font:600 28px/1.2 var(--sans);letter-spacing:-.04em}
+.school-workspace .school-source p{font-size:13px}
+@media(max-width:1000px){
+  .school-workspace .school-main>.school-heading>.school-actions{max-width:none;justify-content:flex-start}
+  .school-workspace .school-students-table th:first-child{width:32%}
+  .school-workspace .school-students-table th:nth-child(2){width:125px}
+}
+@media(max-width:760px){
+  .school-workspace :is([id],.school-card){scroll-margin-top:calc(var(--school-topbar-height,140px) + var(--school-report-nav-height,0px) + 24px)}
+  .school-workspace .school-main{padding:22px 18px 40px}
+  .school-workspace .school-context{gap:4px;margin-bottom:24px}
+  .school-workspace .school-main>.school-heading{gap:20px}
+  .school-workspace .school-main>.school-heading>div:first-child{flex-basis:100%}
+  .school-workspace .school-main>.school-heading h1{font-size:34px}
+  .school-workspace .school-stats{grid-template-columns:1fr;gap:12px;margin-bottom:20px}
+  .school-workspace .school-stats>.school-card{min-height:0;margin:0;padding:20px}
+  .school-workspace .school-stats>.school-card>strong{font-size:38px;margin:10px 0}
+  .school-workspace .school-report-summary .school-score-card>strong{font-size:54px}
+  .school-workspace .school-roster>.school-heading{padding:22px 20px}
+  .school-workspace .school-student-list{overflow:visible}
+  .school-workspace .school-students-table{min-width:0;display:block}
+  .school-workspace .school-students-table thead{display:block;border-block:1px solid var(--line);background:#f5f6f2}
+  .school-workspace .school-students-table thead tr{display:flex}
+  .school-workspace .school-students-table th{border:0;padding:6px 20px!important;width:auto!important;min-width:0!important}
+  .school-workspace .school-students-table th:nth-child(n+3){display:none}
+  .school-workspace .school-students-table tbody{display:block}
+  .school-workspace .school-students-table .school-student{display:grid;grid-template-columns:minmax(0,1fr) auto;padding:20px;gap:12px;border-top:0;border-bottom:1px solid var(--line)}
+  .school-workspace .school-students-table .school-student:last-child{border-bottom:0}
+  .school-workspace .school-students-table td{display:block;padding:0!important;border:0}
+  .school-workspace .school-students-table td:first-child{grid-column:1/-1}
+  .school-workspace .school-students-table .school-student-score{grid-column:1;grid-row:2;align-self:center}
+  .school-workspace .school-students-table .school-student-issue{grid-column:1/-1;grid-row:3}
+  .school-workspace .school-students-table .school-student-issue::before{content:attr(data-label);display:block;color:var(--ink);font-size:10px;letter-spacing:.06em;text-transform:uppercase;margin:2px 0 6px}
+  .school-workspace .school-students-table td:last-child{grid-column:2;grid-row:2}
+  .school-workspace .school-area-grid,.school-workspace .school-signal-grid,.school-workspace .school-impression-grid{grid-template-columns:1fr;gap:16px}
+  .school-workspace .school-report-analysis>.school-card{padding:24px 20px}
+  .school-workspace .school-switcher{padding:20px}
+  .school-workspace .school-switcher>.school-actions{width:100%;justify-content:space-between}
+  .school-workspace .school-switcher>.school-actions button{flex:1;padding-inline:10px}
+  .school-workspace .school-report-nav{gap:6px}
+  .school-workspace .school-report-nav a{padding:8px 12px;font-size:11px}
+  .school-workspace .school-problem{padding-inline:0}
+}
+@media print{
+  .school-workspace .school-report-nav,.school-workspace .school-demo-method{display:none!important}
+  .school-workspace .school-report-analysis>.school-card{padding:12px 0!important}
+  .school-workspace .school-report-summary>.school-card{min-height:0;background:white!important;color:var(--ink)!important}
+  .school-workspace .school-report-summary .school-score-card :is(span,strong,small){color:var(--ink)!important}
+  .school-workspace .school-signal-grid,.school-workspace .school-area-grid,.school-workspace .school-impression-grid{display:block}
+}
+
+.school-workspace .school-back-button{display:inline-flex;align-items:center;justify-content:center;gap:10px}
+/* Open choices must stay above the sticky report navigation. */
+.school-workspace .role-field:has(.role-select.open){z-index:70}
+.school-metric-pair{display:flex;align-items:center;gap:18px;margin:18px 0;min-width:0}
+.school-workspace .school-metric-pair strong{display:block;font-family:var(--sans);font-variant-numeric:tabular-nums;letter-spacing:-.055em;line-height:1.2}
+.school-workspace .school-metric-pair small{font-size:10px;font-weight:500;margin:0 0 6px}
+.school-workspace .school-metric-original strong{font-size:28px;color:var(--muted)}
+.school-workspace .school-metric-current strong{font-size:44px;color:var(--ink)}
+.school-metric-pair>svg{flex-shrink:0;color:var(--muted);margin-top:18px}
+.school-group-metrics>.school-card:first-child .school-metric-original strong,.school-group-metrics>.school-card:first-child .school-metric-pair small,.school-group-metrics>.school-card:first-child .school-metric-pair>svg{color:#c9d1df}
+.school-group-metrics>.school-card:first-child .school-metric-current strong{color:var(--accent)}
+.school-workspace .school-metrics-note{font-size:11px;color:var(--muted);line-height:1.7;margin:0 0 24px}
+@media(max-width:760px){.school-metric-pair{margin:14px 0}.school-workspace .school-metric-current strong{font-size:38px}}
+
+.school-workspace .school-group-metrics .school-metric-total{font-size:22px;font-weight:500;letter-spacing:0;color:var(--muted);white-space:nowrap}
+.school-workspace .school-group-metrics>.school-card{text-align:center;align-items:center}
+.school-group-metrics .school-metric-pair{justify-content:center;width:100%}
+.school-workspace .school-group-metrics>.school-metric-count-card{min-height:172px;display:grid;grid-template-rows:auto 1fr auto;justify-items:center;align-items:center}
+.school-workspace .school-group-metrics>.school-metric-count-card>strong{display:inline-flex;align-items:center;gap:6px;margin:0}
+.school-workspace .school-group-metrics>.school-metric-count-card>small{margin:0}

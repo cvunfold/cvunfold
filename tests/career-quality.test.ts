@@ -53,8 +53,8 @@ describe("career-stage quality contract", () => {
   it("calibrates every variant in both languages and records the policy version", () => {
     for (const variant of REVIEW_PROMPT_VARIANTS) for (const locale of ["pl", "en"] as const) {
       process.env.CV_REVIEW_PROMPT_VARIANT = variant;
-      expect(getReviewPrompt(locale).systemPrompt.endsWith(careerPolicy(locale))).toBe(true);
-      expect(getReviewPrompt(locale).version).toContain("career-v2.2.0");
+      expect(getReviewPrompt(locale).systemPrompt.includes(careerPolicy(locale))).toBe(true);
+      expect(getReviewPrompt(locale).version).toContain("career-v3.0.1");
     }
   });
 
@@ -89,8 +89,8 @@ describe("career-stage quality contract", () => {
 describe("one prompt selected before analysis", () => {
   for (const locale of ["pl", "en"] as const) for (const stage of ["first_job", "junior", "mid", "senior", "lead", "auto"] as const) it(`selects only ${stage} in ${locale}`, () => {
     const prompt = getReviewPrompt(locale, stage);
-    expect(prompt.version.endsWith(`:${stage}`)).toBe(true);
-    expect(prompt.systemPrompt).toContain(`${locale === "pl" ? "WYBRANY ETAP" : "SELECTED STAGE"}: ${stage}`);
-    expect(prompt.systemPrompt.match(/(?:WYBRANY ETAP|SELECTED STAGE):/g)).toHaveLength(1);
+    expect(prompt.version).toContain(`career-v3.0.1:${stage}`);
+    expect(prompt.systemPrompt).toContain(`# Selected stage: ${stage}`);
+    expect(prompt.systemPrompt.match(/# Selected stage:/g)).toHaveLength(1);
   });
 });

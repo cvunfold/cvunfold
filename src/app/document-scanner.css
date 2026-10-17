@@ -1,0 +1,7 @@
+.document-scanner { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.document-scanner-sweep { position: absolute; inset: 0; animation: document-scan 3.5s ease-in-out infinite; }
+.document-scanner-sweep > i { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); box-shadow: 0 0 18px 3px rgba(194,220,69,.65); }
+.document-scanner-sweep > i::before { content: ""; position: absolute; left: 0; right: 0; bottom: 2px; height: 50px; background: linear-gradient(transparent,rgba(194,220,69,.18)); }
+.document-scanner[data-paused="true"] .document-scanner-sweep { animation-play-state: paused; }
+@keyframes document-scan { 0%,100% { transform: translateY(2%); } 50% { transform: translateY(96%); } }
+@media (prefers-reduced-motion: reduce) { .document-scanner { display: none; } }

@@ -2,18 +2,30 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CVReport, TeaserReport } from "@/lib/ai/schemas/report";
+import { ReportWorkspaceTools } from "@/components/report-workspace-tools";
+import "@/app/report-workspace.css";
+import type { RevisionSummary } from "@/lib/data/store";
 import type { Purchase } from "@/lib/data/store";
 import type { Locale } from "@/lib/i18n";
 import type { Plan } from "@/lib/plans";
 import { Logo } from "@/components/logo";
 import { ReportView } from "@/components/report-view";
-import { trackAnalyticsEvent } from "@/lib/analytics/client";
+import { CONSENT_UPDATED_EVENT, trackAnalyticsEvent } from "@/lib/analytics/client";
+import { trackLinkedInPurchase } from "@/lib/analytics/linkedin-client";
 import type { MeasurementContext } from "@/lib/audience";
+import { ACCESS_CODE_EVENT } from "@/lib/client/access-code";
+import { reportRequestHeaders } from "@/lib/client/report-access";
 
 type ReportResponse = {
+  iterationsAvailable: boolean;
+  analysisId: string;
+  version: number;
+  revisions: RevisionSummary[];
+  rechecksRemaining: number;
+  recheckRunning: boolean;
   paid: boolean;
   fullAccess?: boolean;
-  accessMode?: "preview_test" | "purchase" | "teaser";
+  accessMode?: "preview_test" | "access_code" | "purchase" | "teaser";
   plan: Plan;
   locale: Locale;
   expiresAt: string;
@@ -41,7 +53,7 @@ const messages = {
   },
 } as const;
 
-export function ReportSessionPage({ locale, mockMode, testAccessEnabled = false }: { locale: Locale; mockMode: boolean; testAccessEnabled?: boolean }) {
+export function ReportSessionPage({ locale, mockMode, testAccessEnabled = false, analysisId }: { analysisId?: string; locale: Locale; mockMode: boolean; testAccessEnabled?: boolean }) {
   const t = messages[locale];
   const [data, setData] = useState<ReportResponse | null>(null);
   const [error, setError] = useState(false);
@@ -50,17 +62,55 @@ export function ReportSessionPage({ locale, mockMode, testAccessEnabled = false 
   const [testBusy, setTestBusy] = useState(false);
   const [testError, setTestError] = useState(false);
   const [notice, setNotice] = useState("");
+  const [accessNoticeVisible, setAccessNoticeVisible] = useState(true);
 
-  const load = useCallback(async () => {
+  useEffect(() => {
+    if (mockMode || !data?.paid || !data.purchase || data.accessMode !== "purchase") return;
+    const { analysisId, purchase } = data;
+    const send = () => { void trackLinkedInPurchase(analysisId, purchase.transactionId); };
+    send();
+    window.addEventListener(CONSENT_UPDATED_EVENT, send);
+    window.addEventListener("online", send);
+    return () => {
+      window.removeEventListener(CONSENT_UPDATED_EVENT, send);
+      window.removeEventListener("online", send);
+    };
+  }, [data, mockMode]);
+  function showAccessNotice() {
+    setAccessNoticeVisible(true);
+    requestAnimationFrame(() => {
+      const notice = document.getElementById("report-access-notice");
+      notice?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+      notice?.focus({ preventScroll: true });
+    });
+  }
+  function dismissAccessNotice() {
+    setAccessNoticeVisible(false);
+    requestAnimationFrame(() => document.querySelector<HTMLButtonElement>("[data-report-access-toggle]")?.focus());
+  }
+
+  const load = useCallback(async (version?: number) => {
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id");
-    const url = sessionId ? `/api/report?session_id=${encodeURIComponent(sessionId)}` : "/api/report";
+    const query = new URLSearchParams();
+    if (sessionId) query.set("session_id", sessionId);
+    const pathId = analysisId || window.location.pathname.match(/^\/(?:raport|en\/report)\/([a-f0-9-]{36})$/i)?.[1];
+    if (pathId) query.set("id", pathId);
+    if (version !== undefined) query.set("version", String(version));
+    const search = query.toString();
+    const url = `/api/report${search ? `?${search}` : ""}`;
     const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) return null;
     const report = await response.json() as ReportResponse;
     setData(report);
     return report;
-  }, []);
+  }, [analysisId]);
+
+  useEffect(() => {
+    function refreshAfterCode() { void load().catch(() => setError(true)); }
+    window.addEventListener(ACCESS_CODE_EVENT, refreshAfterCode);
+    return () => window.removeEventListener(ACCESS_CODE_EVENT, refreshAfterCode);
+  }, [load]);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +123,7 @@ export function ReportSessionPage({ locale, mockMode, testAccessEnabled = false 
         const response = await fetch("/api/report-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ token, ...(analysisId ? { analysisId } : {}) }),
         });
         if (!response.ok) { if (!cancelled) setError(true); return; }
         const session = await response.json() as { path: string; locale: Locale };
@@ -82,9 +132,13 @@ export function ReportSessionPage({ locale, mockMode, testAccessEnabled = false 
       }
       let report = await load();
       if (!report) { if (!cancelled) setError(true); return; }
+      if (window.location.pathname === "/raport" || window.location.pathname === "/en/report") {
+        const path = `${report.locale === "pl" ? "/raport" : "/en/report"}/${report.analysisId}`;
+        window.history.replaceState(null, "", `${path}${window.location.search}${window.location.hash}`);
+      }
       const checkoutState = new URLSearchParams(window.location.search).get("checkout");
       if (checkoutState === "cancelled") {
-        await fetch("/api/report/checkout-event", { method: "POST" }).catch(() => undefined);
+        await fetch("/api/report/checkout-event", { method: "POST", headers: reportRequestHeaders() }).catch(() => undefined);
         trackAnalyticsEvent("checkout_cancelled", { plan: report.plan, locale: report.locale, market: report.locale, ...report.measurementContext });
         if (!cancelled) setNotice(t.cancelled);
         window.history.replaceState(null, "", window.location.pathname);
@@ -100,28 +154,28 @@ export function ReportSessionPage({ locale, mockMode, testAccessEnabled = false 
       }
       if (checkoutState === "success" && report.paid) window.history.replaceState(null, "", window.location.pathname);
     }
-    void bootstrap();
+    void bootstrap().catch(() => { if (!cancelled) setError(true); });
     return () => { cancelled = true; };
-  }, [load, locale, t.cancelled, t.pendingLong]);
+  }, [load, locale, analysisId, t.cancelled, t.pendingLong]);
 
   async function unlockTest(event: React.FormEvent) {
     event.preventDefault();
     setTestBusy(true); setTestError(false);
     try {
-      const response = await fetch("/api/report/test-access", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: testCode }) });
+      const response = await fetch("/api/report/test-access", { method: "POST", headers: reportRequestHeaders({ "Content-Type": "application/json" }), body: JSON.stringify({ code: testCode }) });
       setTestCode("");
       if (!response.ok || !await load()) setTestError(true);
     } catch { setTestError(true); } finally { setTestBusy(false); }
   }
 
   if (error) return <main className="report-state"><Logo locale={locale}/><h1>{t.missing}</h1><button className="button" onClick={() => window.location.reload()}>{t.retry}</button></main>;
-  if (!data || pending) return <main className="report-state"><Logo locale={locale}/><div className="analysis-spinner"/><h1>{pending ? t.pending : t.loading}</h1></main>;
-  const testAccessForm = testAccessEnabled && !data.paid && data.accessMode !== "preview_test" ? <section className="report-test-access" aria-label={locale === "pl" ? "Dostęp testowy" : "Test access"}>
+  if (!data || pending) return <main className="report-state report-loading-state"><div className="report-loading-card" role="status" aria-live="polite" aria-atomic="true"><Logo locale={locale}/><div className="report-loading-ring" aria-hidden="true"/><h1>{pending ? t.pending : t.loading}</h1></div></main>;
+  const testAccessForm = testAccessEnabled && !data.paid && data.accessMode !== "access_code" && data.accessMode !== "preview_test" ? <section className="report-test-access" aria-label={locale === "pl" ? "Dostęp testowy" : "Test access"}>
     <form onSubmit={unlockTest}>
       <label>{locale === "pl" ? "Kod dostępu testowego" : "Test access code"}<input type="password" autoComplete="off" maxLength={256} value={testCode} onChange={event => setTestCode(event.target.value)} disabled={testBusy}/></label>
       <button className="button" disabled={testBusy || !testCode}>{locale === "pl" ? "Otwórz raport testowo" : "Open report for testing"}</button>
       {testError ? <p role="alert">{locale === "pl" ? "Nie udało się przyznać dostępu testowego." : "Test access could not be granted."}</p> : null}
     </form>
   </section> : null;
-  return <>{notice ? <div className="payment-notice" role="status">{notice}</div> : null}<ReportView testAccessForm={testAccessForm} paid={data.fullAccess ?? data.paid} testAccess={data.accessMode === "preview_test"} plan={data.plan} purchase={data.purchase} data={data.report} locale={data.locale} expiresAt={data.expiresAt} mockMode={mockMode} measurementContext={data.measurementContext}/></>;
+  return <><ReportWorkspaceTools accessVisible={accessNoticeVisible} onDismissAccess={dismissAccessNotice} analysisId={data.analysisId} locale={data.locale} fullAccess={(data.fullAccess ?? data.paid) && data.plan === "full_review" && data.iterationsAvailable !== false} remaining={data.rechecksRemaining} running={data.recheckRunning} version={data.version} revisions={data.revisions} onVersion={load}/>{notice ? <div className="payment-notice" role="status">{notice}</div> : null}<ReportView feedbackVersion={data.version || 0} onShowAccessNotice={accessNoticeVisible ? undefined : showAccessNotice} testAccessForm={testAccessForm} paid={data.fullAccess ?? data.paid} testAccess={data.accessMode === "preview_test"} plan={data.plan} purchase={data.purchase} data={data.report} locale={data.locale} expiresAt={data.expiresAt} mockMode={mockMode} measurementContext={data.measurementContext}/></>;
 }

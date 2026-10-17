@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { articles, articlesBySlug } from "@/lib/content/articles";
 import { articlesEn } from "@/lib/content/articles-en";
+import { articleAlternates, translatedArticlePath } from "@/lib/article-translations";
 
 describe("knowledge articles", () => {
   it("publishes the AI career pillar as the leading article", () => {
@@ -17,9 +18,32 @@ describe("knowledge articles", () => {
     expect(new Set(articles.map(({ slug }) => slug)).size).toBe(articles.length);
   });
 
-  it("ships a complete English counterpart for every Polish article", () => {
-    expect(articlesEn).toHaveLength(articles.length);
-    expect(articlesEn.every((article) => article.sections.length >= 4 && article.checklist.length >= 4)).toBe(true);
+  it("keeps every declared English counterpart complete", () => {
+    const translated = articles.filter(({ slug }) => articleAlternates(slug, "pl"));
+    expect(articlesEn).toHaveLength(translated.length);
+    for (const article of translated) {
+      const path = translatedArticlePath(article.slug, "pl");
+      expect(articlesEn.some(({ slug }) => path === `/en/articles/${slug}`)).toBe(true);
+    }
+    expect(articlesEn.every((article) => article.sections.length >= 4)).toBe(true);
+    for (const article of translated) {
+      const path = translatedArticlePath(article.slug, "pl");
+      const counterpart = articlesEn.find(({ slug }) => path === `/en/articles/${slug}`)!;
+      expect(counterpart.checklist).toHaveLength(article.checklist.length);
+    }
+  });
+
+  it("connects both first-job guides and shares their illustration", () => {
+    const article = articlesBySlug.get("cv-bez-doswiadczenia-w-it");
+    expect(article?.title).toBe("CV bez doświadczenia w IT: jak zwiększyć swoje szanse");
+    expect(article?.sections.filter(({ example }) => example)).toHaveLength(4);
+    expect(article?.openingParagraphs?.join(" ")).toContain("Nie musisz przedstawiać się jako doświadczony developer");
+    const counterpart = articlesEn.find(({ slug }) => slug === "tech-cv-with-no-experience")!;
+    expect(counterpart.sections.filter(({ example }) => example)).toHaveLength(4);
+    expect(counterpart.cover?.src).toBe(article?.cover?.src);
+    expect(translatedArticlePath(article!.slug, "pl")).toBe("/en/articles/tech-cv-with-no-experience");
+    expect(translatedArticlePath(counterpart.slug, "en")).toBe(`/artykuly/${article!.slug}`);
+    expect(articleAlternates(counterpart.slug, "en")).toEqual(articleAlternates(article!.slug, "pl"));
   });
 
   it("publishes the developer CV length guide from the evidence hierarchy", () => {

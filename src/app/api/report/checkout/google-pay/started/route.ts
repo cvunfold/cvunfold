@@ -1,3 +1,5 @@
+import { reportRequestMatches } from "@/lib/security/report-session";
+import { hasReportCodeAccess } from "@/lib/security/report-access-code";
 import { NextResponse } from "next/server";
 import { getAnalysis, recordFunnelEvent } from "@/lib/data/store";
 import { measurementContextFromAttribution } from "@/lib/audience";
@@ -11,7 +13,8 @@ export async function POST(request: Request) {
   const token = reportTokenFromRequest(request);
   if (!token) return NextResponse.json({ error: "REPORT_SESSION_REQUIRED" }, { status: 401 });
   const item = await getAnalysis(token);
-  if (!item) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
+  if (!item || !reportRequestMatches(request, item.id)) return NextResponse.json({ error: "REPORT_NOT_FOUND" }, { status: 404 });
+  if (hasReportCodeAccess(item)) return NextResponse.json({ error: "REPORT_ALREADY_UNLOCKED" }, { status: 409 });
   const body = await request.json().catch(() => ({})) as { sessionId?: unknown };
   if (typeof body.sessionId !== "string" || !/^cs_[A-Za-z0-9_]+$/.test(body.sessionId) || body.sessionId.length > 255) {
     return NextResponse.json({ error: "CHECKOUT_SESSION_INVALID" }, { status: 400 });

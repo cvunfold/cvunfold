@@ -3,6 +3,7 @@ type ContentSecurityPolicyOptions = {
   stripeEnabled: boolean;
   turnstileEnabled: boolean;
   development: boolean;
+  schoolStorageUrl?: string;
 };
 
 const googleSources = {
@@ -59,10 +60,18 @@ function directive(name: string, sources: readonly string[]) {
   return `${name} ${sources.join(" ")}`;
 }
 
-export function buildContentSecurityPolicy({ googleEnabled, stripeEnabled, turnstileEnabled, development }: ContentSecurityPolicyOptions) {
+export function buildContentSecurityPolicy({ googleEnabled, stripeEnabled, turnstileEnabled, development, schoolStorageUrl }: ContentSecurityPolicyOptions) {
   const google = <Key extends keyof typeof googleSources>(key: Key) => googleEnabled ? googleSources[key] : [];
   const stripe = <Key extends keyof typeof stripeSources>(key: Key) => stripeEnabled ? stripeSources[key] : [];
   const turnstile = turnstileEnabled ? ["https://challenges.cloudflare.com"] : [];
+  const schoolUpload = (() => {
+    if (!schoolStorageUrl) return [];
+    try {
+      const url = new URL(schoolStorageUrl);
+      if (url.protocol !== "https:" || url.username || url.password || url.port || url.pathname !== "/" || url.search || url.hash || !url.hostname.endsWith(".supabase.co")) return [];
+      return [`${url.origin}/storage/v1/object/upload/sign/school-upload-queue/`];
+    } catch { return []; }
+  })();
 
   return [
     "default-src 'self'",
@@ -70,7 +79,7 @@ export function buildContentSecurityPolicy({ googleEnabled, stripeEnabled, turns
     "style-src 'self' 'unsafe-inline'",
     directive("img-src", ["'self'", "data:", "blob:", ...google("image"), ...stripe("image")]),
     "font-src 'self'",
-    directive("connect-src", ["'self'", ...google("connect"), ...stripe("connect"), ...turnstile]),
+    directive("connect-src", ["'self'", ...google("connect"), ...stripe("connect"), ...turnstile, ...schoolUpload]),
     directive("frame-src", ["'self'", ...google("frame"), ...stripe("frame"), ...turnstile]),
     "frame-ancestors 'none'",
     "base-uri 'self'",

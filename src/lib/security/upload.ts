@@ -25,39 +25,40 @@ export async function validateSignature(file: File): Promise<void> {
   if (!isPdf) validateDocxArchive(Buffer.from(await file.arrayBuffer()));
 }
 
-export function validateDocxArchive(buffer: Buffer, maxUncompressedBytes = 25 * 1024 * 1024, maxEntries = 500): void {
+export function validateDocxArchive(buffer: Uint8Array, maxUncompressedBytes = 25 * 1024 * 1024, maxEntries = 500): void {
+  const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
   const eocdSignature = 0x06054b50;
   const centralSignature = 0x02014b50;
   const start = Math.max(0, buffer.length - 65_557);
   let eocd = -1;
   for (let offset = buffer.length - 22; offset >= start; offset -= 1) {
-    if (buffer.readUInt32LE(offset) === eocdSignature) { eocd = offset; break; }
+    if (view.getUint32(offset, true) === eocdSignature) { eocd = offset; break; }
   }
   if (eocd < 0) throw new Error("INVALID_FILE_SIGNATURE");
-  const entries = buffer.readUInt16LE(eocd + 10);
-  const centralSize = buffer.readUInt32LE(eocd + 12);
-  const centralOffset = buffer.readUInt32LE(eocd + 16);
+  const entries = view.getUint16(eocd + 10, true);
+  const centralSize = view.getUint32(eocd + 12, true);
+  const centralOffset = view.getUint32(eocd + 16, true);
   if (entries < 2 || entries > maxEntries || centralOffset + centralSize > buffer.length) throw new Error("DOCX_ARCHIVE_UNSAFE");
   let offset = centralOffset;
   let totalCompressed = 0;
   let totalUncompressed = 0;
   const names = new Set<string>();
   for (let index = 0; index < entries; index += 1) {
-    if (offset + 46 > buffer.length || buffer.readUInt32LE(offset) !== centralSignature) throw new Error("DOCX_ARCHIVE_UNSAFE");
-    const flags = buffer.readUInt16LE(offset + 8);
-    const method = buffer.readUInt16LE(offset + 10);
-    const compressed = buffer.readUInt32LE(offset + 20);
-    const uncompressed = buffer.readUInt32LE(offset + 24);
-    const nameLength = buffer.readUInt16LE(offset + 28);
-    const extraLength = buffer.readUInt16LE(offset + 30);
-    const commentLength = buffer.readUInt16LE(offset + 32);
+    if (offset + 46 > buffer.length || view.getUint32(offset, true) !== centralSignature) throw new Error("DOCX_ARCHIVE_UNSAFE");
+    const flags = view.getUint16(offset + 8, true);
+    const method = view.getUint16(offset + 10, true);
+    const compressed = view.getUint32(offset + 20, true);
+    const uncompressed = view.getUint32(offset + 24, true);
+    const nameLength = view.getUint16(offset + 28, true);
+    const extraLength = view.getUint16(offset + 30, true);
+    const commentLength = view.getUint16(offset + 32, true);
     if ((flags & 1) !== 0 || (method !== 0 && method !== 8)) throw new Error("DOCX_ARCHIVE_UNSAFE");
     if (compressed === 0 && uncompressed > 0) throw new Error("DOCX_ARCHIVE_UNSAFE");
     if (compressed > 0 && uncompressed / compressed > 200) throw new Error("DOCX_ARCHIVE_UNSAFE");
     const nameStart = offset + 46;
     const nextOffset = nameStart + nameLength + extraLength + commentLength;
     if (nextOffset > buffer.length) throw new Error("DOCX_ARCHIVE_UNSAFE");
-    const name = buffer.subarray(nameStart, nameStart + nameLength).toString("utf8");
+    const name = new TextDecoder().decode(buffer.subarray(nameStart, nameStart + nameLength));
     if (name.startsWith("/") || name.split("/").includes("..")) throw new Error("DOCX_ARCHIVE_UNSAFE");
     names.add(name);
     totalCompressed += compressed;

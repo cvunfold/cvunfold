@@ -1,3 +1,4 @@
+import { usesEvidenceAssessment } from "../src/lib/ai/evidence-assessment";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -13,8 +14,9 @@ import {
 } from "../src/lib/ai/live-eval";
 import type { CVReport } from "../src/lib/ai/schemas/report";
 import { activePromptVariant, getReviewPrompt } from "../src/lib/ai/prompts";
-import { REVIEW_PIPELINE_VERSION } from "../src/lib/ai/review-provenance";
+import { REVIEW_PIPELINE_VERSION, type ReviewProvenance } from "../src/lib/ai/review-provenance";
 import { resolveModelPricing } from "../src/lib/ai/model-pricing";
+import { resolveReviewModel } from "../src/lib/ai/model-config";
 
 type Result = {
   id: string;
@@ -22,6 +24,7 @@ type Result = {
   status: "passed_automatic" | "failed_automatic" | "rejected_before_model" | "not_run";
   checks: Array<{ name: string; pass: boolean; detail?: string }>;
   model?: string;
+  provenance?: ReviewProvenance;
   inputTokens?: number;
   outputTokens?: number;
   estimatedCostPln?: number;
@@ -34,6 +37,7 @@ const casePath = join(process.cwd(), "fixtures", "live-eval-cases.json");
 const allCases = [
   ...JSON.parse(readFileSync(casePath, "utf8")),
   ...JSON.parse(readFileSync(join(process.cwd(), "fixtures", "career-eval-cases.json"), "utf8")),
+  ...JSON.parse(readFileSync(join(process.cwd(), "fixtures", "ai-role-eval-cases.json"), "utf8")),
 ] as LiveEvalCase[];
 const requestedCaseIds = new Set((process.env.OPENAI_EVAL_CASE_IDS || "").split(",").map((value) => value.trim()).filter(Boolean));
 const cases = requestedCaseIds.size ? allCases.filter((item) => requestedCaseIds.has(item.id)) : allCases;
@@ -51,7 +55,8 @@ const alreadySpentPln = Number(process.env.OPENAI_EVAL_ALREADY_SPENT_PLN || 0);
 const maxOutputTokens = Number(process.env.OPENAI_EVAL_MAX_OUTPUT_TOKENS || 6_000);
 // Price the preflight against the model that will actually be called, so the
 // hard cost cap cannot be defeated by a stale environment rate.
-const pricing = resolveModelPricing(process.env.OPENAI_REVIEW_MODEL || "");
+const reviewModel = resolveReviewModel();
+const pricing = resolveModelPricing(reviewModel);
 const inputRate = pricing.source === "unknown" ? Number.NaN : pricing.inputUsdPerMillion;
 const outputRate = pricing.source === "unknown" ? Number.NaN : pricing.outputUsdPerMillion;
 
@@ -65,19 +70,19 @@ if (requestedCaseIds.size && cases.length !== requestedCaseIds.size) throw new E
 const runnable = cases.flatMap((item) => locales.map((locale) => ({ item, locale }))).filter(({ item }) => !item.rejectBeforeModel);
 const ratesConfigured = Number.isFinite(inputRate) && inputRate >= 0 && Number.isFinite(outputRate) && outputRate >= 0;
 const rawWorstCaseCostPln = ratesConfigured ? estimateWorstCaseCostPln({
-  cases: runnable.map(({ item, locale }) => ({ cv: item.cv[locale], jobDescription: item.jobDescription?.[locale] })),
+  cases: runnable.flatMap(({ item, locale }) => usesEvidenceAssessment(item.targetRole, item.targetSeniority, item.careerContext || "standard") ? [ { cv: item.cv[locale], jobDescription: item.jobDescription?.[locale] }, { cv: item.cv[locale] } ] : [{ cv: item.cv[locale], jobDescription: item.jobDescription?.[locale] }]),
   // Estimate against the prompt that will actually run: v1.6-rc1 is roughly an
   // order of magnitude longer than the stable one, which moves the cost cap.
-  systemPromptCharacters: Math.max(0, ...runnable.map(({ item, locale }) => getReviewPrompt(locale, item.targetSeniority, item.careerContext).systemPrompt.length)),
+  systemPromptCharacters: Math.max(0, ...runnable.map(({ item, locale }) => getReviewPrompt(locale, item.targetSeniority, item.careerContext, item.targetRole).systemPrompt.length + (usesEvidenceAssessment(item.targetRole, item.targetSeniority, item.careerContext || "standard") ? getReviewPrompt(locale, item.targetSeniority, item.careerContext, item.targetRole).assessmentPrompt.length + 16000 : 0))),
   inputUsdPerMillion: inputRate,
   outputUsdPerMillion: outputRate,
-  maxOutputTokens,
+  maxOutputTokens: Math.max(maxOutputTokens, 6000),
   plnPerUsd,
 }) : null;
 const worstCaseCostPln = rawWorstCaseCostPln == null ? null : alreadySpentPln + rawWorstCaseCostPln * costSafetyFactor;
 
 async function main(): Promise<void> {
-  console.log(`CV Unfold live eval preflight: ${cases.length} cases × ${locales.length} locales, ${runnable.length} paid model calls.`);
+  console.log(`CV Unfold live eval preflight: ${cases.length} cases × ${locales.length} locales, ${runnable.reduce((sum, { item }) => sum + (usesEvidenceAssessment(item.targetRole, item.targetSeniority, item.careerContext || "standard") ? 2 : 1), 0)} paid model calls.`);
   console.log(`Mode: ${execute ? "EXECUTE" : "DRY RUN"}. Hard cap: ${maxCostPln.toFixed(2)} PLN.`);
   console.log(`Pricing: ${pricing.source} ($${pricing.inputUsdPerMillion}/$${pricing.outputUsdPerMillion} per 1M).`);
   console.log(`Prompt variant: ${activePromptVariant()} (${locales.map((locale) => `${locale}=${getReviewPrompt(locale).version}`).join(", ")}). Pipeline: ${REVIEW_PIPELINE_VERSION}.`);
@@ -88,7 +93,7 @@ async function main(): Promise<void> {
     console.log("Dry run complete. Use `pnpm eval:live -- --execute` only after confirming the CV Unfold OpenAI project and budget.");
     return;
   }
-  if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_REVIEW_MODEL) throw new Error("CV Unfold OPENAI_API_KEY and OPENAI_REVIEW_MODEL are required.");
+  if (!process.env.OPENAI_API_KEY) throw new Error("CV Unfold OPENAI_API_KEY is required.");
   if (!ratesConfigured || worstCaseCostPln == null) throw new Error("OPENAI model input/output rates are required before paid eval execution.");
   if (worstCaseCostPln > maxCostPln) throw new Error(`Worst-case estimate ${worstCaseCostPln.toFixed(2)} PLN exceeds the ${maxCostPln.toFixed(2)} PLN cap.`);
 
@@ -134,11 +139,14 @@ async function main(): Promise<void> {
           status: checks.every((check) => check.pass) ? "passed_automatic" : "failed_automatic",
           checks,
           model: telemetry.model,
+          provenance: telemetry.provenance,
           inputTokens: telemetry.inputTokens,
           outputTokens: telemetry.outputTokens,
           estimatedCostPln: costPln,
           reportFile,
         });
+        writeFileSync(join(outputDir, "progress.json"), `${JSON.stringify({ model: reviewModel, selectedCaseIds: cases.map(item => item.id), actualCostPln, results }, null, 2)}\n`, { mode: 0o600 });
+        console.log(`${item.id}/${locale}: ${results.at(-1)!.status}, score ${report.summary.overallScore}, estimated ${actualCostPln.toFixed(3)} PLN.`);
         if (actualCostPln > maxCostPln) {
           results.push({ id: item.id, locale, status: "failed_automatic", checks: [], errorCategory: "OPENAI_EVAL_COST_CAP_EXCEEDED" });
           break caseLoop;
@@ -172,10 +180,10 @@ async function main(): Promise<void> {
   });
   writeFileSync(join(outputDir, "summary.json"), `${JSON.stringify({
     generatedAt: new Date().toISOString(),
-    model: process.env.OPENAI_REVIEW_MODEL,
+    model: reviewModel,
     // Provenance of this run. Never compare two summaries whose provenance differs.
     promptVariant: activePromptVariant(),
-    promptVersions: Object.fromEntries(runnable.map(({ item, locale }) => [`${item.id}:${locale}`, getReviewPrompt(locale, item.targetSeniority, item.careerContext).version])),
+    promptVersions: Object.fromEntries(results.filter(result => result.provenance).map(result => [`${result.id}:${result.locale}`, result.provenance!.promptVersion])),
     pipelineVersion: REVIEW_PIPELINE_VERSION,
     locales,
     maxCostPln,
