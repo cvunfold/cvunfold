@@ -1,6 +1,6 @@
 # Production launch runbook
 
-Każda operacja zewnętrzna wymaga preflightu: **SERVICE, ACCOUNT, ORGANIZATION/TEAM, PROJECT, ENVIRONMENT**. Wspólny Gmail nie potwierdza własności. Neopadel i zasoby innych klientów są zabronione.
+Każda operacja zewnętrzna wymaga preflightu: **SERVICE, ACCOUNT, ORGANIZATION/TEAM, PROJECT, ENVIRONMENT**. Wspólny Gmail nie potwierdza własności. Zasoby innych pracodawców i klientów są zabronione.
 
 ## 24 godziny przed launch
 
