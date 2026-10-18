@@ -9,7 +9,7 @@ The earlier same-day suite consumed the Preview hourly allowance. After a 429 be
 Last verified: 2026-08-14 (Europe/Warsaw).
 
 This registry is the preflight source of truth for external writes. A shared
-email address is not an ownership signal. NeoPadel and all other client or
+email address is not an ownership signal. All other client or
 employer resources remain forbidden.
 
 | Service | Account | Organization / team | Project | Environment | Write status |
